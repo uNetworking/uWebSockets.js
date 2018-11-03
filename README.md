@@ -27,3 +27,12 @@ const app = uWS.SSLApp({
 ### Benchmarks
 Performance retention is up to 70% of native C++ µWebSockets v0.15.
 ![](benchmarks.png)
+
+### Kick-start
+The following works for Linux and macOS systems:
+```
+git clone --recursive https://github.com/uNetworking/uWebSockets-node.git
+cd uWebSockets-node
+make
+node examples/HelloWorld.js
+```

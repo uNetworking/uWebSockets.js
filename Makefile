@@ -1,6 +1,6 @@
-C_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -I ../uWebSockets/uSockets/src ../uWebSockets/uSockets/src/*.c ../uWebSockets/uSockets/src/eventing/*.c
+C_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c
 
-CPP_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -std=c++17 -I ../uWebSockets/uSockets/src -I ../uWebSockets/src src/addon.cpp
+CPP_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -std=c++17 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp
 
 CPP_OSX := -stdlib=libc++ -mmacosx-version-min=10.7 -undefined dynamic_lookup
 

@@ -50,16 +50,29 @@ int main(int argc, char *argv[]) {
         // register functions (here is where addon.cpp comes in)
         Local<ObjectTemplate> global = ObjectTemplate::New(isolate);
 
-        // at least register print to global
-        global->Set(String::NewFromUtf8(isolate, "print", NewStringType::kNormal).ToLocalChecked(),
+        // add sign of stand-alone
+        global->Set(isolate, "runtime", String::NewFromUtf8(isolate, "µWebSockets.js", NewStringType::kNormal).ToLocalChecked());
+
+        // console namespace
+        Local<ObjectTemplate> console = ObjectTemplate::New(isolate);
+        // console.log
+        console->Set(String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked(),
         FunctionTemplate::New(isolate, print));
+
+        // uWS namespace
+        Local<ObjectTemplate> uWS = ObjectTemplate::New(isolate);
+
+        global->Set(String::NewFromUtf8(isolate, "console", NewStringType::kNormal).ToLocalChecked(),
+        console);
+        global->Set(String::NewFromUtf8(isolate, "uWS", NewStringType::kNormal).ToLocalChecked(),
+        uWS);
 
         // vi skapar ett context som håller det globala objektet
         Local<Context> context = Context::New(isolate, nullptr, global);
         Context::Scope context_scope(context);
 
-        // register µWS features
-        Main(context->Global());
+        // register µWS features under uWS namespace
+        Main(Local<Object>::Cast(context->Global()->Get(String::NewFromUtf8(isolate, "uWS", NewStringType::kNormal).ToLocalChecked())));
 
         // ladda in scriptet (preprocessa include)
         Local<String> source = String::NewFromUtf8(isolate, code.data(), NewStringType::kNormal, (int) code.length()).ToLocalChecked();

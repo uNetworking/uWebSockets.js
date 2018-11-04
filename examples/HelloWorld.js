@@ -1,8 +1,8 @@
-const uWS = require('../dist/uws.js');
+/* The stand-alone runtime has uWS namespace already loaded. */
+var uWS = uWS ? uWS : require('../dist/uws.js');
 
+const world = 'Strings are slower than ArrayBuffer but who cares for demo purose!';
 const port = 3000;
-
-const world = new (require('util').TextEncoder)().encode('World!');
 
 uWS.App().get('/hello', (res, req) => {
   res.end(world);
@@ -16,4 +16,5 @@ uWS.App().get('/hello', (res, req) => {
   }
 });
 
+/* This is not true for stand-alone */
 console.log('Timers will not work until us_loop_integrate is done');

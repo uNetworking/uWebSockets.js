@@ -1,4 +1,4 @@
-/* This addon should depend on nothing but raw, vanilla Google V8 and µWebSockets. */
+/* We are only allowed to depend on µWS and V8 in this layer. */
 #include "App.h"
 #include <v8.h>
 using namespace v8;
@@ -7,6 +7,8 @@ Persistent<Object> resTemplate;
 Persistent<Object> reqTemplate;
 
 #include <iostream>
+#include <vector>
+std::vector<Persistent<Function, CopyablePersistentTraits<Function>>> nextTickQueue;
 
 class NativeString {
     char *data;
@@ -121,15 +123,6 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
-// should absolutely not depend on libuv here!
-#ifndef ADDON_IS_HOST
-#include <uv.h>
-uv_check_t check;
-#endif
-
-#include <vector>
-std::vector<Persistent<Function, CopyablePersistentTraits<Function>>> nextTickQueue;
-
 // we need to override process.nextTick to avoid horrible loss of performance by Node.js
 void nextTick(const FunctionCallbackInfo<Value> &args) {
     nextTickQueue.push_back(Persistent<Function, CopyablePersistentTraits<Function>>(isolate, Local<Function>::Cast(args[0])));
@@ -158,34 +151,28 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(localApp);
 }
 
-// we should absolutely not depend on libuv here
-// move this over to depend on µWS's loop post features
+void emptyNextTickQueue(Isolate *isolate) {
+    if (nextTickQueue.size()) {
+        HandleScope hs(isolate);
+
+        for (Persistent<Function, CopyablePersistentTraits<Function>> &f : nextTickQueue) {
+            Local<Function>::New(isolate, f)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
+            f.Reset();
+        }
+
+        nextTickQueue.clear();
+    }
+}
 
 void Main(Local<Object> exports) {
 
     isolate = exports->GetIsolate();
 
-#ifndef ADDON_IS_HOST
-    /* uWS.nextTick is executed in uv_check_t */
-    uv_loop_t *loop = uv_default_loop();
-    uv_check_init(loop, &check);
-    check.data = isolate;
-    uv_check_start(&check, [](uv_check_t *check) {
-
-        if (nextTickQueue.size()) {
-            Isolate *isolate = (Isolate *) check->data;
-            HandleScope hs(isolate);
-
-            for (Persistent<Function, CopyablePersistentTraits<Function>> &f : nextTickQueue) {
-                Local<Function>::New(isolate, f)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
-                f.Reset();
-            }
-
-            nextTickQueue.clear();
-        }
+    /* Register our own nextTick handler */
+    /* We should probably also do this in pre, just to be sure */
+    uWS::Loop::defaultLoop()->setPostHandler([isolate](uWS::Loop *) {
+        emptyNextTickQueue(isolate);
     });
-    uv_unref((uv_handle_t *) &check);
-#endif
 
     /*reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "url"), Request::url);
     reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "method"), Request::method);*/
@@ -215,8 +202,7 @@ void Main(Local<Object> exports) {
     reqTemplate.Reset(isolate, reqObjectLocal);
 }
 
-/* This is the only part where we are allowed/forced to add Node.js specific code.
- * We do this because we are forced to, and we need a node module version added */
+/* This is required when building as a Node.js addon */
 #ifndef ADDON_IS_HOST
 #include <node.h>
 NODE_MODULE(uWS, Main)

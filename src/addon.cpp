@@ -1,10 +1,12 @@
-/* We depend only on raw & vanilla libuv, V8 and OpenSSL.
- * There is to be no dependencies on anything Node.js in here. */
-#include <uv.h>
+/* This addon should depend on nothing but raw, vanilla Google V8 and µWebSockets. */
+#include "App.h"
 #include <v8.h>
+using namespace v8;
+Isolate *isolate;
+Persistent<Object> resTemplate;
+Persistent<Object> reqTemplate;
 
 #include <iostream>
-using namespace v8;
 
 class NativeString {
     char *data;
@@ -12,12 +14,12 @@ class NativeString {
     char utf8ValueMemory[sizeof(String::Utf8Value)];
     String::Utf8Value *utf8Value = nullptr;
 public:
-    NativeString(const Local<Value> &value) {
+    NativeString(Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
-            utf8Value = new (utf8ValueMemory) String::Utf8Value(value);
+            utf8Value = new (utf8ValueMemory) String::Utf8Value(isolate, value);
             data = (**utf8Value);
             length = utf8Value->length();
         } else if (value->IsTypedArray()) {
@@ -46,17 +48,12 @@ public:
     }
 };
 
-#include "App.h"
-Isolate *isolate;
-Persistent<Object> resTemplate;
-Persistent<Object> reqTemplate;
-
 void res_end(const FunctionCallbackInfo<Value> &args) {
 
     // you might want to do extra work here to swap to tryEnd if passed a Buffer?
     // or always use tryEnd and simply grab the object as persistent?
 
-    NativeString data(args[0]);
+    NativeString data(args.GetIsolate(), args[0]);
     ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->end(std::string_view(data.getData(), data.getLength()));
 
     // Return this
@@ -65,8 +62,8 @@ void res_end(const FunctionCallbackInfo<Value> &args) {
 
 void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
     // get string
-    NativeString header(args[0]);
-    NativeString value(args[1]);
+    NativeString header(args.GetIsolate(), args[0]);
+    NativeString value(args.GetIsolate(), args[1]);
 
     ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->writeHeader(std::string_view(header.getData(), header.getLength()), std::string_view(value.getData(), value.getLength()));
 
@@ -75,7 +72,7 @@ void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
 
 void req_getHeader(const FunctionCallbackInfo<Value> &args) {
     // get string
-    NativeString data(args[0]);
+    NativeString data(args.GetIsolate(), args[0]);
     char *buf = data.getData(); int length = data.getLength();
 
     std::string_view header = ((uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0))->getHeader(std::string_view(buf, length));
@@ -86,7 +83,7 @@ void req_getHeader(const FunctionCallbackInfo<Value> &args) {
 void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
     uWS::App *app = (uWS::App *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
-    NativeString nativeString(args[0]);
+    NativeString nativeString(args.GetIsolate(), args[0]);
 
     Persistent<Function> *pf = new Persistent<Function>();
     pf->Reset(args.GetIsolate(), Local<Function>::Cast(args[1]));
@@ -113,7 +110,7 @@ void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     uWS::App *app = (uWS::App *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
-    int port = args[0]->Uint32Value();
+    int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
 
     app->listen(port, [&args](auto *token) {
         Local<Value> argv[] = {Boolean::New(isolate, token)};
@@ -124,7 +121,12 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
+// should absolutely not depend on libuv here!
+#ifndef ADDON_IS_HOST
+#include <uv.h>
 uv_check_t check;
+#endif
+
 #include <vector>
 std::vector<Persistent<Function, CopyablePersistentTraits<Function>>> nextTickQueue;
 
@@ -156,10 +158,14 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(localApp);
 }
 
+// we should absolutely not depend on libuv here
+// move this over to depend on µWS's loop post features
+
 void Main(Local<Object> exports) {
 
     isolate = exports->GetIsolate();
 
+#ifndef ADDON_IS_HOST
     /* uWS.nextTick is executed in uv_check_t */
     uv_loop_t *loop = uv_default_loop();
     uv_check_init(loop, &check);
@@ -179,6 +185,7 @@ void Main(Local<Object> exports) {
         }
     });
     uv_unref((uv_handle_t *) &check);
+#endif
 
     /*reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "url"), Request::url);
     reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "method"), Request::method);*/
@@ -210,5 +217,7 @@ void Main(Local<Object> exports) {
 
 /* This is the only part where we are allowed/forced to add Node.js specific code.
  * We do this because we are forced to, and we need a node module version added */
+#ifndef ADDON_IS_HOST
 #include <node.h>
 NODE_MODULE(uWS, Main)
+#endif

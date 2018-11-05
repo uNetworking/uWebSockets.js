@@ -170,7 +170,7 @@ void Main(Local<Object> exports) {
 
     /* Register our own nextTick handler */
     /* We should probably also do this in pre, just to be sure */
-    uWS::Loop::defaultLoop()->setPostHandler([isolate](uWS::Loop *) {
+    uWS::Loop::defaultLoop()->setPostHandler([](uWS::Loop *) {
         emptyNextTickQueue(isolate);
     });
 

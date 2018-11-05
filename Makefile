@@ -8,21 +8,19 @@ CPP_OSX := -stdlib=libc++ $(C_OSX)
 
 default:
 	make targets
-	NODE=targets/node-v9.2.0 ABI=59 make `(uname -s)`
 	NODE=targets/node-v10.0.0 ABI=64 make `(uname -s)`
 	NODE=targets/node-v11.1.0 ABI=67 make `(uname -s)`
 	for f in dist/*.node; do chmod +x $$f; done
 targets:
 	mkdir targets
-	curl https://nodejs.org/dist/v9.2.0/node-v9.2.0-headers.tar.gz | tar xz -C targets
 	curl https://nodejs.org/dist/v10.0.0/node-v10.0.0-headers.tar.gz | tar xz -C targets
 	curl https://nodejs.org/dist/v11.1.0/node-v11.1.0-headers.tar.gz | tar xz -C targets
 Linux:
-	gcc $(C_SHARED)
+	gcc $(C_SHARED) -I $$NODE/include/node
 	g++ $(CPP_SHARED) -I $$NODE/include/node
 	g++ -flto -O3 *.o -std=c++17 -shared -static-libstdc++ -static-libgcc -s -o dist/uws_linux_$$ABI.node
 Darwin:
-	gcc $(C_OSX) $(C_SHARED)
+	gcc $(C_OSX) $(C_SHARED) -I $$NODE/include/node
 	g++ $(CPP_OSX) $(CPP_SHARED) -I $$NODE/include/node
 	g++ $(CPP_OSX) -flto -O3 *.o -std=c++17 -shared -undefined dynamic_lookup -o dist/uws_darwin_$$ABI.node
 .PHONY: clean

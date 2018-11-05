@@ -5,6 +5,6 @@ module.exports = (() => {
 		process.nextTick = (f, ...args) => uWS.nextTick(f.apply(...args));
 		return uWS;
 	} catch (e) {
-		throw new Error('This version of µWS is not compatible with your Node.js build.');
+		throw new Error('This version of µWS is not compatible with your Node.js build.\n\n' + e.toString());
 	}
 })();

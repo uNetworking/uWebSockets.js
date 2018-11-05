@@ -2,7 +2,9 @@ C_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -I uWebSockets/uSockets/src uWe
 
 CPP_SHARED := -DLIBUS_USE_LIBUV -flto -O3 -c -fPIC -std=c++17 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp
 
-CPP_OSX := -stdlib=libc++ -mmacosx-version-min=10.7 -undefined dynamic_lookup
+C_OSX := -mmacosx-version-min=10.7
+
+CPP_OSX := -stdlib=libc++ $(C_OSX)
 
 default:
 	make targets
@@ -20,7 +22,9 @@ Linux:
 	g++ $(CPP_SHARED) -I $$NODE/include/node
 	g++ -flto -O3 *.o -std=c++17 -shared -static-libstdc++ -static-libgcc -s -o dist/uws_linux_$$ABI.node
 Darwin:
-	g++ $(CPP_SHARED) $(CPP_OSX) -I $$NODE/include/node -o dist/uws_darwin_$$ABI.node
+	gcc $(C_OSX) $(C_SHARED)
+	g++ $(CPP_OSX) $(CPP_SHARED) -I $$NODE/include/node
+	g++ $(CPP_OSX) -flto -O3 *.o -std=c++17 -shared -undefined dynamic_lookup -o dist/uws_darwin_$$ABI.node
 .PHONY: clean
 clean:
 	rm -f dist/README.md

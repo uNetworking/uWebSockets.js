@@ -1,4 +1,4 @@
-**µWebSockets.js** is a JavaScript platform, runtime and web server. It can serve Http about 6x that of Node.js and 12x that of Deno and outperforms Golang's fasthttp with ease.
+**µWebSockets.js** is a JavaScript platform, runtime and web server.
 
 There are two modes; compiled as a stand-alone JavaScript runtime or as a Node.js native addon.
 
@@ -24,7 +24,7 @@ uWS.App().get('/hello', (res, req) => {
 
 ### Benchmarks
 Performance retention is up to 70% of native C++ µWebSockets v0.15.
-![](benchmarks.png)
+![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png)
 
 ### Kick-start
 Easiest is to compile yourself a Node.js native addon. The following works for Linux and macOS systems:

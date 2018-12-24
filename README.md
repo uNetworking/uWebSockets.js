@@ -1,4 +1,4 @@
-**µWebSockets.js** is a JavaScript platform, runtime and web server.
+**µWebSockets.js** is a JavaScript platform, runtime and web server built on [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15 and V8.
 
 There are two modes; compiled as a stand-alone JavaScript runtime or as a Node.js native addon.
 
@@ -23,7 +23,7 @@ uWS.App().get('/hello', (res, req) => {
 ```
 
 ### Benchmarks
-Performance retention is up to 70% of native C++ µWebSockets v0.15.
+Performance retention is up to 70% of native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That puts it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.
 ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png)
 
 ### Kick-start

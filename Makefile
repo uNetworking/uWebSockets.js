@@ -16,9 +16,9 @@ targets:
 	curl https://nodejs.org/dist/v10.0.0/node-v10.0.0-headers.tar.gz | tar xz -C targets
 	curl https://nodejs.org/dist/v11.1.0/node-v11.1.0-headers.tar.gz | tar xz -C targets
 Linux:
-	gcc $(C_SHARED) -I $$NODE/include/node
-	g++ $(CPP_SHARED) -I $$NODE/include/node
-	g++ -flto -O3 *.o -std=c++17 -shared -static-libstdc++ -static-libgcc -s -o dist/uws_linux_$$ABI.node
+	clang $(C_SHARED) -I $$NODE/include/node
+	clang++ $(CPP_SHARED) -I $$NODE/include/node
+	clang++ -flto -O3 *.o -std=c++17 -shared -static-libstdc++ -static-libgcc -s -o dist/uws_linux_$$ABI.node
 Darwin:
 	gcc $(C_OSX) $(C_SHARED) -I $$NODE/include/node
 	g++ $(CPP_OSX) $(CPP_SHARED) -I $$NODE/include/node

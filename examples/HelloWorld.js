@@ -1,13 +1,21 @@
 /* The stand-alone runtime has uWS namespace already loaded. */
 var uWS = uWS ? uWS : require('../dist/uws.js');
 
-const world = 'Strings are slower than ArrayBuffer but who cares for demo purose!';
 const port = 3000;
 
-uWS.App().get('/hello', (res, req) => {
-  res.end(world);
-}).get('/*', (res, req) => {
-  res.writeHeader('content-type', 'text/html; charset= utf-8').end(req.getHeader('user-agent') + ' är din user agent, biatch!');
+const app = uWS./*SSL*/App({
+  key_file_name: '/home/alexhultman/key.pem',
+  cert_file_name: '/home/alexhultman/cert.pem',
+  passphrase: '1234'
+}).get('/hello', (res, req) => {
+  res.end('Hejdå!');
+}).ws('/*', {
+  open: (ws, req) => {
+    console.log('hello websocket!');
+  },
+  message: () => {
+    console.log('message from websocket yo');
+  }
 }).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);

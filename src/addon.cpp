@@ -24,6 +24,7 @@ Persistent<Object> reqTemplate;
 
 #include <iostream>
 #include <vector>
+#include <type_traits>
 std::vector<Persistent<Function, CopyablePersistentTraits<Function>>> nextTickQueue;
 
 class NativeString {
@@ -83,7 +84,8 @@ void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
     NativeString header(args.GetIsolate(), args[0]);
     NativeString value(args.GetIsolate(), args[1]);
 
-    ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->writeHeader(std::string_view(header.getData(), header.getLength()), std::string_view(value.getData(), value.getLength()));
+    ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->writeHeader(std::string_view(header.getData(), header.getLength()),
+                                                                                                     std::string_view(value.getData(), value.getLength()));
 
     args.GetReturnValue().Set(args.Holder());
 }
@@ -98,8 +100,64 @@ void req_getHeader(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, header.data(), v8::String::kNormalString, header.length()));
 }
 
+/* WebSocket send */
+void uWS_WebSocket_send() {
+
+}
+
+/* uWS.App.ws('/pattern', options) */
+template <typename APP>
+void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    NativeString nativeString(args.GetIsolate(), args[0]);
+
+    Persistent<Function> *openPf = new Persistent<Function>();
+    Persistent<Function> *messagePf = new Persistent<Function>();
+
+    /* Get the behavior object */
+    if (args.Length() == 2) {
+        Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
+
+        /* Open */
+        openPf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
+        /* Message */
+        messagePf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "message"))));
+    }
+
+    app->template ws<void>(std::string(nativeString.getData(), nativeString.getLength()), {
+
+        /*.compression = uWS::SHARED_COMPRESSOR,
+        .maxPayloadLength = 16 * 1024,*/
+        .open = [openPf](auto *ws, auto *req) {
+           HandleScope hs(isolate);
+
+           /* Attach a new V8 object with pointer to us, to us */
+
+           //Local<Value> argv[] = {resObject, reqObject};
+           Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
+
+        },
+        .message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {
+            HandleScope hs(isolate);
+            /* ws's user data holds pointer to persistent object which is the V8 representation we pass here */
+            Local<Value> argv[] = {}; // ws, message, opCode
+            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        }/*
+        .drain = []() {},
+        .ping = []() {},
+        .pong = []() {},
+        .close = []() {}*/
+    });
+
+    // Return this
+    args.GetReturnValue().Set(args.Holder());
+}
+
+// todo: all other methods
+template <typename APP>
 void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
-    uWS::App *app = (uWS::App *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
     NativeString nativeString(args.GetIsolate(), args[0]);
 
@@ -124,9 +182,9 @@ void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
-// port, callback?
+template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
-    uWS::App *app = (uWS::App *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
     int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
 
@@ -139,32 +197,77 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
-// we need to override process.nextTick to avoid horrible loss of performance by Node.js
-void nextTick(const FunctionCallbackInfo<Value> &args) {
-    nextTickQueue.push_back(Persistent<Function, CopyablePersistentTraits<Function>>(isolate, Local<Function>::Cast(args[0])));
-}
-
-// uWS.App() -> object
+template <typename APP>
 void uWS_App(const FunctionCallbackInfo<Value> &args) {
-    // uWS.App
     Local<FunctionTemplate> appTemplate = FunctionTemplate::New(isolate);
-    appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.App"));
+
+    APP *app;
+
+    /* Name differs based on type */
+    if (std::is_same<APP, uWS::SSLApp>::value) {
+        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLApp"));
+
+        /* We fill these below */
+        us_ssl_socket_context_options ssl_options = {};
+
+        static std::string keyFileName;
+        static std::string certFileName;
+        static std::string passphrase;
+
+        /* Read the options object (SSL options) */
+        if (args.Length() == 1) {
+            /* Key file name */
+            NativeString keyFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "key_file_name")));
+            if (keyFileNameValue.getLength()) {
+                keyFileName.append(keyFileNameValue.getData(), keyFileNameValue.getLength());
+                ssl_options.key_file_name = keyFileName.c_str();
+            }
+
+            /* Cert file name */
+            NativeString certFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "cert_file_name")));
+            if (certFileNameValue.getLength()) {
+                certFileName.append(certFileNameValue.getData(), certFileNameValue.getLength());
+                ssl_options.cert_file_name = certFileName.c_str();
+            }
+
+            /* Passphrase */
+            NativeString passphraseValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "passphrase")));
+            if (passphraseValue.getLength()) {
+                passphrase.append(passphraseValue.getData(), passphraseValue.getLength());
+                ssl_options.passphrase = passphrase.c_str();
+            }
+        }
+
+        app = new APP(ssl_options);
+    } else {
+        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.App"));
+        app = new APP;
+    }
+
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Get
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, uWS_App_get));
+    // Get and all the Http methods
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, uWS_App_get<APP>));
+
+    // Ws
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
 
     // Listen
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
 
     // Instantiate and set intenal pointer
     Local<Object> localApp = appTemplate->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 
     // Delete this boy
-    localApp->SetAlignedPointerInInternalField(0, new uWS::App());
+    localApp->SetAlignedPointerInInternalField(0, app);
 
     // Return an instance of this shit
     args.GetReturnValue().Set(localApp);
+}
+
+// we need to override process.nextTick to avoid horrible loss of performance by Node.js
+void nextTick(const FunctionCallbackInfo<Value> &args) {
+    nextTickQueue.push_back(Persistent<Function, CopyablePersistentTraits<Function>>(isolate, Local<Function>::Cast(args[0])));
 }
 
 void emptyNextTickQueue(Isolate *isolate) {
@@ -194,11 +297,11 @@ void Main(Local<Object> exports) {
     reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "method"), Request::method);*/
 
     /* uWS namespace */
-    exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "nextTick"), FunctionTemplate::New(isolate, nextTick)->GetFunction());
 
-
-    // HttpResponse template
+    // HttpResponse template (not templated)
     Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
     resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpResponse"));
     resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);

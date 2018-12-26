@@ -2,6 +2,14 @@
 
 There are two modes; compiled as a stand-alone JavaScript runtime or as a Node.js native addon.
 
+For the most common Node.js systems are available precompiled binaries:
+
+```
+npm install uNetworking/uWebSockets.js#semver:0.1.0
+```
+
+ or any such version.
+
 ```javascript
 /* The stand-alone runtime has uWS namespace already loaded. */
 var uWS = uWS ? uWS : require('../dist/uws.js');
@@ -26,7 +34,7 @@ uWS.App().get('/hello', (res, req) => {
 Performance retention is up to 70% of native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That puts it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.
 ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png)
 
-### Kick-start
+### Build from source
 Easiest is to compile yourself a Node.js native addon. The following works for Linux and macOS systems:
 ```
 git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

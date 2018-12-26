@@ -312,6 +312,9 @@ void Main(Local<Object> exports) {
         emptyNextTickQueue(isolate);
     });
 
+    /* Hook up our timers */
+    us_loop_integrate((us_loop *) uWS::Loop::defaultLoop());
+
     /*reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "url"), Request::url);
     reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "method"), Request::method);*/
 

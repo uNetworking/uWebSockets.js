@@ -31,7 +31,7 @@ uWS.App().get('/hello', (res, req) => {
 ```
 
 ### Benchmarks
-Performance retention is up to 70% of native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That puts it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.
+Performance retention is up to 75% of native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That puts it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.
 ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png)
 
 ### Build from source

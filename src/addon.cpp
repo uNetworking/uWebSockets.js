@@ -21,6 +21,7 @@ using namespace v8;
 Isolate *isolate;
 Persistent<Object> resTemplate;
 Persistent<Object> reqTemplate;
+Persistent<Object> wsTemplate;
 
 #include <iostream>
 #include <vector>
@@ -101,8 +102,15 @@ void req_getHeader(const FunctionCallbackInfo<Value> &args) {
 }
 
 /* WebSocket send */
-void uWS_WebSocket_send() {
+// not properly templated, just like the httpsockets are not!
+void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
+    uWS::WebSocket<false, true> *ws = (uWS::WebSocket<false, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
+    NativeString nativeString(args.GetIsolate(), args[0]);
+
+    //std::cout << std::string_view(nativeString.getData(), nativeString.getLength()) << std::endl;
+
+    ws->send(std::string_view(nativeString.getData(), nativeString.getLength()), uWS::OpCode::TEXT);
 }
 
 /* uWS.App.ws('/pattern', options) */
@@ -115,6 +123,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     Persistent<Function> *openPf = new Persistent<Function>();
     Persistent<Function> *messagePf = new Persistent<Function>();
 
+    struct PerSocketData {
+        Persistent<Object> *socketPf;
+    };
+
     /* Get the behavior object */
     if (args.Length() == 2) {
         Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
@@ -125,24 +137,31 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         messagePf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "message"))));
     }
 
-    app->template ws<void>(std::string(nativeString.getData(), nativeString.getLength()), {
+    app->template ws<PerSocketData>(std::string(nativeString.getData(), nativeString.getLength()), {
 
         /*.compression = uWS::SHARED_COMPRESSOR,
         .maxPayloadLength = 16 * 1024,*/
         .open = [openPf](auto *ws, auto *req) {
            HandleScope hs(isolate);
 
+           /* Create a new websocket object */
+           Local<Object> wsObject = Local<Object>::New(isolate, wsTemplate)->Clone();
+           wsObject->SetAlignedPointerInInternalField(0, ws);
+
            /* Attach a new V8 object with pointer to us, to us */
+           PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+           perSocketData->socketPf = new Persistent<Object>;
+           perSocketData->socketPf->Reset(isolate, wsObject);
 
-           //Local<Value> argv[] = {resObject, reqObject};
-           Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
-
+           Local<Value> argv[] = {wsObject};
+           Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
         },
         .message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {
             HandleScope hs(isolate);
-            /* ws's user data holds pointer to persistent object which is the V8 representation we pass here */
-            Local<Value> argv[] = {}; // ws, message, opCode
-            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            Local<Value> argv[2] = {Local<Object>::New(isolate, *(perSocketData->socketPf)), ArrayBuffer::New(isolate, (void *) message.data(), message.length())}; // ws, message, opCode
+            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
         }/*
         .drain = []() {},
         .ping = []() {},
@@ -300,6 +319,15 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "nextTick"), FunctionTemplate::New(isolate, nextTick)->GetFunction());
+
+    /* The template for websockets */
+    Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
+    wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket"));
+    wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+    wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send));
+
+    Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+    wsTemplate.Reset(isolate, wsObjectLocal);
 
     // HttpResponse template (not templated)
     Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);

@@ -11,10 +11,10 @@ const app = uWS./*SSL*/App({
   res.end('Hejdå!');
 }).ws('/*', {
   open: (ws, req) => {
-    console.log('hello websocket!');
+    console.log(ws);
   },
-  message: () => {
-    console.log('message from websocket yo');
+  message: (ws, message) => {
+    ws.send(message);
   }
 }).listen(port, (token) => {
   if (token) {

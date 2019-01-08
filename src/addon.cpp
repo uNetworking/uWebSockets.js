@@ -19,9 +19,6 @@
 #include <v8.h>
 using namespace v8;
 Isolate *isolate;
-Persistent<Object> resTemplate;
-Persistent<Object> reqTemplate;
-Persistent<Object> wsTemplate;
 
 #include <iostream>
 #include <vector>
@@ -68,28 +65,99 @@ public:
     }
 };
 
+// also wrap all of this in some common struct
+Persistent<Object> wsTemplate[2];
+
+/* WebSocket send */
+
+template <bool SSL>
+void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
+    NativeString nativeString(args.GetIsolate(), args[0]);
+
+    bool isBinary = args[1]->Int32Value();
+
+    bool ok = ((uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0))->send(
+                std::string_view(nativeString.getData(), nativeString.getLength()), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT
+                );
+
+    args.GetReturnValue().Set(Boolean::New(isolate, ok));
+}
+
+template <bool SSL>
+void initWsTemplate() {
+    Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
+    if (SSL) {
+        wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLWebSocket"));
+    } else {
+        wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket"));
+    }
+    wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+    wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
+
+    Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+    wsTemplate[SSL].Reset(isolate, wsObjectLocal);
+}
+
+template <class APP>
+Local<Object> getWsInstance() {
+    return Local<Object>::New(isolate, wsTemplate[std::is_same<APP, uWS::SSLApp>::value])->Clone();
+}
+
+/*
+template <bool SSL>
+struct HttpResponseWrapper {
+
+    HttpResponseWrapper() {
+
+    }
+
+
+
+};*/
+
+// this whole template thing could be one struct with members to order tihngs better
+Persistent<Object> resTemplate[2];
+
+template <bool SSL>
 void res_end(const FunctionCallbackInfo<Value> &args) {
-
-    // you might want to do extra work here to swap to tryEnd if passed a Buffer?
-    // or always use tryEnd and simply grab the object as persistent?
-
     NativeString data(args.GetIsolate(), args[0]);
-    ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->end(std::string_view(data.getData(), data.getLength()));
+    ((uWS::HttpResponse<SSL> *) args.Holder()->GetAlignedPointerFromInternalField(0))->end(std::string_view(data.getData(), data.getLength()));
 
-    // Return this
     args.GetReturnValue().Set(args.Holder());
 }
 
+template <bool SSL>
 void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
-    // get string
     NativeString header(args.GetIsolate(), args[0]);
     NativeString value(args.GetIsolate(), args[1]);
-
-    ((uWS::HttpResponse<false> *) args.Holder()->GetAlignedPointerFromInternalField(0))->writeHeader(std::string_view(header.getData(), header.getLength()),
+    ((uWS::HttpResponse<SSL> *) args.Holder()->GetAlignedPointerFromInternalField(0))->writeHeader(std::string_view(header.getData(), header.getLength()),
                                                                                                      std::string_view(value.getData(), value.getLength()));
 
     args.GetReturnValue().Set(args.Holder());
 }
+
+template <bool SSL>
+void initResTemplate() {
+    Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
+    if (SSL) {
+        resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLHttpResponse"));
+    } else {
+        resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpResponse"));
+    }
+    resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+    resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, res_end<SSL>));
+    resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader"), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
+
+    Local<Object> resObjectLocal = resTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+    resTemplate[SSL].Reset(isolate, resObjectLocal);
+}
+
+template <class APP>
+Local<Object> getResInstance() {
+    return Local<Object>::New(isolate, resTemplate[std::is_same<APP, uWS::SSLApp>::value])->Clone();
+}
+
+Persistent<Object> reqTemplate;
 
 void req_getHeader(const FunctionCallbackInfo<Value> &args) {
     // get string
@@ -99,18 +167,6 @@ void req_getHeader(const FunctionCallbackInfo<Value> &args) {
     std::string_view header = ((uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0))->getHeader(std::string_view(buf, length));
 
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, header.data(), v8::String::kNormalString, header.length()));
-}
-
-/* WebSocket send */
-// not properly templated, just like the httpsockets are not!
-void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
-    uWS::WebSocket<false, true> *ws = (uWS::WebSocket<false, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
-
-    NativeString nativeString(args.GetIsolate(), args[0]);
-
-    //std::cout << std::string_view(nativeString.getData(), nativeString.getLength()) << std::endl;
-
-    ws->send(std::string_view(nativeString.getData(), nativeString.getLength()), uWS::OpCode::TEXT);
 }
 
 /* uWS.App.ws('/pattern', options) */
@@ -123,6 +179,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     Persistent<Function> *openPf = new Persistent<Function>();
     Persistent<Function> *messagePf = new Persistent<Function>();
 
+    int maxPayloadLength = 0;
+
     struct PerSocketData {
         Persistent<Object> *socketPf;
     };
@@ -130,6 +188,9 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     /* Get the behavior object */
     if (args.Length() == 2) {
         Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
+
+        /* maxPayloadLength */
+        maxPayloadLength = behaviorObject->Get(String::NewFromUtf8(isolate, "maxPayloadLength"))->Int32Value();
 
         /* Open */
         openPf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
@@ -139,13 +200,13 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     app->template ws<PerSocketData>(std::string(nativeString.getData(), nativeString.getLength()), {
 
-        /*.compression = uWS::SHARED_COMPRESSOR,
-        .maxPayloadLength = 16 * 1024,*/
+        /*.compression = uWS::SHARED_COMPRESSOR,*/
+        .maxPayloadLength = maxPayloadLength,
         .open = [openPf](auto *ws, auto *req) {
            HandleScope hs(isolate);
 
            /* Create a new websocket object */
-           Local<Object> wsObject = Local<Object>::New(isolate, wsTemplate)->Clone();
+           Local<Object> wsObject = getWsInstance<APP>();
            wsObject->SetAlignedPointerInInternalField(0, ws);
 
            /* Attach a new V8 object with pointer to us, to us */
@@ -160,8 +221,11 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[2] = {Local<Object>::New(isolate, *(perSocketData->socketPf)), ArrayBuffer::New(isolate, (void *) message.data(), message.length())}; // ws, message, opCode
-            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+            Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+                                    ArrayBuffer::New(isolate, (void *) message.data(), message.length()),
+                                    Boolean::New(isolate, opCode == uWS::OpCode::BINARY)
+                                   };
+            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
         }/*
         .drain = []() {},
         .ping = []() {},
@@ -188,7 +252,7 @@ void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
     app->get(std::string(nativeString.getData(), nativeString.getLength()), [pf](auto *res, auto *req) {
         HandleScope hs(isolate);
 
-        Local<Object> resObject = Local<Object>::New(isolate, resTemplate)->Clone();
+        Local<Object> resObject = getResInstance<APP>();
         resObject->SetAlignedPointerInInternalField(0, res);
 
         Local<Object> reqObject = Local<Object>::New(isolate, reqTemplate)->Clone();
@@ -324,23 +388,12 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "nextTick"), FunctionTemplate::New(isolate, nextTick)->GetFunction());
 
     /* The template for websockets */
-    Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
-    wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket"));
-    wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
-    wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send));
+    initWsTemplate<0>();
+    initWsTemplate<1>();
 
-    Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-    wsTemplate.Reset(isolate, wsObjectLocal);
-
-    // HttpResponse template (not templated)
-    Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
-    resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpResponse"));
-    resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
-    resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, res_end));
-    resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader"), FunctionTemplate::New(isolate, res_writeHeader));
-
-    Local<Object> resObjectLocal = resTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-    resTemplate.Reset(isolate, resObjectLocal);
+    /* Initialize SSL and non-SSL templates */
+    initResTemplate<0>();
+    initResTemplate<1>();
 
     // Request template (do we need to clone this?)
     Local<FunctionTemplate> reqTemplateLocal = FunctionTemplate::New(isolate);

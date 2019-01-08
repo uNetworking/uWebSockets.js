@@ -5,18 +5,19 @@ const port = 9001;
 
 // nice milestone to pass autobahn on both ssl and non-ssl with an without compression
 
-const app = uWS./*SSL*/App({
+const app = uWS.SSLApp({
   key_file_name: '/home/alexhultman/key.pem',
   cert_file_name: '/home/alexhultman/cert.pem',
   passphrase: '1234'
 }).get('/hello', (res, req) => {
   res.end('Hejdå!');
 }).ws('/*', {
+  maxPayloadLength: 16 * 1024 * 1024,
   open: (ws, req) => {
     console.log(ws);
   },
-  message: (ws, message, opCode) => {
-    ws.send(message, opCode); // need op to pass autobahn (guess binary on off is enough?)
+  message: (ws, message, isBinary) => {
+    ws.send(message, isBinary);
   }
 }).listen(port, (token) => {
   if (token) {

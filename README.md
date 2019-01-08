@@ -5,7 +5,7 @@ There are two modes; compiled as a stand-alone JavaScript runtime or as a Node.j
 For the most common Node.js systems are available precompiled binaries:
 
 ```
-npm install uNetworking/uWebSockets.js#semver:0.1.0
+npm install uNetworking/uWebSockets.js#semver:0.0.1
 ```
 
  or any such version.

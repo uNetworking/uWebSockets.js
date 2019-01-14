@@ -66,7 +66,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             /* Create a new websocket object */
-            Local<Object> wsObject = getWsInstance<APP>();
+            Local<Object> wsObject = WebSocketWrapper::getWsInstance<APP>();
             wsObject->SetAlignedPointerInInternalField(0, ws);
 
             /* Attach a new V8 object with pointer to us, to us */

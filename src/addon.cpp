@@ -76,8 +76,8 @@ void Main(Local<Object> exports) {
     // these inits should probably happen elsewhere (in their respective struct's constructor)?
 
     /* The template for websockets */
-    initWsTemplate<0>();
-    initWsTemplate<1>();
+    WebSocketWrapper::initWsTemplate<0>();
+    WebSocketWrapper::initWsTemplate<1>();
 
     /* Initialize SSL and non-SSL templates */
     initResTemplate<0>();

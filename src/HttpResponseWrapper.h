@@ -12,8 +12,17 @@ struct HttpResponseWrapper {
     }
 
     // res.onData(JS function)
-    // res.write
-    // res.tryEnd
+    // res.onAborted
+    // res.onWritable
+
+    /* Takes string or arraybuffer, returns this */
+    template <bool SSL>
+    static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
+        NativeString data(args.GetIsolate(), args[0]);
+        getHttpResponse<SSL>(args)->writeStatus(std::string_view(data.getData(), data.getLength()));
+
+        args.GetReturnValue().Set(args.Holder());
+    }
 
     /* Takes string or arraybuffer, returns this */
     template <bool SSL>
@@ -22,6 +31,30 @@ struct HttpResponseWrapper {
         getHttpResponse<SSL>(args)->end(std::string_view(data.getData(), data.getLength()));
 
         args.GetReturnValue().Set(args.Holder());
+    }
+
+    /* Takes data and optionally totalLength, returns true for success, false for backpressure */
+    template <bool SSL>
+    static void res_tryEnd(const FunctionCallbackInfo<Value> &args) {
+        NativeString data(args.GetIsolate(), args[0]);
+
+        int totalSize = 0;
+        if (args.Length() > 1) {
+            totalSize = args[1]->Uint32Value();
+        }
+
+        bool ok = getHttpResponse<SSL>(args)->tryEnd(std::string_view(data.getData(), data.getLength()), totalSize);
+
+        args.GetReturnValue().Set(Boolean::New(isolate, ok));
+    }
+
+    /* Takes data, returns true for success, false for backpressure */
+    template <bool SSL>
+    static void res_write(const FunctionCallbackInfo<Value> &args) {
+        NativeString data(args.GetIsolate(), args[0]);
+        bool ok = getHttpResponse<SSL>(args)->write(std::string_view(data.getData(), data.getLength()));
+
+        args.GetReturnValue().Set(Boolean::New(isolate, ok));
     }
 
     /* Takes key, value. Returns this */
@@ -46,7 +79,10 @@ struct HttpResponseWrapper {
         resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
         /* Register our functions */
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeStatus"), FunctionTemplate::New(isolate, res_writeStatus<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, res_end<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd"), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write"), FunctionTemplate::New(isolate, res_write<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader"), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
 
         /* Create our template */

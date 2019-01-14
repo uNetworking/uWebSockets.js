@@ -80,8 +80,8 @@ void Main(Local<Object> exports) {
     WebSocketWrapper::initWsTemplate<1>();
 
     /* Initialize SSL and non-SSL templates */
-    initResTemplate<0>();
-    initResTemplate<1>();
+    HttpResponseWrapper::initResTemplate<0>();
+    HttpResponseWrapper::initResTemplate<1>();
 
     /* Init a shared request object */
     HttpRequestWrapper::initReqTemplate();

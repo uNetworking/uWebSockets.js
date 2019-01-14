@@ -142,10 +142,10 @@ void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
     app->get(std::string(nativeString.getData(), nativeString.getLength()), [pf](auto *res, auto *req) {
         HandleScope hs(isolate);
 
-        Local<Object> resObject = getResInstance<APP>();
+        Local<Object> resObject = HttpResponseWrapper::getResInstance<APP>();
         resObject->SetAlignedPointerInInternalField(0, res);
 
-        Local<Object> reqObject = HttpRequestWrapper::getReqInstance();//Local<Object>::New(isolate, reqTemplate)->Clone();
+        Local<Object> reqObject = HttpRequestWrapper::getReqInstance();
         reqObject->SetAlignedPointerInInternalField(0, req);
 
         Local<Value> argv[] = {resObject, reqObject};

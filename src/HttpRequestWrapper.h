@@ -3,6 +3,12 @@
 #include "Utilities.h"
 using namespace v8;
 
+// du behver inte klona dessa
+// det finns bara en enda giltig request vid någon tid, och det är alltid
+// inom en callback
+
+// håll en färdig request och tillåt functioner endast när du är inom callbacken
+
 /* This one is the same for SSL and non-SSL */
 struct HttpRequestWrapper {
     static Persistent<Object> reqTemplate;
@@ -12,8 +18,6 @@ struct HttpRequestWrapper {
     static inline uWS::HttpRequest *getHttpRequest(const FunctionCallbackInfo<Value> &args) {
         return ((uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0));
     }
-
-    // req.onAbort ?
 
     /* Takes int, returns string (must be in bounds) */
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
@@ -41,11 +45,6 @@ struct HttpRequestWrapper {
     }
 
     static void initReqTemplate() {
-        /* The only thing this req needs is getHeader and similar, getParameter, getUrl and so on */
-
-        /*reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "url"), Request::url);
-        reqTemplateLocal->PrototypeTemplate()->SetAccessor(String::NewFromUtf8(isolate, "method"), Request::method);*/
-
         /* We do clone every request object, we could share them, they are illegal to use outside the function anyways */
         Local<FunctionTemplate> reqTemplateLocal = FunctionTemplate::New(isolate);
         reqTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpRequest"));
@@ -61,8 +60,9 @@ struct HttpRequestWrapper {
         reqTemplate.Reset(isolate, reqObjectLocal);
     }
 
-    //template <class APP>
     static Local<Object> getReqInstance() {
+        // if we attach a number that counts up to this req we can check if the number is still valid when calling functions?
+
         return Local<Object>::New(isolate, reqTemplate)->Clone();
     }
 };

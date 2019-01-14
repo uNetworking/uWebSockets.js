@@ -17,6 +17,10 @@ const app = uWS./*SSL*/App({
   },
   message: (ws, message, isBinary) => {
     ws.send(message, isBinary);
+
+    console.log('BufferedAmount is ' + ws.getBufferedAmount());
+
+    ws.close();
   },
   drain: (ws) => {
     console.log('WebSocket drained');

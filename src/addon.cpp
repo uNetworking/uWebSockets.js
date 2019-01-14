@@ -15,6 +15,20 @@
  * limitations under the License.
  */
 
+// missing features to wrap:
+// App.post and all other methods - requires good templating?
+// req.getParam(int)
+// req.getUrl()
+// res.onData(JS function)
+// res.write
+// res.tryEnd
+// req.onAbort ?
+// ws.getBufferedAmount()
+// ws.close(lalala)
+// ws.?
+// test so that we pass Autobahn with compression/without compression with SSL/without SSL
+// split addon in different separate headers
+
 /* We are only allowed to depend on µWS and V8 in this layer. */
 #include "App.h"
 #include <v8.h>

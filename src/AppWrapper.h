@@ -145,7 +145,7 @@ void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
         Local<Object> resObject = getResInstance<APP>();
         resObject->SetAlignedPointerInInternalField(0, res);
 
-        Local<Object> reqObject = Local<Object>::New(isolate, reqTemplate)->Clone();
+        Local<Object> reqObject = HttpRequestWrapper::getReqInstance();//Local<Object>::New(isolate, reqTemplate)->Clone();
         reqObject->SetAlignedPointerInInternalField(0, req);
 
         Local<Value> argv[] = {resObject, reqObject};

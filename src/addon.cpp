@@ -84,7 +84,7 @@ void Main(Local<Object> exports) {
     initResTemplate<1>();
 
     /* Init a shared request object */
-    initReqTemplate();
+    HttpRequestWrapper::initReqTemplate();
 }
 
 /* This is required when building as a Node.js addon */

@@ -1,3 +1,6 @@
+#ifndef ADDON_UTILITIES_H
+#define ADDON_UTILITIES_H
+
 class NativeString {
     char *data;
     size_t length;
@@ -37,3 +40,5 @@ public:
         }
     }
 };
+
+#endif

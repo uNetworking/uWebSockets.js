@@ -2,6 +2,11 @@
 // req.getUrl()
 // req.onAbort ?
 
+/* Helping QtCreator */
+#include <v8.h>
+#include "Utilities.h"
+using namespace v8;
+
 /* The only thing this req needs is getHeader and similar, getParameter, getUrl and so on */
 Persistent<Object> reqTemplate;
 

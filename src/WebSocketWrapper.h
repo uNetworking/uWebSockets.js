@@ -2,6 +2,12 @@
 // ws.close(lalala)
 // ws.?
 
+/* Helping QtCreator */
+#include "App.h"
+#include <v8.h>
+#include "Utilities.h"
+using namespace v8;
+
 // also wrap all of this in some common struct
 Persistent<Object> wsTemplate[2];
 

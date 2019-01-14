@@ -2,6 +2,11 @@
 // res.write
 // res.tryEnd
 
+/* Helping QtCreator */
+#include <v8.h>
+#include "Utilities.h"
+using namespace v8;
+
 // this whole template thing could be one struct with members to order tihngs better
 Persistent<Object> resTemplate[2];
 

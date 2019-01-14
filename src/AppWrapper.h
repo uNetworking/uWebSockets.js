@@ -1,6 +1,10 @@
 // App.post and all other methods - requires good templating?
 // test so that we pass Autobahn with compression/without compression with SSL/without SSL
 
+/* Helping QtCreator */
+#include <v8.h>
+#include "Utilities.h"
+using namespace v8;
 
 /* uWS.App.ws('/pattern', options) */
 template <typename APP>

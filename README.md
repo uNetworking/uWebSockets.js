@@ -9,10 +9,10 @@
 
 
 ### NPM install
-While not physically hosted by NPM, it's still possible to install using NPM tools like so (or any such version):
+While not physically hosted by NPM, it's still possible to install using NPM tools like so ([npm docs](https://docs.npmjs.com/cli/install)):
 
 ```
-npm install uNetworking/uWebSockets.js#semver:0.0.1
+npm install uNetworking/uWebSockets.js#binaries
 ```
 
 ### Presenting; faster I/O for Node.js

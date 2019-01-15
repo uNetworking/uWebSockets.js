@@ -14,6 +14,12 @@ struct HttpResponseWrapper {
     // res.onData(JS function)
     // res.onAborted
 
+    /* Returns the current write offset */
+    template <bool SSL>
+    static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
+        args.GetReturnValue().Set(Integer::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+    }
+
     /* Takes function of bool(int), returns this */
     template <bool SSL>
     static void res_onWritable(const FunctionCallbackInfo<Value> &args) {
@@ -100,6 +106,7 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write"), FunctionTemplate::New(isolate, res_write<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader"), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
 
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset"), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable"), FunctionTemplate::New(isolate, res_onWritable<SSL>));
 
         /* Create our template */

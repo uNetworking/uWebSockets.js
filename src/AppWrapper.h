@@ -123,19 +123,18 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
-// todo: all other methods, in particular post!
-template <typename APP>
-void uWS_App_get(const FunctionCallbackInfo<Value> &args) {
+/* This method wraps get, post and all http methods */
+template <typename APP, typename F>
+void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
     NativeString nativeString(args.GetIsolate(), args[0]);
 
+    // todo: make it UniquePersistent
     Persistent<Function> *pf = new Persistent<Function>();
     pf->Reset(args.GetIsolate(), Local<Function>::Cast(args[1]));
 
-    //Persistent<Function, CopyablePersistentTraits<Function>> p(isolate, Local<Function>::Cast(args[1]));
-
-    app->get(std::string(nativeString.getData(), nativeString.getLength()), [pf](auto *res, auto *req) {
+    (app->*f)(std::string(nativeString.getData(), nativeString.getLength()), [pf](auto *res, auto *req) {
         HandleScope hs(isolate);
 
         Local<Object> resObject = HttpResponseWrapper::getResInstance<APP>();
@@ -215,16 +214,17 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+    /* get, post */
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::get, args);
+    }));
 
-    /* Most used functions will be get, post, ws, listen */
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "post"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::post, args);
+    }));
 
-    // Get and all the Http methods
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, uWS_App_get<APP>));
-
-    // Ws
+    /* ws, listen */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
-
-    // Listen
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
 
     // Instantiate and set intenal pointer

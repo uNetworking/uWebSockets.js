@@ -11,6 +11,9 @@ const app = uWS./*SSL*/App({
   res.end('Hello, your url is ' + req.getUrl() + ". The param1 is " + req.getParameter(0));
 }).get('/hello', (res, req) => {
   res.end('Hej, du är på url: ' + req.getUrl());
+}).post('/hello', (res, req) => {
+  // todo: receive the data here!
+  res.end('Thanks for the data!');
 }).ws('/*', {
   compression: 0,
   maxPayloadLength: 16 * 1024 * 1024,

@@ -57,10 +57,20 @@ Http | WebSockets
 ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png) | ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/websocket_lineup.png)
 
 ### Build from source
-Easiest is to compile yourself a Node.js native addon. The following works for Linux and macOS systems:
+#### Recursively clone, and enter, this repo:
 ```
 git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
 cd uWebSockets.js
+```
+#### For Unix (Linux, macOS):
+```
 make
+```
+#### For Windows (in an x64 developer terminal):
+```
+nmake Windows
+```
+#### Test it out
+```
 node examples/HelloWorld.js
 ```

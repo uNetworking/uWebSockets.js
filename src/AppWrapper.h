@@ -10,7 +10,7 @@ using namespace v8;
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
-    APP::WebSocketBehavior behavior = {};
+    typename APP::WebSocketBehavior behavior = {};
 
     // pattern
     NativeString nativeString(args.GetIsolate(), args[0]);

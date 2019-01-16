@@ -12,6 +12,8 @@ Unices:
 	for f in dist/*.node; do chmod +x $$f; done
 
 targets:
+	mkdir dist
+	cp src/uws.js dist/uws.js
 # Node.js 10
 	mkdir targets
 	curl -OJ https://nodejs.org/dist/v10.0.0/node-v10.0.0-headers.tar.gz

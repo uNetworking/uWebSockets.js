@@ -7,13 +7,13 @@ CPP_OSX = -stdlib=libc++ $(C_OSX)
 
 Unices:
 	make targets
+	cp src/uws.js dist/uws.js
 	NODE=targets/node-v10.0.0 ABI=64 make `(uname -s)`
 	NODE=targets/node-v11.1.0 ABI=67 make `(uname -s)`
 	for f in dist/*.node; do chmod +x $$f; done
 
 targets:
 	mkdir dist
-	cp src/uws.js dist/uws.js
 # Node.js 10
 	mkdir targets
 	curl -OJ https://nodejs.org/dist/v10.0.0/node-v10.0.0-headers.tar.gz
@@ -36,5 +36,6 @@ Darwin:
 
 Windows:
 	nmake targets
+	copy "src\uws.js" dist /Y
 	cl /D "LIBUS_USE_LIBUV" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c /I targets/node-v10.0.0/include/node /I uWebSockets/src /EHsc /Ox /LD /Fedist/uws_win32_64.node src/addon.cpp targets/node-v10.0.0/node.lib
 	cl /D "LIBUS_USE_LIBUV" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c /I targets/node-v11.1.0/include/node /I uWebSockets/src /EHsc /Ox /LD /Fedist/uws_win32_67.node src/addon.cpp targets/node-v11.1.0/node.lib

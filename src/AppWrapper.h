@@ -10,6 +10,7 @@ using namespace v8;
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP::WebSocketBehavior behavior = {};
 
     // pattern
     NativeString nativeString(args.GetIsolate(), args[0]);
@@ -20,12 +21,6 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     Persistent<Function> *drainPf = new Persistent<Function>();
     Persistent<Function> *closePf = new Persistent<Function>();
 
-    int maxPayloadLength = 0;
-
-    /* For now, let's have 0, 1, 2 be from nothing to shared, to dedicated */
-    int compression = 0;
-    uWS::CompressOptions mappedCompression = uWS::CompressOptions::DISABLED;
-
     struct PerSocketData {
         Persistent<Object> *socketPf;
     };
@@ -35,10 +30,17 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
 
         /* maxPayloadLength */
-        maxPayloadLength = behaviorObject->Get(String::NewFromUtf8(isolate, "maxPayloadLength"))->Int32Value();
+        behavior.maxPayloadLength = behaviorObject->Get(String::NewFromUtf8(isolate, "maxPayloadLength"))->Int32Value();
 
-        /* Compression */
-        compression = behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value();
+        /* Compression, map from 0, 1, 2 to disabled, shared, dedicated */
+        int compression = behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value();
+        if (compression == 0) {
+            behavior.compression = uWS::CompressOptions::DISABLED;
+        } else if (compression == 1) {
+            behavior.compression = uWS::CompressOptions::SHARED_COMPRESSOR;
+        } else if (compression == 2) {
+            behavior.compression = uWS::CompressOptions::DEDICATED_COMPRESSOR;
+        }
 
         /* Open */
         openPf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
@@ -50,78 +52,72 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         closePf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "close"))));
     }
 
-    /* Map compression options from integer values */
-    if (compression == 1) {
-        mappedCompression = uWS::CompressOptions::SHARED_COMPRESSOR;
-    } else if (compression == 2) {
-        mappedCompression = uWS::CompressOptions::DEDICATED_COMPRESSOR;
-    }
+    behavior.open = [openPf](auto *ws, auto *req) {
+        HandleScope hs(isolate);
 
-    app->template ws<PerSocketData>(std::string(nativeString.getData(), nativeString.getLength()), {
-        /* idleTimeout */
-        .compression = mappedCompression,
-        .maxPayloadLength = maxPayloadLength,
-        /* Handlers */
-        .open = [openPf](auto *ws, auto *req) {
-            HandleScope hs(isolate);
+        /* Create a new websocket object */
+        Local<Object> wsObject = WebSocketWrapper::getWsInstance<APP>();
+        wsObject->SetAlignedPointerInInternalField(0, ws);
 
-            /* Create a new websocket object */
-            Local<Object> wsObject = WebSocketWrapper::getWsInstance<APP>();
-            wsObject->SetAlignedPointerInInternalField(0, ws);
+        /* Attach a new V8 object with pointer to us, to us */
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+        perSocketData->socketPf = new Persistent<Object>;
+        perSocketData->socketPf->Reset(isolate, wsObject);
 
-            /* Attach a new V8 object with pointer to us, to us */
-            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            perSocketData->socketPf = new Persistent<Object>;
-            perSocketData->socketPf->Reset(isolate, wsObject);
+        Local<Value> argv[] = {wsObject};
+        Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+    };
 
-            Local<Value> argv[] = {wsObject};
-            Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
-        },
-        .message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {
-            HandleScope hs(isolate);
+    behavior.message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {
+        HandleScope hs(isolate);
 
-            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+        Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
 
-            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
-                                    /*ArrayBuffer::New(isolate, (void *) message.data(), message.length())*/ messageArrayBuffer,
-                                    Boolean::New(isolate, opCode == uWS::OpCode::BINARY)
-                                   };
-            Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+        Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+                                /*ArrayBuffer::New(isolate, (void *) message.data(), message.length())*/ messageArrayBuffer,
+                                Boolean::New(isolate, opCode == uWS::OpCode::BINARY)
+                                };
+        Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
 
-            /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
-            messageArrayBuffer->Neuter();
-        },
-        .drain = [drainPf](auto *ws) {
-            HandleScope hs(isolate);
+        /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
+        messageArrayBuffer->Neuter();
+    };
 
-            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
-                                   };
-            Local<Function>::New(isolate, *drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
-        },
-        .ping = [](auto *ws) {
+    behavior.drain = [drainPf](auto *ws) {
+        HandleScope hs(isolate);
 
-        },
-        .pong = [](auto *ws) {
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+        Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
+                                };
+        Local<Function>::New(isolate, *drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+    };
 
-        },
-        .close = [closePf](auto *ws, int code, std::string_view message) {
-            HandleScope hs(isolate);
+    behavior.ping = [](auto *ws) {
 
-            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+    };
 
-            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
-                                    Integer::New(isolate, code),
-                                    messageArrayBuffer
-                                   };
-            Local<Function>::New(isolate, *closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+    behavior.pong = [](auto *ws) {
 
-            /* Again, here we clear the buffer to avoid strange bugs */
-            messageArrayBuffer->Neuter();
-        }
-    });
+    };
+
+    behavior.close = [closePf](auto *ws, int code, std::string_view message) {
+        HandleScope hs(isolate);
+
+        Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+        Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+                                Integer::New(isolate, code),
+                                messageArrayBuffer
+                                };
+        Local<Function>::New(isolate, *closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+
+        /* Again, here we clear the buffer to avoid strange bugs */
+        messageArrayBuffer->Neuter();
+    };
+
+    app->template ws<PerSocketData>(std::string(nativeString.getData(), nativeString.getLength()), std::move(behavior));
 
     /* Return this */
     args.GetReturnValue().Set(args.Holder());

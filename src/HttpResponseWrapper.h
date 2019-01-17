@@ -14,6 +14,21 @@ struct HttpResponseWrapper {
     // res.onData(JS function)
     // res.onAborted
 
+    template <bool SSL>
+    static void res_onAborted(const FunctionCallbackInfo<Value> &args) {
+        /* This thing perfectly fits in with unique_function, and will Reset on destructor */
+        UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+
+        getHttpResponse<SSL>(args)->onAborted([p = std::move(p)]() {
+            HandleScope hs(isolate);
+
+            Local<Value> argv[] = {};
+            Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 0, argv);
+        });
+
+        args.GetReturnValue().Set(args.Holder());
+    }
+
     /* Returns the current write offset */
     template <bool SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
@@ -108,6 +123,7 @@ struct HttpResponseWrapper {
 
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset"), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable"), FunctionTemplate::New(isolate, res_onWritable<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted"), FunctionTemplate::New(isolate, res_onAborted<SSL>));
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

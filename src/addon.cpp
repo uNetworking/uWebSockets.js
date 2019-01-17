@@ -24,7 +24,7 @@
 using namespace v8;
 
 /* These two are definitely static */
-std::vector<Persistent<Function, CopyablePersistentTraits<Function>>> nextTickQueue;
+std::vector<UniquePersistent<Function>> nextTickQueue;
 Isolate *isolate;
 
 #include "Utilities.h"
@@ -35,14 +35,14 @@ Isolate *isolate;
 
 /* We are not compatible with Node.js nextTick for performance (and standalone) reasons */
 void nextTick(const FunctionCallbackInfo<Value> &args) {
-    nextTickQueue.push_back(Persistent<Function, CopyablePersistentTraits<Function>>(isolate, Local<Function>::Cast(args[0])));
+    nextTickQueue.emplace_back(UniquePersistent<Function>(isolate, Local<Function>::Cast(args[0])));
 }
 
 void emptyNextTickQueue(Isolate *isolate) {
     if (nextTickQueue.size()) {
         HandleScope hs(isolate);
 
-        for (Persistent<Function, CopyablePersistentTraits<Function>> &f : nextTickQueue) {
+        for (UniquePersistent<Function> &f : nextTickQueue) {
             Local<Function>::New(isolate, f)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
             f.Reset();
         }

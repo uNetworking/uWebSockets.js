@@ -1,5 +1,6 @@
 /* Simple demonstration of some router features */
 
+const uWS = require('../dist/uws.js');
 const port = 9001;
 
 const app = uWS./*SSL*/App({

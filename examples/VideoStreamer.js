@@ -56,8 +56,8 @@ function pipeStreamOverResponse(res, readStream, totalSize) {
 
 /* Yes, you can easily swap to SSL streaming by uncommenting here */
 const app = uWS.SSLApp({
-  key_file_name: '/home/alexhultman/key.pem',
-  cert_file_name: '/home/alexhultman/cert.pem',
+  key_file_name: 'misc/key.pem',
+  cert_file_name: 'misc/cert.pem',
   passphrase: '1234'
 }).get('/sintel.mkv', (res, req) => {
   /* Log */

@@ -8,8 +8,8 @@ const uWS = require('../dist/uws.js');
 const port = 9001;
 
 const app = uWS./*SSL*/App({
-  key_file_name: '/home/alexhultman/key.pem',
-  cert_file_name: '/home/alexhultman/cert.pem',
+  key_file_name: 'misc/key.pem',
+  cert_file_name: 'misc/cert.pem',
   passphrase: '1234'
 }).post('/*', (res, req) => {
   console.log('Posted to ' + req.getUrl());

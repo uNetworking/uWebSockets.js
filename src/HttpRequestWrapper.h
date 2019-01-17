@@ -44,16 +44,31 @@ struct HttpRequestWrapper {
         args.GetReturnValue().Set(String::NewFromUtf8(isolate, header.data(), v8::String::kNormalString, header.length()));
     }
 
+    static void req_getMethod(const FunctionCallbackInfo<Value> &args) {
+        std::string_view method = getHttpRequest(args)->getMethod();
+
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), v8::String::kNormalString, method.length()));
+    }
+
+    static void req_getQuery(const FunctionCallbackInfo<Value> &args) {
+        std::string_view query = getHttpRequest(args)->getQuery();
+
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, query.data(), v8::String::kNormalString, query.length()));
+    }
+
     static void initReqTemplate() {
         /* We do clone every request object, we could share them, they are illegal to use outside the function anyways */
         Local<FunctionTemplate> reqTemplateLocal = FunctionTemplate::New(isolate);
         reqTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpRequest"));
         reqTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
+
         /* Register our functions */
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getHeader"), FunctionTemplate::New(isolate, req_getHeader));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getParameter"), FunctionTemplate::New(isolate, req_getParameter));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUrl"), FunctionTemplate::New(isolate, req_getUrl));
+        reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getMethod"), FunctionTemplate::New(isolate, req_getMethod));
+        reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getQuery"), FunctionTemplate::New(isolate, req_getQuery));
 
         /* Create the template */
         Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

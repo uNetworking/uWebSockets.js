@@ -3,6 +3,8 @@
 #include "Utilities.h"
 using namespace v8;
 
+// todo: probably isCorked, cork should be exposed?
+
 struct WebSocketWrapper {
     static Persistent<Object> wsTemplate[2];
 

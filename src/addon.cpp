@@ -23,6 +23,8 @@
 #include <type_traits>
 using namespace v8;
 
+void emptyNextTickQueue(Isolate *isolate);
+
 /* These two are definitely static */
 std::vector<UniquePersistent<Function>> nextTickQueue;
 Isolate *isolate;
@@ -61,9 +63,9 @@ void Main(Local<Object> exports) {
     });
 
     /* Also empty in pre, it doesn't matter */
-    /*uWS::Loop::defaultLoop()->setPreHandler([]() {
+    uWS::Loop::defaultLoop()->setPreHandler([](uWS::Loop *) {
         emptyNextTickQueue(isolate);
-    });*/
+    });
 
     /* Hook up our timers */
     us_loop_integrate((us_loop *) uWS::Loop::defaultLoop());

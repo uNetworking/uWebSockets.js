@@ -42,15 +42,15 @@ function pipeStreamOverResponse(res, readStream, totalSize) {
         }
         return false;
       });
-
-      /* Register async abortion handlers */
-      res.onAborted(() => {
-        console.log('Res is no longer valid!');
-        readStream.destroy();
-      });
     }
   }).on('end', () => {
     /* Todo: handle errors of the stream, probably good to simply close the response */
+  });
+
+  /* If you plan to asyncronously respond later on, you MUST listen to onAborted BEFORE returning */
+  res.onAborted(() => {
+    console.log('Res is no longer valid!');
+    readStream.destroy();
   });
 }
 

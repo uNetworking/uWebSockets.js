@@ -58,13 +58,17 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Object> wsObject = WebSocketWrapper::getWsInstance<APP>();
         wsObject->SetAlignedPointerInInternalField(0, ws);
 
+        /* Create the HttpRequest wrapper */
+        Local<Object> reqObject = HttpRequestWrapper::getReqInstance();
+        reqObject->SetAlignedPointerInInternalField(0, req);
+
         /* Attach a new V8 object with pointer to us, to us */
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         perSocketData->socketPf = new Persistent<Object>;
         perSocketData->socketPf->Reset(isolate, wsObject);
 
-        Local<Value> argv[] = {wsObject};
-        Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        Local<Value> argv[] = {wsObject, reqObject};
+        Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
     };
 
     behavior.message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {

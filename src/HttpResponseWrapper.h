@@ -12,8 +12,8 @@ struct HttpResponseWrapper {
     }
 
     // res.onData(JS function)
-    // res.onAborted
 
+    /* Takes nothing, returns nothing. Cb wants nothing returned. */
     template <bool SSL>
     static void res_onAborted(const FunctionCallbackInfo<Value> &args) {
         /* This thing perfectly fits in with unique_function, and will Reset on destructor */
@@ -22,8 +22,7 @@ struct HttpResponseWrapper {
         getHttpResponse<SSL>(args)->onAborted([p = std::move(p)]() {
             HandleScope hs(isolate);
 
-            Local<Value> argv[] = {};
-            Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 0, argv);
+            Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
         });
 
         args.GetReturnValue().Set(args.Holder());

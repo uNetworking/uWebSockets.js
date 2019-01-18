@@ -3,7 +3,7 @@
 #include "Utilities.h"
 using namespace v8;
 
-/* uWS.App.ws('/pattern', options) */
+/* uWS.App.ws('/pattern', behavior) */
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
@@ -14,7 +14,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    // todo: small leak here, should be unique_ptrs moved in
+    /* We don't need to care for these just yet, since we do
+     * not have a way to free the app itself */
     Persistent<Function> *openPf = new Persistent<Function>();
     Persistent<Function> *messagePf = new Persistent<Function>();
     Persistent<Function> *drainPf = new Persistent<Function>();
@@ -78,9 +79,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
-                                /*ArrayBuffer::New(isolate, (void *) message.data(), message.length())*/ messageArrayBuffer,
-                                Boolean::New(isolate, opCode == uWS::OpCode::BINARY)
-                                };
+                                messageArrayBuffer,
+                                Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
         Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
 
         /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
@@ -108,13 +108,17 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         HandleScope hs(isolate);
 
         Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
-
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-        Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+        Local<Object> wsObject = Local<Object>::New(isolate, *(perSocketData->socketPf));
+        Local<Value> argv[3] = {wsObject,
                                 Integer::New(isolate, code),
-                                messageArrayBuffer
-                                };
+                                messageArrayBuffer};
+
+        /* Invalidate this wsObject */
+        wsObject->SetAlignedPointerInInternalField(0, nullptr);
         Local<Function>::New(isolate, *closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+
+        delete perSocketData->socketPf;
 
         /* Again, here we clear the buffer to avoid strange bugs */
         messageArrayBuffer->Neuter();
@@ -174,13 +178,6 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     });
 
     args.GetReturnValue().Set(args.Holder());
-}
-
-/* This is very risky */
-template <typename APP>
-void uWS_App_free(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
-    delete app;
 }
 
 template <typename APP>
@@ -294,7 +291,6 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* ws, listen */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
-    // appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_App_free<APP>));
 
     Local<Object> localApp = appTemplate->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);

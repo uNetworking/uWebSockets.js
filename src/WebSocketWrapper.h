@@ -3,53 +3,68 @@
 #include "Utilities.h"
 using namespace v8;
 
-// todo: also check for use after free here!
-// todo: probably isCorked, cork should be exposed?
+/* todo: probably isCorked, cork should be exposed? */
 
 struct WebSocketWrapper {
     static Persistent<Object> wsTemplate[2];
 
     template <bool SSL>
     static inline uWS::WebSocket<SSL, true> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
-        return ((uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0));
+        auto *ws = (uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        if (!ws) {
+            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.")));
+        }
+        return ws;
+    }
+
+    static inline void invalidateWsObject(const FunctionCallbackInfo<Value> &args) {
+        args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes code, message, returns undefined */
     template <bool SSL>
     static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
-        int code = 0;
-        if (args.Length() >= 1) {
-            code = args[0]->Uint32Value();
-        }
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            int code = 0;
+            if (args.Length() >= 1) {
+                code = args[0]->Uint32Value();
+            }
 
-        NativeString message(args.GetIsolate(), args[1]);
-        if (message.isInvalid(args)) {
-            return;
-        }
+            NativeString message(args.GetIsolate(), args[1]);
+            if (message.isInvalid(args)) {
+                return;
+            }
 
-        getWebSocket<SSL>(args)->close(code, message.getString());
+            invalidateWsObject(args);
+            ws->close(code, message.getString());
+        }
     }
 
     /* Takes nothing, returns integer */
     template <bool SSL>
     static void uWS_WebSocket_getBufferedAmount(const FunctionCallbackInfo<Value> &args) {
-        int bufferedAmount = getWebSocket<SSL>(args)->getBufferedAmount();
-        args.GetReturnValue().Set(Integer::New(isolate, bufferedAmount));
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            int bufferedAmount = ws->getBufferedAmount();
+            args.GetReturnValue().Set(Integer::New(isolate, bufferedAmount));
+        }
     }
 
     /* Takes message, isBinary. Returns true on success, false otherwise */
     template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
-        NativeString message(args.GetIsolate(), args[0]);
-        if (message.isInvalid(args)) {
-            return;
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString message(args.GetIsolate(), args[0]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
+            bool ok = ws->send(message.getString(), args[1]->BooleanValue() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT);
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
         }
-
-        bool isBinary = args[1]->BooleanValue();
-
-        bool ok = getWebSocket<SSL>(args)->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT);
-
-        args.GetReturnValue().Set(Boolean::New(isolate, ok));
     }
 
     template <bool SSL>

@@ -160,7 +160,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
 
     app->listen(port, [&args](auto *token) {
-        Local<Value> argv[] = {Boolean::New(isolate, token)};
+        Local<Value> argv[] = {External::New(isolate, token)};
         Local<Function>::Cast(args[1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     });
 

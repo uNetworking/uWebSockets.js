@@ -53,16 +53,21 @@ void emptyNextTickQueue(Isolate *isolate) {
     }
 }
 
+/* todo: Put this function and all inits of it in its own header */
+void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
+    us_listen_socket_close((struct us_listen_socket *) External::Cast(*args[0])->Value());
+}
+
 void Main(Local<Object> exports) {
     /* I guess we store this statically */
     isolate = exports->GetIsolate();
 
-    /* Register our own nextTick handler */
+    /* Register our own nextTick handlers */
     uWS::Loop::defaultLoop()->setPostHandler([](uWS::Loop *) {
         emptyNextTickQueue(isolate);
     });
 
-    /* Also empty in pre, it doesn't matter */
+    /* We also do need it on pre */
     uWS::Loop::defaultLoop()->setPreHandler([](uWS::Loop *) {
         emptyNextTickQueue(isolate);
     });
@@ -75,7 +80,8 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "nextTick"), FunctionTemplate::New(isolate, nextTick)->GetFunction());
 
-    // these inits should probably happen elsewhere (in their respective struct's constructor)?
+    /* Expose some µSockets functions directly under uWS namespace */
+    exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction());
 
     /* The template for websockets */
     WebSocketWrapper::initWsTemplate<0>();

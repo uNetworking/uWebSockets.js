@@ -184,6 +184,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         static std::string keyFileName;
         static std::string certFileName;
         static std::string passphrase;
+        static std::string dhParamsFileName;
 
         /* Read the options object (SSL options) */
         if (args.Length() == 1) {
@@ -207,6 +208,13 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 passphrase.append(passphraseValue.getData(), passphraseValue.getLength());
                 ssl_options.passphrase = passphrase.c_str();
             }
+
+            /* DH params file name */
+            NativeString dhParamsFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "dh_params_file_name")));
+            if (dhParamsFileNameValue.getLength()) {
+                dhParamsFileName.append(dhParamsFileNameValue.getData(), dhParamsFileNameValue.getLength());
+                ssl_options.dh_params_file_name = dhParamsFileName.c_str();
+            }
         }
 
         app = new APP(ssl_options);
@@ -217,7 +225,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-    /* get, post */
+    /* All the http methods */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::get, args);
     }));
@@ -226,16 +234,43 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         uWS_App_get<APP>(&APP::post, args);
     }));
 
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "options"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::options, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "del"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::del, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "patch"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::patch, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "put"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::put, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "head"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::head, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "connect"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::connect, args);
+    }));
+
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "trace"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::trace, args);
+    }));
+
+    /* What about unhandled? */
+
     /* ws, listen */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
+    // appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_App_free<APP>));
 
-    // Instantiate and set intenal pointer
     Local<Object> localApp = appTemplate->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-
-    // Delete this boy
     localApp->SetAlignedPointerInInternalField(0, app);
 
-    // Return an instance of this shit
     args.GetReturnValue().Set(localApp);
 }

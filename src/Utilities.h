@@ -1,11 +1,15 @@
 #ifndef ADDON_UTILITIES_H
 #define ADDON_UTILITIES_H
 
+#include <v8.h>
+using namespace v8;
+
 class NativeString {
     char *data;
     size_t length;
     char utf8ValueMemory[sizeof(String::Utf8Value)];
     String::Utf8Value *utf8Value = nullptr;
+    bool invalid = false;
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
@@ -26,14 +30,21 @@ public:
             length = contents.ByteLength();
             data = (char *) contents.Data();
         } else {
-            static char empty[] = "";
-            data = empty;
-            length = 0;
+            invalid = true;
         }
     }
 
-    char *getData() {return data;}
-    size_t getLength() {return length;}
+    bool isInvalid(const FunctionCallbackInfo<Value> &args) {
+        if (invalid) {
+            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Text and data can only be passed by String, ArrayBuffer or TypedArray.")));
+        }
+        return invalid;
+    }
+
+    std::string_view getString() {
+        return {data, length};
+    }
+
     ~NativeString() {
         if (utf8Value) {
             utf8Value->~Utf8Value();

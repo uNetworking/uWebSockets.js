@@ -3,6 +3,7 @@
 #include "Utilities.h"
 using namespace v8;
 
+// todo: also check for use after free here!
 // todo: probably isCorked, cork should be exposed?
 
 struct WebSocketWrapper {
@@ -17,18 +18,16 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
         int code = 0;
-        std::string_view message;
-
         if (args.Length() >= 1) {
             code = args[0]->Uint32Value();
         }
 
-        if (args.Length() >= 2) {
-            NativeString nativeString(args.GetIsolate(), args[1]);
-            message = {nativeString.getData(), nativeString.getLength()};
+        NativeString message(args.GetIsolate(), args[1]);
+        if (message.isInvalid(args)) {
+            return;
         }
 
-        getWebSocket<SSL>(args)->close(code, message);
+        getWebSocket<SSL>(args)->close(code, message.getString());
     }
 
     /* Takes nothing, returns integer */
@@ -41,13 +40,14 @@ struct WebSocketWrapper {
     /* Takes message, isBinary. Returns true on success, false otherwise */
     template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
-        NativeString nativeString(args.GetIsolate(), args[0]);
+        NativeString message(args.GetIsolate(), args[0]);
+        if (message.isInvalid(args)) {
+            return;
+        }
 
         bool isBinary = args[1]->BooleanValue();
 
-        bool ok = getWebSocket<SSL>(args)->send(
-                    std::string_view(nativeString.getData(), nativeString.getLength()), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT
-                    );
+        bool ok = getWebSocket<SSL>(args)->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT);
 
         args.GetReturnValue().Set(Boolean::New(isolate, ok));
     }

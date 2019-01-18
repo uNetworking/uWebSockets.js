@@ -1,5 +1,3 @@
-// test so that we pass Autobahn with compression/without compression with SSL/without SSL
-
 #include "App.h"
 #include <v8.h>
 #include "Utilities.h"
@@ -11,8 +9,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
     typename APP::WebSocketBehavior behavior = {};
 
-    // pattern
-    NativeString nativeString(args.GetIsolate(), args[0]);
+    NativeString pattern(args.GetIsolate(), args[0]);
+    if (pattern.isInvalid(args)) {
+        return;
+    }
 
     // todo: small leak here, should be unique_ptrs moved in
     Persistent<Function> *openPf = new Persistent<Function>();
@@ -120,7 +120,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         messageArrayBuffer->Neuter();
     };
 
-    app->template ws<PerSocketData>(std::string(nativeString.getData(), nativeString.getLength()), std::move(behavior));
+    app->template ws<PerSocketData>(std::string(pattern.getString()), std::move(behavior));
 
     /* Return this */
     args.GetReturnValue().Set(args.Holder());
@@ -131,13 +131,16 @@ template <typename APP, typename F>
 void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
-    NativeString nativeString(args.GetIsolate(), args[0]);
+    NativeString pattern(args.GetIsolate(), args[0]);
+    if (pattern.isInvalid(args)) {
+        return;
+    }
 
-    // todo: make it UniquePersistent
-    Persistent<Function> *pf = new Persistent<Function>();
+    /* todo: make it UniquePersistent */
+    std::shared_ptr<Persistent<Function>> pf(new Persistent<Function>);
     pf->Reset(args.GetIsolate(), Local<Function>::Cast(args[1]));
 
-    (app->*f)(std::string(nativeString.getData(), nativeString.getLength()), [pf](auto *res, auto *req) {
+    (app->*f)(std::string(pattern.getString()), [pf](auto *res, auto *req) {
         HandleScope hs(isolate);
 
         Local<Object> resObject = HttpResponseWrapper::getResInstance<APP>();
@@ -148,6 +151,12 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
         Local<Value> argv[] = {resObject, reqObject};
         Local<Function>::New(isolate, *pf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+
+        /* Properly invalidate req */
+        reqObject->SetAlignedPointerInInternalField(0, nullptr);
+
+        /* µWS itself will terminate if not responded and not attached
+         * onAborted handler, so we can assume it's done */
     });
 
     args.GetReturnValue().Set(args.Holder());
@@ -164,8 +173,14 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
         Local<Function>::Cast(args[1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     });
 
-    // Return this
     args.GetReturnValue().Set(args.Holder());
+}
+
+/* This is very risky */
+template <typename APP>
+void uWS_App_free(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    delete app;
 }
 
 template <typename APP>
@@ -190,29 +205,41 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         if (args.Length() == 1) {
             /* Key file name */
             NativeString keyFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "key_file_name")));
-            if (keyFileNameValue.getLength()) {
-                keyFileName.append(keyFileNameValue.getData(), keyFileNameValue.getLength());
+            if (keyFileNameValue.isInvalid(args)) {
+                return;
+            }
+            if (keyFileNameValue.getString().length()) {
+                keyFileName.append(keyFileNameValue.getString());
                 ssl_options.key_file_name = keyFileName.c_str();
             }
 
             /* Cert file name */
             NativeString certFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "cert_file_name")));
-            if (certFileNameValue.getLength()) {
-                certFileName.append(certFileNameValue.getData(), certFileNameValue.getLength());
+            if (certFileNameValue.isInvalid(args)) {
+                return;
+            }
+            if (certFileNameValue.getString().length()) {
+                certFileName.append(certFileNameValue.getString());
                 ssl_options.cert_file_name = certFileName.c_str();
             }
 
             /* Passphrase */
             NativeString passphraseValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "passphrase")));
-            if (passphraseValue.getLength()) {
-                passphrase.append(passphraseValue.getData(), passphraseValue.getLength());
+            if (passphraseValue.isInvalid(args)) {
+                return;
+            }
+            if (passphraseValue.getString().length()) {
+                passphrase.append(passphraseValue.getString());
                 ssl_options.passphrase = passphrase.c_str();
             }
 
             /* DH params file name */
             NativeString dhParamsFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "dh_params_file_name")));
-            if (dhParamsFileNameValue.getLength()) {
-                dhParamsFileName.append(dhParamsFileNameValue.getData(), dhParamsFileNameValue.getLength());
+            if (dhParamsFileNameValue.isInvalid(args)) {
+                return;
+            }
+            if (dhParamsFileNameValue.getString().length()) {
+                dhParamsFileName.append(dhParamsFileNameValue.getString());
                 ssl_options.dh_params_file_name = dhParamsFileName.c_str();
             }
         }

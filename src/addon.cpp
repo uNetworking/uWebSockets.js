@@ -23,8 +23,6 @@
 #include <type_traits>
 using namespace v8;
 
-void emptyNextTickQueue(Isolate *isolate);
-
 /* These two are definitely static */
 std::vector<UniquePersistent<Function>> nextTickQueue;
 Isolate *isolate;

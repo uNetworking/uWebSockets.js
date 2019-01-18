@@ -8,125 +8,194 @@ struct HttpResponseWrapper {
 
     template <bool SSL>
     static inline uWS::HttpResponse<SSL> *getHttpResponse(const FunctionCallbackInfo<Value> &args) {
-        return (uWS::HttpResponse<SSL> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        auto *res = (uWS::HttpResponse<SSL> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        if (!res) {
+            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of discarded (invalid, deleted) uWS.HttpResponse/SSLHttpResponse.")));
+        }
+        return res;
+    }
+
+    /* Marks this JS object invalid */
+    static inline void invalidateResObject(const FunctionCallbackInfo<Value> &args) {
+        args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes nothing, kills the connection */
     template <bool SSL>
     static void res_close(const FunctionCallbackInfo<Value> &args) {
-        getHttpResponse<SSL>(args)->close();
-
-        args.GetReturnValue().Set(args.Holder());
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            invalidateResObject(args);
+            res->close();
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Takes function of data and isLast. Expects nothing from callback, returns this */
     template <bool SSL>
     static void res_onData(const FunctionCallbackInfo<Value> &args) {
-        /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-        UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
+            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
-        getHttpResponse<SSL>(args)->onData([p = std::move(p)](std::string_view data, bool last) {
-            HandleScope hs(isolate);
+            res->onData([p = std::move(p)](std::string_view data, bool last) {
+                HandleScope hs(isolate);
 
-            Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(isolate, (void *) data.data(), data.length());
+                Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(isolate, (void *) data.data(), data.length());
 
-            Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
-            Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+                Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
+                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
 
-            dataArrayBuffer->Neuter();
-        });
+                dataArrayBuffer->Neuter();
+            });
 
-        args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Takes nothing, returns nothing. Cb wants nothing returned. */
     template <bool SSL>
     static void res_onAborted(const FunctionCallbackInfo<Value> &args) {
-        /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-        UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
+            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
-        getHttpResponse<SSL>(args)->onAborted([p = std::move(p)]() {
-            HandleScope hs(isolate);
+            /* This is how we capture res (C++ this in invocation of this function) */
+            UniquePersistent<Object> resObject(isolate, args.Holder());
 
-            Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
-        });
+            res->onAborted([p = std::move(p), resObject = std::move(resObject)]() {
+                HandleScope hs(isolate);
 
-        args.GetReturnValue().Set(args.Holder());
+                /* Mark this resObject invalid */
+                Local<Object>::New(isolate, resObject)->SetAlignedPointerInInternalField(0, nullptr);
+
+                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
+            });
+
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Returns the current write offset */
     template <bool SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
-        args.GetReturnValue().Set(Integer::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            args.GetReturnValue().Set(Integer::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+        }
     }
 
     /* Takes function of bool(int), returns this */
     template <bool SSL>
     static void res_onWritable(const FunctionCallbackInfo<Value> &args) {
-        /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-        UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
+            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
-        getHttpResponse<SSL>(args)->onWritable([p = std::move(p)](int offset) {
-            HandleScope hs(isolate);
+            res->onWritable([p = std::move(p)](int offset) {
+                HandleScope hs(isolate);
 
-            Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
-            return Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 1, argv)->BooleanValue();
-        });
+                Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
+                return Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext()->Global(), 1, argv)->BooleanValue();
+                /* How important is this return? */
+            });
 
-        args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Takes string or arraybuffer, returns this */
     template <bool SSL>
     static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
-        NativeString data(args.GetIsolate(), args[0]);
-        getHttpResponse<SSL>(args)->writeStatus(std::string_view(data.getData(), data.getLength()));
+        auto *res = getHttpResponse<SSL>(args);
+            if (res) {
+            NativeString data(args.GetIsolate(), args[0]);
+            if (data.isInvalid(args)) {
+                return;
+            }
+            res->writeStatus(data.getString());
 
-        args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Takes string or arraybuffer, returns this */
     template <bool SSL>
     static void res_end(const FunctionCallbackInfo<Value> &args) {
-        NativeString data(args.GetIsolate(), args[0]);
-        getHttpResponse<SSL>(args)->end(std::string_view(data.getData(), data.getLength()));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            NativeString data(args.GetIsolate(), args[0]);
+            if (data.isInvalid(args)) {
+                return;
+            }
+            invalidateResObject(args);
+            res->end(data.getString());
 
-        args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     /* Takes data and optionally totalLength, returns true for success, false for backpressure */
     template <bool SSL>
     static void res_tryEnd(const FunctionCallbackInfo<Value> &args) {
-        NativeString data(args.GetIsolate(), args[0]);
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            NativeString data(args.GetIsolate(), args[0]);
+            if (data.isInvalid(args)) {
+                return;
+            }
 
-        int totalSize = 0;
-        if (args.Length() > 1) {
-            totalSize = args[1]->Uint32Value();
+            int totalSize = 0;
+            if (args.Length() > 1) {
+                totalSize = args[1]->Uint32Value();
+            }
+
+            bool ok = res->tryEnd(data.getString(), totalSize);
+
+            /* Invalidate this object if we responded completely */
+            if (res->hasResponded()) {
+                invalidateResObject(args);
+            }
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
         }
-
-        bool ok = getHttpResponse<SSL>(args)->tryEnd(std::string_view(data.getData(), data.getLength()), totalSize);
-
-        args.GetReturnValue().Set(Boolean::New(isolate, ok));
     }
 
     /* Takes data, returns true for success, false for backpressure */
     template <bool SSL>
     static void res_write(const FunctionCallbackInfo<Value> &args) {
-        NativeString data(args.GetIsolate(), args[0]);
-        bool ok = getHttpResponse<SSL>(args)->write(std::string_view(data.getData(), data.getLength()));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            NativeString data(args.GetIsolate(), args[0]);
+            if (data.isInvalid(args)) {
+                return;
+            }
+            bool ok = res->write(data.getString());
 
-        args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
     }
 
     /* Takes key, value. Returns this */
     template <bool SSL>
     static void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
-        NativeString header(args.GetIsolate(), args[0]);
-        NativeString value(args.GetIsolate(), args[1]);
-        getHttpResponse<SSL>(args)->writeHeader(std::string_view(header.getData(), header.getLength()),
-                                                std::string_view(value.getData(), value.getLength()));
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            NativeString header(args.GetIsolate(), args[0]);
+            if (header.isInvalid(args)) {
+                return;
+            }
+            NativeString value(args.GetIsolate(), args[1]);
+            if (value.isInvalid(args)) {
+                return;
+            }
+            res->writeHeader(header.getString(),value.getString());
 
-        args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     template <bool SSL>

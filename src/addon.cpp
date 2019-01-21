@@ -24,6 +24,12 @@
 using namespace v8;
 
 /* These two are definitely static */
+
+/* Warning: having nextTickQueue items at loop fallthrough is not allowed.
+ * Process will crash/hang due to destruction of V8 resouces after V8 itself
+ * has been destroyed. Either enforce nextTick calls to keep the loop rolling
+ * via for instance setTimeout or setImmediate, or make sure to drain completely
+ * the queue at process.on('beforeExit'). */
 std::vector<UniquePersistent<Function>> nextTickQueue;
 Isolate *isolate;
 
@@ -38,17 +44,32 @@ void nextTick(const FunctionCallbackInfo<Value> &args) {
     nextTickQueue.emplace_back(UniquePersistent<Function>(isolate, Local<Function>::Cast(args[0])));
 }
 
-void emptyNextTickQueue(Isolate *isolate) {
+/* Used for debugging */
+void print(const FunctionCallbackInfo<Value> &args) {
+    NativeString nativeString(isolate, args[0]);
+    std::cout << nativeString.getString() << std::endl;
+}
+
+/* Does not guarantee empty queue because of recursive nextTick calls.
+ * Should return int queueSize after calling queued items, so that
+ * proper while(processNextTickQueueImpl()) can be done */
+int processNextTickQueueImpl(Isolate *isolate) {
     if (nextTickQueue.size()) {
+        /* Swap queues for recursive calls */
+        std::vector<UniquePersistent<Function>> currentNextTickQueue = std::move(nextTickQueue);
+
         HandleScope hs(isolate);
-
-        for (UniquePersistent<Function> &f : nextTickQueue) {
+        for (UniquePersistent<Function> &f : currentNextTickQueue) {
             Local<Function>::New(isolate, f)->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
-            f.Reset();
         }
-
-        nextTickQueue.clear();
     }
+
+    return nextTickQueue.size();
+}
+
+/* It is possible to call this at process.beforeExit until it returns 0. */
+void processNextTickQueue(const FunctionCallbackInfo<Value> &args) {
+    args.GetReturnValue().Set(Integer::New(isolate, processNextTickQueueImpl(isolate)));
 }
 
 /* todo: Put this function and all inits of it in its own header */
@@ -62,12 +83,12 @@ void Main(Local<Object> exports) {
 
     /* Register our own nextTick handlers */
     uWS::Loop::defaultLoop()->setPostHandler([](uWS::Loop *) {
-        emptyNextTickQueue(isolate);
+        processNextTickQueueImpl(isolate);
     });
 
     /* We also do need it on pre */
     uWS::Loop::defaultLoop()->setPreHandler([](uWS::Loop *) {
-        emptyNextTickQueue(isolate);
+        processNextTickQueueImpl(isolate);
     });
 
     /* Hook up our timers */
@@ -77,6 +98,8 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "nextTick"), FunctionTemplate::New(isolate, nextTick)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "processNextTickQueue"), FunctionTemplate::New(isolate, processNextTickQueue)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "print"), FunctionTemplate::New(isolate, print)->GetFunction());
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction());

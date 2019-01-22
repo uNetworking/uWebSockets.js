@@ -32,6 +32,9 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         /* maxPayloadLength */
         behavior.maxPayloadLength = behaviorObject->Get(String::NewFromUtf8(isolate, "maxPayloadLength"))->Int32Value();
 
+        /* idleTimeout */
+        behavior.idleTimeout = behaviorObject->Get(String::NewFromUtf8(isolate, "idleTimeout"))->Int32Value();
+
         /* Compression, map from 0, 1, 2 to disabled, shared, dedicated */
         int compression = behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value();
         if (compression == 0) {

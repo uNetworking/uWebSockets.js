@@ -11,6 +11,7 @@ const app = uWS./*SSL*/App({
   /* Options */
   compression: 0,
   maxPayloadLength: 16 * 1024 * 1024,
+  idleTimeout: 10,
   /* Handlers */
   open: (ws, req) => {
     console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
@@ -25,6 +26,8 @@ const app = uWS./*SSL*/App({
   close: (ws, code, message) => {
     console.log('WebSocket closed');
   }
+}).any('/*', (res, req) => {
+  res.end('Nothing to see here!');
 }).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);

@@ -7,6 +7,8 @@ const app = uWS./*SSL*/App({
   key_file_name: 'misc/key.pem',
   cert_file_name: 'misc/cert.pem',
   passphrase: '1234'
+}).any('/anything', (res, req) => {
+  res.end('Any route with method: ' + req.getMethod());
 }).get('/user/agent', (res, req) => {
   /* Read headers */
   res.end('Your user agent is: ' + req.getHeader('user-agent') + ' thank you, come again!');

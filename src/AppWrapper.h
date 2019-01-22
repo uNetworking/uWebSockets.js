@@ -287,7 +287,10 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         uWS_App_get<APP>(&APP::trace, args);
     }));
 
-    /* What about unhandled? */
+    /* Any http method */
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "any"), FunctionTemplate::New(isolate, [](auto &args) {
+        uWS_App_get<APP>(&APP::any, args);
+    }));
 
     /* ws, listen */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));

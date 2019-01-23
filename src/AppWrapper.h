@@ -14,12 +14,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    /* We don't need to care for these just yet, since we do
-     * not have a way to free the app itself */
-    Persistent<Function> *openPf = new Persistent<Function>();
-    Persistent<Function> *messagePf = new Persistent<Function>();
-    Persistent<Function> *drainPf = new Persistent<Function>();
-    Persistent<Function> *closePf = new Persistent<Function>();
+    UniquePersistent<Function> openPf;
+    UniquePersistent<Function> messagePf;
+    UniquePersistent<Function> drainPf;
+    UniquePersistent<Function> closePf;
 
     struct PerSocketData {
         Persistent<Object> *socketPf;
@@ -46,16 +44,16 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         }
 
         /* Open */
-        openPf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
+        openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
         /* Message */
-        messagePf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "message"))));
+        messagePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "message"))));
         /* Drain */
-        drainPf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "drain"))));
+        drainPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "drain"))));
         /* Close */
-        closePf->Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "close"))));
+        closePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "close"))));
     }
 
-    behavior.open = [openPf](auto *ws, auto *req) {
+    behavior.open = [openPf = std::move(openPf)](auto *ws, auto *req) {
         HandleScope hs(isolate);
 
         /* Create a new websocket object */
@@ -72,10 +70,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         perSocketData->socketPf->Reset(isolate, wsObject);
 
         Local<Value> argv[] = {wsObject, reqObject};
-        Local<Function>::New(isolate, *openPf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+        Local<Function>::New(isolate, openPf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
     };
 
-    behavior.message = [messagePf](auto *ws, std::string_view message, uWS::OpCode opCode) {
+    behavior.message = [messagePf = std::move(messagePf)](auto *ws, std::string_view message, uWS::OpCode opCode) {
         HandleScope hs(isolate);
 
         Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
@@ -84,19 +82,19 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
                                 messageArrayBuffer,
                                 Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
-        Local<Function>::New(isolate, *messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+        Local<Function>::New(isolate, messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
 
         /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
         messageArrayBuffer->Neuter();
     };
 
-    behavior.drain = [drainPf](auto *ws) {
+    behavior.drain = [drainPf = std::move(drainPf)](auto *ws) {
         HandleScope hs(isolate);
 
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
                                 };
-        Local<Function>::New(isolate, *drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        Local<Function>::New(isolate, drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     };
 
     behavior.ping = [](auto *ws) {
@@ -107,7 +105,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     };
 
-    behavior.close = [closePf](auto *ws, int code, std::string_view message) {
+    behavior.close = [closePf = std::move(closePf)](auto *ws, int code, std::string_view message) {
         HandleScope hs(isolate);
 
         Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
@@ -119,7 +117,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
         /* Invalidate this wsObject */
         wsObject->SetAlignedPointerInInternalField(0, nullptr);
-        Local<Function>::New(isolate, *closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+        Local<Function>::New(isolate, closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
 
         delete perSocketData->socketPf;
 
@@ -182,6 +180,14 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     });
 
     args.GetReturnValue().Set(args.Holder());
+}
+
+/* Mostly indended for debugging memory leaks */
+template <typename APP>
+void uWS_App_forcefully_free(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    delete app;
 }
 
 template <typename APP>
@@ -298,6 +304,9 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* ws, listen */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
+
+    /* forcefully_free is unsafe for end-users to use, but nice to track memory leaks with ASAN */
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forcefully_free"), FunctionTemplate::New(isolate, uWS_App_forcefully_free<APP>));
 
     Local<Object> localApp = appTemplate->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);

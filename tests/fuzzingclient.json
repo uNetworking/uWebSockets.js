@@ -1,0 +1,17 @@
+
+{
+   "outdir": "./reports/servers",
+   "servers": [
+      {
+         "url": "ws://localhost:9001",
+         "agent": "uWebSockets.js non-SSL, compression 2"
+      },
+      {
+         "url": "wss://localhost:9002",
+         "agent": "uWebSockets.js SSL, compression 2"
+      }
+   ],
+   "cases": ["*.*"],
+   "exclude-cases": [],
+   "exclude-agent-cases": {}
+}

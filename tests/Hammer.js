@@ -17,11 +17,15 @@ let closedClientConnections = 0;
 
 let listenSocket;
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
 /* Perform random websockets/ws action */
 function performRandomClientAction(ws) {
-    console.log("performing random ws action");
-
+    uWS.print('Random client action');
     ws.send('test message from client');
+    uWS.print('Random client action, done');
 }
 
 /* Perform random uWebSockets.js action */
@@ -31,7 +35,7 @@ function establishNewConnection() {
 
     ws.on('open', () => {
         /* Open more connections */
-        if (++openedClientConnections < 10) {
+        if (++openedClientConnections < 1) {
             establishNewConnection();
         } else {
             /* Stop listening */
@@ -43,19 +47,30 @@ function establishNewConnection() {
     });
 
     ws.on('message', (data) => {
+        console.log('client got message: ' + data);
         performRandomClientAction(ws);
     });
 
     ws.on('close', () => {
-        performRandomClientAction(ws);
+        console.log("client was closed");
+        //performRandomClientAction(ws);
     });
 }
 
 
 function performRandomServerAction(ws) {
-    console.log("performing random server action");
-
-    ws.send('a test message');
+    //uWS.print('Random server action');
+    switch (getRandomInt(1)) {
+        case 0: {
+            ws.close();
+            break;
+        }
+        case 1: {
+            ws.send('a test message', false);
+            break;
+        }
+    }
+    //uWS.print('Done with random server action');
 }
 
 const app = uWS./*SSL*/App({
@@ -63,20 +78,25 @@ const app = uWS./*SSL*/App({
   cert_file_name: 'misc/cert.pem',
   passphrase: '1234'
 }).ws('/*', {
-  /*compression: 0,
+  compression: 0,
   maxPayloadLength: 16 * 1024 * 1024,
-  idleTimeout: 10,*/
+  idleTimeout: 10,
 
   open: (ws, req) => {
+    uWS.print('Server open event');
     performRandomServerAction(ws);
+    uWS.print('Server open event, returning');
   },
   message: (ws, message, isBinary) => {
+    console.log('server got message: ' + message.byteLength);
     performRandomServerAction(ws);
   },
   drain: (ws) => {
+    // todo: dont send over a certain backpressure
     //performRandomServerAction(ws);
   },
   close: (ws, code, message) => {
+    console.log('server was closed');
     //performRandomServerAction(ws);
   }
 }).any('/*', (res, req) => {

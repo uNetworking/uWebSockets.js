@@ -26,17 +26,17 @@ struct WebSocketWrapper {
 
     /* Takes nothing returns nothing */
     template <bool SSL>
-    static void uWS_WebSocket_terminate(const FunctionCallbackInfo<Value> &args) {
+    static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             invalidateWsObject(args);
-            ws->terminate();
+            ws->close();
         }
     }
 
     /* Takes code, message, returns undefined */
     template <bool SSL>
-    static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
+    static void uWS_WebSocket_end(const FunctionCallbackInfo<Value> &args) {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             int code = 0;
@@ -50,7 +50,7 @@ struct WebSocketWrapper {
             }
 
             invalidateWsObject(args);
-            ws->close(code, message.getString());
+            ws->end(code, message.getString());
         }
     }
 
@@ -92,8 +92,8 @@ struct WebSocketWrapper {
 
         /* Register our functions */
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close"), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "terminate"), FunctionTemplate::New(isolate, uWS_WebSocket_terminate<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount"), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
 
         /* Create the template */

@@ -127,7 +127,7 @@ function performRandomServerAction(ws, uniform) {
 
     switch (action) {
         case 0: {
-            ws.close();
+            ws.end();
             break;
         }
         case 1: {
@@ -142,8 +142,7 @@ function performRandomServerAction(ws, uniform) {
             break;
         }
         case 2: {
-            /* This should correspond to hard us_socket_close */
-            ws.terminate();
+            ws.close();
             break;
         }
     }

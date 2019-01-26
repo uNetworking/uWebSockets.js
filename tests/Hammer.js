@@ -17,25 +17,17 @@ let closedClientConnections = 0;
 
 let listenSocket;
 
+/* 0 to 1-less than max */
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
-
-/* Perform random websockets/ws action */
-function performRandomClientAction(ws) {
-    uWS.print('Random client action');
-    ws.send('test message from client');
-    uWS.print('Random client action, done');
-}
-
-/* Perform random uWebSockets.js action */
 
 function establishNewConnection() {
     const ws = new WebSocket('ws://localhost:' + port);
 
     ws.on('open', () => {
         /* Open more connections */
-        if (++openedClientConnections < 1) {
+        if (++openedClientConnections < 1000) {
             establishNewConnection();
         } else {
             /* Stop listening */
@@ -46,8 +38,8 @@ function establishNewConnection() {
         performRandomClientAction(ws);
     });
 
+    /* It seems you can get messages after close?! */
     ws.on('message', (data) => {
-        console.log('client got message: ' + data);
         performRandomClientAction(ws);
     });
 
@@ -57,20 +49,51 @@ function establishNewConnection() {
     });
 }
 
-
-function performRandomServerAction(ws) {
-    //uWS.print('Random server action');
-    switch (getRandomInt(1)) {
+/* Perform random websockets/ws action */
+function performRandomClientAction(ws) {
+    /* 0, 1 but never 2 */
+    switch (getRandomInt(2)) {
         case 0: {
             ws.close();
             break;
         }
         case 1: {
-            ws.send('a test message', false);
+            /* Length should be random from small to huge */
+            try {
+                ws.send('a test message');
+            } catch (e) {
+                /* Apparently websockets/ws can throw at any moment */
+
+            }
+            break;
+        }
+        case 2: {
+            /* This should correspond to hard us_socket_close */
+            ws.terminate();
             break;
         }
     }
-    //uWS.print('Done with random server action');
+}
+
+/* Perform random uWebSockets.js action */
+function performRandomServerAction(ws) {
+    /* 0, 1 but never 2 */
+    switch (getRandomInt(2)) {
+        case 0: {
+            ws.close();
+            break;
+        }
+        case 1: {
+            /* Length should be random from small to huge */
+            ws.send('a test message', false);
+            break;
+        }
+        case 2: {
+            /* This should correspond to hard us_socket_close */
+            ws.terminate();
+            break;
+        }
+    }
 }
 
 const app = uWS./*SSL*/App({
@@ -83,12 +106,10 @@ const app = uWS./*SSL*/App({
   idleTimeout: 10,
 
   open: (ws, req) => {
-    uWS.print('Server open event');
+    /* Doing a terminate here will be interesting */
     performRandomServerAction(ws);
-    uWS.print('Server open event, returning');
   },
   message: (ws, message, isBinary) => {
-    console.log('server got message: ' + message.byteLength);
     performRandomServerAction(ws);
   },
   drain: (ws) => {
@@ -96,8 +117,15 @@ const app = uWS./*SSL*/App({
     //performRandomServerAction(ws);
   },
   close: (ws, code, message) => {
-    console.log('server was closed');
-    //performRandomServerAction(ws);
+    try {
+        performRandomServerAction(ws);
+    } catch (e) {
+        /* We expect to land here always, since socket is invalid */
+        return;
+    }
+    /* We should never land here */
+    uWS.print('ERROR: Did not throw in close!');
+    process.exit(-1);
   }
 }).any('/*', (res, req) => {
   res.end('Nothing to see here!');

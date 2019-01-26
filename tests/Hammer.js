@@ -15,6 +15,11 @@ const port = 9001;
 let openedClientConnections = 0;
 let closedClientConnections = 0;
 
+function printStatistics() {
+    console.log('Opened clients ' + openedClientConnections);
+    console.log('Closed clients ' + closedClientConnections + '\n');
+}
+
 let listenSocket;
 
 /* 0 to 1-less than max */
@@ -27,14 +32,14 @@ function establishNewConnection() {
 
     ws.on('open', () => {
         /* Open more connections */
-        if (++openedClientConnections < 1000) {
+        if (++openedClientConnections < 100) {
             establishNewConnection();
         } else {
             /* Stop listening */
             uWS.us_listen_socket_close(listenSocket);
         }
 
-        console.log('Opened ' + openedClientConnections + ' client connections so far.');
+        printStatistics();
         performRandomClientAction(ws);
     });
 
@@ -44,15 +49,27 @@ function establishNewConnection() {
     });
 
     ws.on('close', () => {
-        console.log("client was closed");
+        closedClientConnections++;
+        printStatistics();
         //performRandomClientAction(ws);
     });
 }
 
+const maxBackpressure = 50 * 1024 * 1024;
+const maxPayloadSize = 5 * 1024 * 1024;
+const largeBuffer = new ArrayBuffer(maxPayloadSize);
+
 /* Perform random websockets/ws action */
 function performRandomClientAction(ws) {
     /* 0, 1 but never 2 */
-    switch (getRandomInt(2)) {
+    let action = getRandomInt(2);
+
+    /* Sending a message should have higher probability */
+    if (getRandomInt(100) < 80) {
+        action = 1;
+    }
+
+    switch (action) {
         case 0: {
             ws.close();
             break;
@@ -76,16 +93,32 @@ function performRandomClientAction(ws) {
 }
 
 /* Perform random uWebSockets.js action */
-function performRandomServerAction(ws) {
+function performRandomServerAction(ws, uniform) {
+    let action = getRandomInt(2);
+
+    /* Sending a message should have higher probability,
+     * except for when we are draining. */
+    if (!uniform) {
+        if (getRandomInt(100) < 80) {
+            action = 1;
+        }
+    }
+
     /* 0, 1 but never 2 */
-    switch (getRandomInt(2)) {
+    switch (action) {
         case 0: {
             ws.close();
             break;
         }
         case 1: {
-            /* Length should be random from small to huge */
-            ws.send('a test message', false);
+            /* If we have very high backpressure we skip sending more */
+            if (ws.getBufferedAmount() > maxBackpressure) {
+                /* Do something else instead */
+                performRandomServerAction(ws);
+            } else {
+                /* Length should be random from small to huge, ArrayBuffer.slice is a copy (bad but we don't care I guess) */
+                ws.send(largeBuffer.slice(0, getRandomInt(maxPayloadSize + 1)));
+            }
             break;
         }
         case 2: {
@@ -102,23 +135,32 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).ws('/*', {
   compression: 0,
-  maxPayloadLength: 16 * 1024 * 1024,
-  idleTimeout: 10,
+  /* We intentionally accept less than what might be sent so to test force closing */
+  maxPayloadLength: maxPayloadSize / 2,
+  idleTimeout: 100,
 
   open: (ws, req) => {
     /* Doing a terminate here will be interesting */
-    performRandomServerAction(ws);
+    performRandomServerAction(ws, false);
   },
   message: (ws, message, isBinary) => {
-    performRandomServerAction(ws);
+    performRandomServerAction(ws, false);
   },
   drain: (ws) => {
-    // todo: dont send over a certain backpressure
-    //performRandomServerAction(ws);
+    /* We only perform actions while draining rarely (5%), and we do it uniformly.
+     * There's no real NEED to do anything here, as it will eventually result in
+     * message event for client. */
+    if (getRandomInt(100) < 5) {
+        performRandomServerAction(ws, true);
+    }
   },
   close: (ws, code, message) => {
+    /* TODO: We SHOULD TECHNICALLY allow sending here.
+     * It should not throw, but just silently ignore it
+     * as it makes no sense to send on a closed socket
+     * while still being technically valid */
     try {
-        performRandomServerAction(ws);
+        performRandomServerAction(ws, false);
     } catch (e) {
         /* We expect to land here always, since socket is invalid */
         return;
@@ -143,5 +185,6 @@ const app = uWS./*SSL*/App({
 
 /* Yes we do this crazy thing here */
 process.on('beforeExit', () => {
+    uWS.print('Exiting now');
     app.forcefully_free();
 });

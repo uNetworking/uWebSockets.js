@@ -21,6 +21,19 @@ struct WebSocketWrapper {
         args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
+    /* It would make sense to call terminate "close" and call close "end" to line up with HTTP */
+    /* That also makes sense seince close takes message and code -> you can end with a string message */
+
+    /* Takes nothing returns nothing */
+    template <bool SSL>
+    static void uWS_WebSocket_terminate(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            invalidateWsObject(args);
+            ws->terminate();
+        }
+    }
+
     /* Takes code, message, returns undefined */
     template <bool SSL>
     static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
@@ -80,6 +93,7 @@ struct WebSocketWrapper {
         /* Register our functions */
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close"), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "terminate"), FunctionTemplate::New(isolate, uWS_WebSocket_terminate<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount"), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
 
         /* Create the template */

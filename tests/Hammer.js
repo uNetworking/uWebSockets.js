@@ -15,29 +15,41 @@ const port = 9001;
 let openedClientConnections = 0;
 let closedClientConnections = 0;
 
+let listenSocket;
+
+const maxBackpressure = 50 * 1024 * 1024;
+const maxPayloadSize = 5 * 1024 * 1024;
+const largeBuffer = new ArrayBuffer(maxPayloadSize);
+
 function printStatistics() {
     console.log('Opened clients ' + openedClientConnections);
     console.log('Closed clients ' + closedClientConnections + '\n');
 }
-
-let listenSocket;
 
 /* 0 to 1-less than max */
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
+/* This gets called every time we either open a new connection,
+ * or it immediately land in websockets/ws error handler */
+function accountForConnection() {
+    /* Open more connections */
+    if (++openedClientConnections < /*100*/ 1000) {
+        establishNewConnection();
+    } else {
+        /* Stop listening */
+        uWS.us_listen_socket_close(listenSocket);
+    }
+}
+
 function establishNewConnection() {
     const ws = new WebSocket('ws://localhost:' + port);
 
     ws.on('open', () => {
-        /* Open more connections */
-        if (++openedClientConnections < 100) {
-            establishNewConnection();
-        } else {
-            /* Stop listening */
-            uWS.us_listen_socket_close(listenSocket);
-        }
+        /* Mark this socket as opened */
+        ws._opened = true;
+        accountForConnection();
 
         printStatistics();
         performRandomClientAction(ws);
@@ -48,21 +60,30 @@ function establishNewConnection() {
         performRandomClientAction(ws);
     });
 
+    /* Close can be called more times than open, websockets/ws is really messy! */
     ws.on('close', () => {
+        /* Check if this websocket really was opened first */
+        if (!ws._opened) {
+            accountForConnection();
+        }
+
         closedClientConnections++;
         printStatistics();
+        /* I guess there is no need for us to call anything
+         * here, websockets/ws will not send anything to us anyways */
         //performRandomClientAction(ws);
+    });
+
+    ws.on('error', () => {
+        /* We simply ignore errors. websockets/ws will call our close handler
+         * on errors, potentially before even calling the open handler */
     });
 }
 
-const maxBackpressure = 50 * 1024 * 1024;
-const maxPayloadSize = 5 * 1024 * 1024;
-const largeBuffer = new ArrayBuffer(maxPayloadSize);
-
 /* Perform random websockets/ws action */
 function performRandomClientAction(ws) {
-    /* 0, 1 but never 2 */
-    let action = getRandomInt(2);
+    /* 0, 1, 2 but never 3 */
+    let action = getRandomInt(3);
 
     /* Sending a message should have higher probability */
     if (getRandomInt(100) < 80) {
@@ -85,7 +106,6 @@ function performRandomClientAction(ws) {
             break;
         }
         case 2: {
-            /* This should correspond to hard us_socket_close */
             ws.terminate();
             break;
         }
@@ -94,7 +114,8 @@ function performRandomClientAction(ws) {
 
 /* Perform random uWebSockets.js action */
 function performRandomServerAction(ws, uniform) {
-    let action = getRandomInt(2);
+    /* 0, 1, 2 but never 3 */
+    let action = getRandomInt(3);
 
     /* Sending a message should have higher probability,
      * except for when we are draining. */
@@ -104,7 +125,6 @@ function performRandomServerAction(ws, uniform) {
         }
     }
 
-    /* 0, 1 but never 2 */
     switch (action) {
         case 0: {
             ws.close();

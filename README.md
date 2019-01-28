@@ -18,7 +18,7 @@ npm install uNetworking/uWebSockets.js#binaries
 ### Presenting; faster I/O for Node.js
 Every other week a new "web framework" pops up for Node.js. Fastify, Restana, Aero, Micro and so on. Most aim to improve I/O performance, but fall flat. You can't fix an inherent design flaw of an entire stack just by slapping a few lines of JavaScript on top.
 
-µWS.js is a 100% C/C++ web platform completely bypassing the entire Node.js I/O stack. JavaScript-exposed functions and objects are entirely backed by native code all the way down to the OS kernel. This makes it possible to reach unprecedented I/O performance from within Node.js (or any stand-alone V8 build). Scroll down for benchmarks.
+µWS.js is a 100% C/C++ web platform completely bypassing the entire Node.js I/O stack. JavaScript-exposed functions and objects are entirely backed by native code all the way down to the OS kernel. This makes it possible to reach unprecedented I/O performance from within Node.js (or any stand-alone V8 build). This stack is, within Node.js, faster than gorilla/websocket for Golang even on an SSL-vs-non-SSL basis.
 
 ##### In a nutshell
 ```javascript

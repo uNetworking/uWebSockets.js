@@ -9,7 +9,8 @@ const fs = require('fs');
 
 const port = 9001;
 const fileName = '/home/alexhultman/Downloads/Sintel.2010.720p.mkv';
-const totalSize = fs.statSync(fileName).size;
+const videoFile = toArrayBuffer(fs.readFileSync(fileName));
+const totalSize = videoFile.byteLength;
 
 console.log('WARNING: NEVER DO LIKE THIS; WILL CAUSE HORRIBLE BACKPRESSURE!');
 console.log('Video size is: ' + totalSize + ' bytes');
@@ -28,7 +29,7 @@ const app = uWS.SSLApp({
   /* Log */
   console.log("Copying Sintel video...");
   /* Copy the entire video to backpressure */
-  res.end(toArrayBuffer(fs.readFileSync(fileName)));
+  res.end(videoFile);
 }).get('/*', (res, req) => {
   /* Make sure to always handle every route */
   res.end('Nothing to see here!');

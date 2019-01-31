@@ -160,7 +160,12 @@ struct HttpResponseWrapper {
                 invalidateResObject(args);
             }
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            /* This is a quick fix, it will need updating in µWS later on */
+            Local<Array> array = Array::New(isolate, 2);
+            array->Set(0, Boolean::New(isolate, ok));
+            array->Set(1, Boolean::New(isolate, res->hasResponded()));
+
+            args.GetReturnValue().Set(array);
         }
     }
 

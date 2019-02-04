@@ -1,24 +1,21 @@
 <div align="center">
 <img src="misc/logo.svg" height="180" />
 
-*µWebSockets™ (it's "[micro](https://en.wikipedia.org/wiki/Micro-)") is simple, secure & standards compliant web I/O for the most demanding*<sup>[[1]](benchmarks)</sup> *of applications.*
+*µWebSockets™ (it's "[micro](https://en.wikipedia.org/wiki/Micro-)") is simple, secure & standards compliant web I/O for the most demanding*<sup>[[1]](https://github.com/uNetworking/uWebSockets/tree/master/benchmarks)</sup> *of applications.*
 
-• [Read more](misc/READMORE.md)
+• [Read more (redirects to C++ project)](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md)
 
 </div>
 
 
-### NPM install
+### For Node.js / NPM users
 While not physically hosted by NPM, it's still possible to install using NPM tools like so ([npm docs](https://docs.npmjs.com/cli/install)):
 
 ```
-npm install uNetworking/uWebSockets.js#binaries
+npm install uNetworking/uWebSockets.js#v15.0.0
 ```
 
-### Presenting; faster I/O for Node.js
-Every other week a new "web framework" pops up for Node.js. Fastify, Restana, Aero, Micro and so on. Most aim to improve I/O performance, but fall flat. You can't fix an inherent design flaw of an entire stack just by slapping a few lines of JavaScript on top.
-
-µWS.js is a 100% C/C++ web platform completely bypassing the entire Node.js I/O stack. JavaScript-exposed functions and objects are entirely backed by native code all the way down to the OS kernel. This makes it possible to reach unprecedented I/O performance from within Node.js (or any stand-alone V8 build). This stack is, within Node.js, faster than gorilla/websocket for Golang even on an SSL-vs-non-SSL basis.
+This project is a Google V8 (Node.js or not) web server built to be efficient and stable. It makes use of µWebSockets, the C++ project, and exposes its features to JavaScript developers. This includes mainly Http & WebSockets, SSL and non-SSL. Prominent users include bitfinex.com, they run ther trading APIs on this server.
 
 ##### In a nutshell
 ```javascript

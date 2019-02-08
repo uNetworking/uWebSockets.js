@@ -54,6 +54,10 @@ void print(const FunctionCallbackInfo<Value> &args) {
  * Should return int queueSize after calling queued items, so that
  * proper while(processNextTickQueueImpl()) can be done */
 int processNextTickQueueImpl(Isolate *isolate) {
+
+    /* Run async continuations, promises and other V8-queued tasks */
+    isolate->RunMicrotasks();
+
     if (nextTickQueue.size()) {
         /* Swap queues for recursive calls */
         std::vector<UniquePersistent<Function>> currentNextTickQueue = std::move(nextTickQueue);

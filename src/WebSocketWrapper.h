@@ -21,6 +21,27 @@ struct WebSocketWrapper {
         args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
+    /* Takes string topic */
+    template <bool SSL>
+    static void uWS_WebSocket_subscribe(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString topic(isolate, args[0]);
+            ws->subscribe(topic.getString());
+        }
+    }
+
+    /* Takes string topic, message */
+    template <bool SSL>
+    static void uWS_WebSocket_publish(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString topic(isolate, args[0]);
+            NativeString message(isolate, args[1]);
+            ws->publish(topic.getString(), message.getString());
+        }
+    }
+
     /* It would make sense to call terminate "close" and call close "end" to line up with HTTP */
     /* That also makes sense seince close takes message and code -> you can end with a string message */
 
@@ -95,6 +116,8 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close"), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount"), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe"), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish"), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

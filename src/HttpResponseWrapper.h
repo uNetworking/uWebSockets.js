@@ -153,17 +153,17 @@ struct HttpResponseWrapper {
                 totalSize = args[1]->Uint32Value();
             }
 
-            bool ok = res->tryEnd(data.getString(), totalSize);
+            auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);
 
             /* Invalidate this object if we responded completely */
-            if (res->hasResponded()) {
+            if (hasResponded) {
                 invalidateResObject(args);
             }
 
             /* This is a quick fix, it will need updating in µWS later on */
             Local<Array> array = Array::New(isolate, 2);
             array->Set(0, Boolean::New(isolate, ok));
-            array->Set(1, Boolean::New(isolate, res->hasResponded()));
+            array->Set(1, Boolean::New(isolate, hasResponded));
 
             args.GetReturnValue().Set(array);
         }

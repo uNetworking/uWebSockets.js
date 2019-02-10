@@ -21,21 +21,38 @@ npm install uNetworking/uWebSockets.js#v15.1.0
 
 where `v15.1.0` is the particular Git tag you wanted to use.
 
-##### In a nutshell
-```javascript
-const uWS = require('uWebSockets.js');
-const port = 3000;
+### In a nutshell
+There are tons of [examples](examples) but here's the gist of it all:
 
-uWS.SSLApp({
-  /* cert, key and such specified here, or use uWS.App */
-}).get('/whatsmyuseragent', (res, req) => {
-  res.writeHeader(
-    'content-type', 'text/html; charset= utf-8'
-  ).end(
-    'Your user agent is: ' + req.getHeader('user-agent')
-  );
-}).get('/*', (res, req) => {
-  res.end('Wildcard route');
+```javascript
+const uWS = require('../dist/uws.js');
+const port = 9001;
+
+const app = uWS.SSLApp({
+  key_file_name: 'misc/key.pem',
+  cert_file_name: 'misc/cert.pem',
+  passphrase: '1234'
+}).ws('/*', {
+  /* Options */
+  compression: 0,
+  maxPayloadLength: 16 * 1024 * 1024,
+  idleTimeout: 10,
+  /* Handlers */
+  open: (ws, req) => {
+    console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
+  },
+  message: (ws, message, isBinary) => {
+    /* Ok is false if backpressure was built up, wait for drain */
+    let ok = ws.send(message, isBinary);
+  },
+  drain: (ws) => {
+    console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
+  },
+  close: (ws, code, message) => {
+    console.log('WebSocket closed');
+  }
+}).any('/*', (res, req) => {
+  res.end('Nothing to see here!');
 }).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);
@@ -49,6 +66,9 @@ uWS.SSLApp({
 Proper streaming of huge data is supported over Http/Https and demonstrated with examples. Here's a shot of me watching real-time streamed HD video from Node.js while simultaneously scoring a 115k req/sec with wrk. For my computer, that's about 5x that of vanilla Node.js (without any HD video streaming/playing).
 
 ![](misc/streaming.png)
+
+### Pub/sub
+WIP section --
 
 ### Benchmarks
 Performance retention is about 65% that of the native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That makes it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.

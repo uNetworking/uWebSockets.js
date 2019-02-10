@@ -5,3 +5,8 @@ script:
 - git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
 - cd uWebSockets.js
 - make
+- git checkout binaries
+- cp dist/*.node .
+- git status
+- git commit -a -m "[TravisCI] Updated macOS binaries"
+- git push "https://alexhultman:$SECRET@github.com/uNetworking/uWebSockets.js" binaries

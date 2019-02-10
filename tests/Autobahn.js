@@ -1,74 +1,81 @@
-/* Test server for autobahn, run with ASAN. /exit route shuts down. */
-
+/* Test servers for autobahn, run with ASAN. /exit route shuts down everything */
 const uWS = require('../dist/uws.js');
-let listenSocket, listenSocketSSL;
 
-/* todo: A good idea is to test compression 1 for non-SSL and 2 for SSL */
-/* or really just test more than twice */
+/* Keep track of all apps */
+let apps = [];
+let closing = false;
 
-/* Shared, among SSL and non-SSL, behavior of WebSockets */
-const wsBehavior = {
-  /* Options */
-  compression: 2,
-  maxPayloadLength: 16 * 1024 * 1024,
-  idleTimeout: 60,
-  /* Handlers */
-  open: (ws, req) => {
-    console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
-  },
-  message: (ws, message, isBinary) => {
-    ws.send(message, isBinary);
-  },
-  drain: (ws) => {
-    console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
-  },
-  close: (ws, code, message) => {
-    console.log('WebSocket closed');
-  }
-};
+function listenWithSettings(settings) {
+  /* These are our shared SSL options */
+  let sslOptions = {
+    key_file_name: 'misc/key.pem',
+    cert_file_name: 'misc/cert.pem',
+    passphrase: '1234'
+  };
 
-/* The SSL test server is on port 9002 */
-const sslApp = uWS.SSLApp({
-  key_file_name: 'misc/key.pem',
-  cert_file_name: 'misc/cert.pem',
-  passphrase: '1234'
-}).ws('/*', wsBehavior).any('/exit', (res, req) => {
-  /* Stop listening on both SSL and non-SSL */
-  if (listenSocket) {
-    uWS.us_listen_socket_close(listenSocket);
-    uWS.us_listen_socket_close(listenSocketSSL);
-    listenSocket = null;
-  }
+  /* Create the app */
+  let app = settings.ssl ? uWS.App(sslOptions) : uWS.SSLApp(sslOptions);
 
-  /* Close this connection */
-  res.close();
-}).listen(9002, (token) => {
-  if (token) {
-    listenSocketSSL = token;
-    console.log('SSL test server is up...');
-  }
+  /* Attach our behavior from settings */
+  app.ws('/*', {
+    compression: settings.compression,
+    maxPayloadLength: 16 * 1024 * 1024,
+    idleTimeout: 60,
+
+    message: (ws, message, isBinary) => {
+      ws.send(message, isBinary);
+    }
+  }).any('/exit', (res, req) => {
+    /* Shut down everything on this route */
+    if (!closing) {
+      apps.forEach((a) => {
+        uWS.us_listen_socket_close(a.listenSocket);
+      });
+      closing = true;
+    }
+
+    /* Close this connection */
+    res.close();
+  }).listen(settings.port, (listenSocket) => {
+    if (listenSocket) {
+      /* Add this app with its listenSocket */
+      apps.push({
+        app: app,
+        listenSocket: listenSocket
+      });
+      console.log('Up and running: ' + JSON.stringify(settings));
+    } else {
+      /* Failure here */
+      console.log('Failed to listen, closing everything now');
+      process.exit(0);
+    }
+  });
+}
+
+/* non-SSL, non-compression */
+listenWithSettings({
+  port: 9001,
+  ssl: false,
+  compression: 0
 });
 
-/* The non-SSL test server is on port 9001 */
-const app = uWS.App().ws('/*', wsBehavior).any('/exit', (res, req) => {
-  /* Stop listening on both SSL and non-SSL */
-  if (listenSocket) {
-    uWS.us_listen_socket_close(listenSocket);
-    uWS.us_listen_socket_close(listenSocketSSL);
-    listenSocket = null;
-  }
+/* SSL, shared compressor */
+listenWithSettings({
+  port: 9002,
+  ssl: true,
+  compression: 1
+});
 
-  /* Close this connection */
-  res.close();
-}).listen(9001, (token) => {
-  if (token) {
-    listenSocket = token;
-    console.log('Non-SSL test server is up...');
-  }
+/* non-SSL, dedicated compressor */
+listenWithSettings({
+  port: 9003,
+  ssl: false,
+  compression: 2
 });
 
 /* This is required to check for memory leaks */
-process.on('beforeExit', () => {
-  app.forcefully_free();
-  sslApp.forcefully_free();
+process.on('exit', () => {
+  apps.forEach((a) => {
+    a.app.forcefully_free();
+  });
 });

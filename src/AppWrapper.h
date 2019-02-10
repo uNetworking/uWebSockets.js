@@ -171,13 +171,29 @@ template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
-    int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+    /* Invalid use */
+    if (args.Length() != 2 && args.Length() != 3) {
+        /* Throw here */
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen takes 2 or 3 arguments")));
+        return;
+    }
 
-    app->listen(port, [&args](auto *token) {
+    auto cb = [&args](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
         Local<Function>::Cast(args[1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
-    });
+    };
+
+    if (args.Length() == 2) {
+        /* Port, callback */
+        int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+        app->listen(port, std::move(cb));
+    } else {
+        /* Host, port, callback */
+        NativeString host(isolate, args[0]);
+        int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+        app->listen(std::string(host.getString().data(), host.getString().length()), port, std::move(cb));
+    }
 
     args.GetReturnValue().Set(args.Holder());
 }

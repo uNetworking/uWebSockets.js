@@ -273,6 +273,13 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         app = new APP;
     }
 
+    /* Throw if we failed to construct the app */
+    if (app->constructorFailed()) {
+        delete app;
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App construction failed")));
+        return;
+    }
+
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     /* All the http methods */

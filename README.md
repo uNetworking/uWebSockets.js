@@ -7,15 +7,19 @@
 
 </div>
 
+### Outrun, everyone.
+This project is not your typical "web framework" a la 500 lines of JavaScript and a fancy logo. You're looking at a 3-part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
 
-### For Node.js / NPM users
-While not physically hosted by NPM, it's still possible to install using NPM tools like so ([npm docs](https://docs.npmjs.com/cli/install)):
+[Read the Medium post](https://levelup.gitconnected.com/will-node-js-forever-be-the-sluggish-golang-f632130e5c7a)
+
+### No compiler needed.
+We use AppVeyor & TravisCI to automatically pre-compile binaries for Linux, macOS and Windows with every push. New releases are tagged from branch `binaries` and can be installed [using NPM](https://docs.npmjs.com/cli/install) like so:
 
 ```
 npm install uNetworking/uWebSockets.js#v15.1.0
 ```
 
-This project is a Google V8 (Node.js or not) web server built to be efficient and stable. It makes use of µWebSockets, the C++ project, and exposes its features to JavaScript developers. This includes mainly Http & WebSockets, SSL and non-SSL. Prominent users include bitfinex.com, they run ther trading APIs on this server.
+where `v15.1.0` is the particular Git tag you wanted to use.
 
 ##### In a nutshell
 ```javascript

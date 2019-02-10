@@ -12,7 +12,7 @@
 While not physically hosted by NPM, it's still possible to install using NPM tools like so ([npm docs](https://docs.npmjs.com/cli/install)):
 
 ```
-npm install uNetworking/uWebSockets.js#v15.0.0
+npm install uNetworking/uWebSockets.js#v15.1.0
 ```
 
 This project is a Google V8 (Node.js or not) web server built to be efficient and stable. It makes use of µWebSockets, the C++ project, and exposes its features to JavaScript developers. This includes mainly Http & WebSockets, SSL and non-SSL. Prominent users include bitfinex.com, they run ther trading APIs on this server.

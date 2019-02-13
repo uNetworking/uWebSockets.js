@@ -71,11 +71,11 @@ Proper streaming of huge data is supported over Http/Https and demonstrated with
 WIP section --
 
 ### Benchmarks
-Performance retention is about 65% that of the native C++ [µWebSockets](https://github.com/uNetworking/uWebSockets) v0.15. That makes it some 20x as fast as Deno and even faster than most C++-only servers, all from within a JavaScript VM.
+In the following charts "µWS v0.15" denote the C++ project - performance retention for µWebSockets.js inside of V8 is about 65-75%, way above Golang and many others.
 
-Http | WebSockets
---- | ---
-![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png) | ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/websocket_lineup.png)
+Http | WebSockets | PubSub
+--- | --- | ---
+![](https://github.com/uNetworking/uWebSockets/blob/master/misc/bigshot_lineup.png) | ![](https://github.com/uNetworking/uWebSockets/blob/master/misc/websocket_lineup.png) | todo: Socket.IO, SocketCluster, ClusterWS
 
 ### Build from source
 #### Recursively clone, and enter, this repo:

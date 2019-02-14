@@ -10,6 +10,8 @@
 ### Outrun, everyone.
 This project is not your typical "web framework" a la 500 lines of JavaScript and a fancy logo. You're looking at a 3-part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
 
+It runs 15x faster than Deno and scales to millions of connections on small devices.
+
 [Read the Medium post](https://levelup.gitconnected.com/will-node-js-forever-be-the-sluggish-golang-f632130e5c7a)
 
 ### No compiler needed.
@@ -71,7 +73,7 @@ Proper streaming of huge data is supported over Http/Https and demonstrated with
 WIP section --
 
 ### Benchmarks
-In the following charts "µWS v0.15" denote the C++ project - performance retention for µWebSockets.js inside of V8 is about 65-75%, way above Golang and many others.
+In the following charts "µWS v0.15" denote the C++ project - performance retention for µWebSockets.js inside of V8 is about 65-75%, similar to or above the top performing Golang modules. User space memory usage for a million WebSockets is in the 100-400mb range.
 
 Http | WebSockets | PubSub
 --- | --- | ---

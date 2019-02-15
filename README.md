@@ -7,10 +7,10 @@
 
 </div>
 
-### Outrun, everyone.
-This project is not your typical "web framework" a la 500 lines of JavaScript and a fancy logo. You're looking at a 3-part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
+### Outrun. Everyone.
+This project is not your typical "web framework" À la 500 lines of JavaScript and a fancy logo. No, you're looking at a three part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
 
-It runs 15x faster than Deno and scales to millions of connections on small devices.
+It runs 15x faster than Deno and scales to millions of connections using less than half a GB of user space memory.
 
 [Read the Medium post](https://levelup.gitconnected.com/will-node-js-forever-be-the-sluggish-golang-f632130e5c7a)
 

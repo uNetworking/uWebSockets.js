@@ -85,7 +85,7 @@ Http | WebSockets | PubSub
 git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
 cd uWebSockets.js
 ```
-#### For Unix (Linux, macOS):
+#### For Unix (Linux, macOS, FreeBSD):
 ```
 make
 ```

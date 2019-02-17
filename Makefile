@@ -35,9 +35,9 @@ Darwin:
 	clang++ $(CPP_OSX) -flto -O3 *.o -std=c++17 -shared -undefined dynamic_lookup -o dist/uws_darwin_$$ABI.node
 
 FreeBSD:
-        clang $(C_SHARED) -I $$NODE/include/node
-        clang++ $(CPP_SHARED) -I $$NODE/include/node
-        clang++ -fuse-ld=lld -flto -O3 *.o -std=c++17 -shared -s -o dist/uws_freebsd_$$ABI.node
+	clang $(C_SHARED) -I $$NODE/include/node
+	clang++ $(CPP_SHARED) -I $$NODE/include/node
+	clang++ -fuse-ld=lld -flto -O3 *.o -std=c++17 -shared -s -o dist/uws_freebsd_$$ABI.node
 
 Windows:
 	nmake targets

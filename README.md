@@ -8,11 +8,11 @@
 </div>
 
 ### Outrun. Everyone.
-This project is not your typical "web framework" À la 500 lines of JavaScript and a fancy logo. No, you're looking at a three part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
+This project is not your typical "web framework" à la 500 lines of JavaScript and a fancy logo. No, you're looking at a three part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
 
 It runs 15x faster than Deno and scales to millions of connections using less than half a GB of user space memory.
 
-[Read the Medium post](https://levelup.gitconnected.com/will-node-js-forever-be-the-sluggish-golang-f632130e5c7a)
+[Read the release post](https://levelup.gitconnected.com/will-node-js-forever-be-the-sluggish-golang-f632130e5c7a) and/or the [1 million WebSockets post](https://medium.com/@alexhultman/millions-of-active-websockets-with-node-js-7dc575746a01).
 
 ### No compiler needed.
 We use AppVeyor & TravisCI to automatically pre-compile binaries for Linux, macOS and Windows with every push. New releases are tagged from branch `binaries` and can be installed [using NPM](https://docs.npmjs.com/cli/install) like so:

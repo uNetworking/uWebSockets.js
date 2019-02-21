@@ -18,10 +18,10 @@ It runs 15x faster than Deno and scales to millions of connections using less th
 We use AppVeyor & TravisCI to automatically pre-compile binaries for Linux, macOS and Windows with every push. New releases are tagged from branch `binaries` and can be installed [using NPM](https://docs.npmjs.com/cli/install) like so:
 
 ```
-npm install uNetworking/uWebSockets.js#v15.1.0
+npm install uNetworking/uWebSockets.js#v15.2.0
 ```
 
-where `v15.1.0` is the particular Git tag you wanted to use.
+where `v15.2.0` is the particular Git tag you wanted to use.
 
 ### In a nutshell
 There are tons of [examples](examples) but here's the gist of it all:

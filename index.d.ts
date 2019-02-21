@@ -142,3 +142,13 @@ export function SSLApp(options: AppOptions): TemplatedApp;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;
+
+/** WebSocket compression options */
+export enum CompressOptions {
+    /** No compression (always a good idea) */
+    DISABLED,
+    /** Zero memory overhead compression (recommended) */
+    SHARED_COMPRESSOR,
+    /** Sliding dedicated compress window, requires lots of memory per socket */
+    DEDICATED_COMPRESSOR
+}

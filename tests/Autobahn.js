@@ -14,16 +14,15 @@ function listenWithSettings(settings) {
   };
 
   /* Create the app */
-  let app = settings.ssl ? uWS.App(sslOptions) : uWS.SSLApp(sslOptions);
+  let app = settings.ssl ? uWS.SSLApp(sslOptions) : uWS.App(sslOptions);
 
   /* Attach our behavior from settings */
   app.ws('/*', {
     compression: settings.compression,
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 60,
-
     message: (ws, message, isBinary) => {
-      ws.send(message, isBinary);
+      ws.send(message, isBinary, true);
     }
   }).any('/exit', (res, req) => {
     /* Shut down everything on this route */
@@ -56,21 +55,21 @@ function listenWithSettings(settings) {
 listenWithSettings({
   port: 9001,
   ssl: false,
-  compression: 0
+  compression: uWS.DISABLED
 });
 
 /* SSL, shared compressor */
 listenWithSettings({
   port: 9002,
   ssl: true,
-  compression: 1
+  compression: uWS.SHARED_COMPRESSOR
 });
 
 /* non-SSL, dedicated compressor */
 listenWithSettings({
   port: 9003,
   ssl: false,
-  compression: 2
+  compression: uWS.DEDICATED_COMPRESSOR
 });
 
 /* This is required to check for memory leaks */

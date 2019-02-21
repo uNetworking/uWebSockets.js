@@ -33,15 +33,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         /* idleTimeout */
         behavior.idleTimeout = behaviorObject->Get(String::NewFromUtf8(isolate, "idleTimeout"))->Int32Value();
 
-        /* Compression, map from 0, 1, 2 to disabled, shared, dedicated */
-        int compression = behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value();
-        if (compression == 0) {
-            behavior.compression = uWS::CompressOptions::DISABLED;
-        } else if (compression == 1) {
-            behavior.compression = uWS::CompressOptions::SHARED_COMPRESSOR;
-        } else if (compression == 2) {
-            behavior.compression = uWS::CompressOptions::DEDICATED_COMPRESSOR;
-        }
+        /* Compression, map from 0, 1, 2 to disabled, shared, dedicated. This is actually the enum */
+        behavior.compression = (uWS::CompressOptions) behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value();
 
         /* Open */
         openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
@@ -53,6 +46,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         closePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "close"))));
     }
 
+    /* Open handler is NOT optional for the wrapper */
     behavior.open = [openPf = std::move(openPf)](auto *ws, auto *req) {
         HandleScope hs(isolate);
 
@@ -69,34 +63,44 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         perSocketData->socketPf = new Persistent<Object>;
         perSocketData->socketPf->Reset(isolate, wsObject);
 
-        Local<Value> argv[] = {wsObject, reqObject};
-        Local<Function>::New(isolate, openPf)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+        Local<Function> openLf = Local<Function>::New(isolate, openPf);
+        if (!openLf->IsUndefined()) {
+            Local<Value> argv[] = {wsObject, reqObject};
+            openLf->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+        }
     };
 
-    behavior.message = [messagePf = std::move(messagePf)](auto *ws, std::string_view message, uWS::OpCode opCode) {
-        HandleScope hs(isolate);
+    /* Message handler is always optional */
+    if (messagePf != Undefined(isolate)) {
+        behavior.message = [messagePf = std::move(messagePf)](auto *ws, std::string_view message, uWS::OpCode opCode) {
+            HandleScope hs(isolate);
 
-        Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
 
-        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-        Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
-                                messageArrayBuffer,
-                                Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
-        Local<Function>::New(isolate, messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+                                    messageArrayBuffer,
+                                    Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
+            Local<Function>::New(isolate, messagePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
 
-        /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
-        messageArrayBuffer->Neuter();
-    };
+            /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
+            messageArrayBuffer->Neuter();
+        };
+    }
 
-    behavior.drain = [drainPf = std::move(drainPf)](auto *ws) {
-        HandleScope hs(isolate);
+    /* Drain handler is always optional */
+    if (drainPf != Undefined(isolate)) {
+        behavior.drain = [drainPf = std::move(drainPf)](auto *ws) {
+            HandleScope hs(isolate);
 
-        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-        Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
-                                };
-        Local<Function>::New(isolate, drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
-    };
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
+                                    };
+            Local<Function>::New(isolate, drainPf)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        };
+    }
 
+    /* These are not hooked in */
     behavior.ping = [](auto *ws) {
 
     };
@@ -105,19 +109,23 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     };
 
+    /* Close handler is NOT optional for the wrapper */
     behavior.close = [closePf = std::move(closePf)](auto *ws, int code, std::string_view message) {
         HandleScope hs(isolate);
 
         Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         Local<Object> wsObject = Local<Object>::New(isolate, *(perSocketData->socketPf));
-        Local<Value> argv[3] = {wsObject,
-                                Integer::New(isolate, code),
-                                messageArrayBuffer};
 
         /* Invalidate this wsObject */
         wsObject->SetAlignedPointerInInternalField(0, nullptr);
-        Local<Function>::New(isolate, closePf)->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+
+        /* Only call close handler if we have one set */
+        Local<Function> closeLf = Local<Function>::New(isolate, closePf);
+        if (!closeLf->IsUndefined()) {
+            Local<Value> argv[3] = {wsObject, Integer::New(isolate, code), messageArrayBuffer};
+            closeLf->Call(isolate->GetCurrentContext()->Global(), 3, argv);
+        }
 
         delete perSocketData->socketPf;
 

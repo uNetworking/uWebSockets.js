@@ -108,6 +108,11 @@ void Main(Local<Object> exports) {
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction());
 
+    /* Compression enum */
+    exports->Set(String::NewFromUtf8(isolate, "DISABLED"), Integer::NewFromUnsigned(isolate, uWS::DISABLED));
+    exports->Set(String::NewFromUtf8(isolate, "SHARED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::SHARED_COMPRESSOR));
+    exports->Set(String::NewFromUtf8(isolate, "DEDICATED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::DEDICATED_COMPRESSOR));
+
     /* The template for websockets */
     WebSocketWrapper::initWsTemplate<0>();
     WebSocketWrapper::initWsTemplate<1>();

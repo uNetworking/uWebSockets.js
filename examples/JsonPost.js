@@ -19,8 +19,8 @@ const app = uWS./*SSL*/App({
 
     res.end('Thanks for this json!');
   }, () => {
-    /* Request was prematurely aborted, stop reading */
-    console.log('Ugh!');
+    /* Request was prematurely aborted or invalid or missing, stop reading */
+    console.log('Invalid JSON or no data at all!');
   });
 
 }).listen(port, (token) => {
@@ -38,10 +38,25 @@ function readJson(res, cb, err) {
   res.onData((ab, isLast) => {
     let chunk = Buffer.from(ab);
     if (isLast) {
+      let json;
       if (buffer) {
-        cb(JSON.parse(Buffer.concat([buffer, chunk])));
+        try {
+          json = JSON.parse(Buffer.concat([buffer, chunk]));
+        } catch (e) {
+          /* res.close calls onAborted */
+          res.close();
+          return;
+        }
+        cb(json);
       } else {
-        cb(JSON.parse(chunk));
+        try {
+          json = JSON.parse(chunk);
+        } catch (e) {
+          /* res.close calls onAborted */
+          res.close();
+          return;
+        }
+        cb(json);
       }
     } else {
       if (buffer) {

@@ -8,7 +8,7 @@
 </div>
 
 ### Outrun. Everyone.
-This project is not your typical "web framework" à la 500 lines of JavaScript and a fancy logo. No, you're looking at a three part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scriping environment available.
+This project is not your typical "web framework" à la 500 lines of JavaScript and a fancy logo. No, you're looking at a three part software suite of ~7k lines of C & C++, working in unison with Google V8 to bring you one of the most memory scalable and performant I/O scripting environment available.
 
 It runs 15x faster than Deno and scales to millions of connections using less than half a GB of user space memory.
 

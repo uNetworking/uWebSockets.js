@@ -8,5 +8,6 @@ script:
   - git checkout binaries
   - cp dist/*.node .
   - git status
+  - git pull origin binaries
   - git commit -a -m "[TravisCI] Updated macOS binaries" --allow-empty
   - git push "https://alexhultman:$SECRET@github.com/uNetworking/uWebSockets.js" binaries

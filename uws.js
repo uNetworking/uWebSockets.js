@@ -20,18 +20,10 @@ module.exports = (() => {
 		const uWS = require(`./uws_${process.platform}_${process.versions.modules}.node`);
 		/* We are not compatible with Node.js nextTick and/or domains */
 		process.nextTick = (f, ...args) => {
-			uWS.nextTick(() => {
+			Promise.resolve().then(() => {
 				f(...args);
 			});
 		};
-		process.on('beforeExit', () => {
-			if (uWS.processNextTickQueue()) {
-				setImmediate(() => {
-
-				});
-			}
-		});
-		/* process.nextTick = setImmediate; */
 		return uWS;
 	} catch (e) {
 		throw new Error('This version of µWS is not compatible with your Node.js build.\n\n' + e.toString());

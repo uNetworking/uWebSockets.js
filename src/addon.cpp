@@ -85,6 +85,9 @@ void Main(Local<Object> exports) {
     /* I guess we store this statically */
     isolate = exports->GetIsolate();
 
+    /* We want this */
+    isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
+
     /* Register our own nextTick handlers */
     uWS::Loop::defaultLoop()->setPostHandler([](uWS::Loop *) {
         processNextTickQueueImpl(isolate);

@@ -189,14 +189,14 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     auto cb = [&args](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
-        Local<Function>::Cast(args[1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     };
 
     if (args.Length() == 2) {
         /* Port, callback */
         int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
         app->listen(port, std::move(cb));
-    } else {
+    } else if (args.Length() == 3) {
         /* Host, port, callback */
         NativeString host(isolate, args[0]);
         int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();

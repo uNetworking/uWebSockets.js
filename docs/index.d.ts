@@ -31,6 +31,7 @@ interface WebSocket {
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 interface HttpResponse {
+    aborted: boolean;
     /** Writes the HTTP status message such as "200 OK". */
     writeStatus(status: string | ArrayBuffer) : HttpResponse;
     /** Writes key and value to HTTP response. */

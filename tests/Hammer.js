@@ -201,9 +201,3 @@ const app = uWS./*SSL*/App({
     listenSocket = token;
   }
 });
-
-/* Yes we do this crazy thing here */
-process.on('beforeExit', () => {
-    uWS.print('Exiting now');
-    app.forcefully_free();
-});

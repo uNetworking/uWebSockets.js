@@ -71,10 +71,3 @@ listenWithSettings({
   ssl: false,
   compression: uWS.DEDICATED_COMPRESSOR
 });
-
-/* This is required to check for memory leaks */
-process.on('exit', () => {
-  apps.forEach((a) => {
-    a.app.forcefully_free();
-  });
-});

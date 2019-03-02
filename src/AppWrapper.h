@@ -206,14 +206,6 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(args.Holder());
 }
 
-/* Mostly indended for debugging memory leaks */
-template <typename APP>
-void uWS_App_forcefully_free(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
-
-    delete app;
-}
-
 template <typename APP>
 void uWS_App(const FunctionCallbackInfo<Value> &args) {
     Local<FunctionTemplate> appTemplate = FunctionTemplate::New(isolate);
@@ -336,11 +328,15 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
 
-    /* forcefully_free is unsafe for end-users to use, but nice to track memory leaks with ASAN */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forcefully_free"), FunctionTemplate::New(isolate, uWS_App_forcefully_free<APP>));
-
     Local<Object> localApp = appTemplate->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);
+
+    /* Add this to our delete list */
+    if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
+        sslApps.emplace_back(app);
+    } else {
+        apps.emplace_back(app);
+    }
 
     args.GetReturnValue().Set(localApp);
 }

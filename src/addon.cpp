@@ -25,6 +25,11 @@ using namespace v8;
 
 /* These two are definitely static */
 Isolate *isolate;
+bool valid = true;
+
+/* We hold all apps until free */
+std::vector<std::unique_ptr<uWS::App>> apps;
+std::vector<std::unique_ptr<uWS::SSLApp>> sslApps;
 
 #include "Utilities.h"
 #include "WebSocketWrapper.h"
@@ -32,10 +37,18 @@ Isolate *isolate;
 #include "HttpRequestWrapper.h"
 #include "AppWrapper.h"
 
-/* Used for debugging */
-void print(const FunctionCallbackInfo<Value> &args) {
-    NativeString nativeString(isolate, args[0]);
-    std::cout << nativeString.getString() << std::endl;
+/* Todo: Apps should be freed once the GC says so BUT ALWAYS before freeing the loop */
+
+/* This has to be called in beforeExit, but exit also seems okay */
+void uWS_free(const FunctionCallbackInfo<Value> &args) {
+    if (valid) {
+        /* Freeing apps here, it could be done earlier but not sooner */
+        apps.clear();
+        sslApps.clear();
+        /* Freeing the loop here means we give time for our timers to close, etc */
+        uWS::Loop::get()->free();
+        valid = false;
+    }
 }
 
 /* todo: Put this function and all inits of it in its own header */
@@ -50,13 +63,13 @@ void Main(Local<Object> exports) {
     /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
     isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
 
-    /* Hook up our timers */
-    us_loop_integrate((us_loop *) uWS::Loop::defaultLoop());
+    /* Integrate with existing libuv loop, we just pass a boolean basically */
+    uWS::Loop::get((void *) 1);
 
     /* uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
-    exports->Set(String::NewFromUtf8(isolate, "print"), FunctionTemplate::New(isolate, print)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_free)->GetFunction());
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction());

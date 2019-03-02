@@ -37,9 +37,3 @@ const app = uWS./*SSL*/App({
     console.log('Failed to listen to port ' + port);
   }
 });
-
-/* This is questionable */
-process.on('beforeExit', () => {
-  console.log('Forcefully freeing app now');
-  app.forcefully_free();
-});

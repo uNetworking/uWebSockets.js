@@ -78,6 +78,18 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes nothing, returns arraybuffer */
+    template <bool SSL>
+    static void res_getRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            std::string_view ip = res->getRemoteAddress();
+
+            /* Todo: we need to pass a copy here */
+            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+        }
+    }
+
     /* Returns the current write offset */
     template <bool SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
@@ -224,6 +236,7 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable"), FunctionTemplate::New(isolate, res_onWritable<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted"), FunctionTemplate::New(isolate, res_onAborted<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData"), FunctionTemplate::New(isolate, res_onData<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress"), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

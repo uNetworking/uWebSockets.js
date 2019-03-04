@@ -33,6 +33,9 @@ interface WebSocket {
 
     /** Returns the remote IP address */
     getRemoteAddress() : ArrayBuffer;
+    
+    /** Arbitrary user data may be attached to this object */
+    [key: string]: any;
 }
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */

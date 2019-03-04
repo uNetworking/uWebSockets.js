@@ -67,10 +67,13 @@ interface HttpResponse {
     onAborted(handler: (res: HttpResponse) => void) : HttpResponse;
 
     /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
-    onData(handler: (res: HttpResponse, chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
+    onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
 
     /** Returns the remote IP address */
     getRemoteAddress() : ArrayBuffer;
+
+    /** Arbitrary user data may be attached to this object */
+    [key: string]: any;
 }
 
 /** An HttpRequest is stack allocated and only accessible during the callback invocation. */

@@ -61,7 +61,7 @@ interface HttpResponse {
      * You MUST return true for success, false for failure.
      * Writing nothing is always success, so by default you must return true.
      */
-    onWritable(handler: (res: HttpResponse) => boolean) : HttpResponse;
+    onWritable(handler: (offset: number) => boolean) : HttpResponse;
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler

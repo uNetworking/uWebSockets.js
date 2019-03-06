@@ -47,7 +47,7 @@ interface HttpResponse {
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. */
     write(chunk: RecognizedString) : HttpResponse;
     /** Ends this response by copying the contents of body. */
-    end(body: RecognizedString) : HttpResponse;
+    end(body?: RecognizedString) : HttpResponse;
     /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
 

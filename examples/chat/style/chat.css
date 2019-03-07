@@ -1,0 +1,69 @@
+html {
+  font-family: Arial, sans-serif;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  background-color: #eee;
+  height: 100%;
+}
+body{
+  margin:10px;
+}
+#nickname_request{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: white;
+}
+#nickname_request h2{
+  padding-top: 100px;
+  color: grey;
+  text-align: center;
+  font-weight: 100;
+}
+#nickname_request_input {
+  display: block;
+  width: 300px;
+  height: 40px;
+  margin: 0 auto;
+  font-size: 150%;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid grey;
+  outline: none;
+  text-align: center;
+}
+#new_message {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  height: 40px;
+  bottom: 10px;
+}
+#new_message_input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid #888;
+  font-size: 150%;
+  padding-left: 10px;
+  box-shadow: 0 0 10px;
+  border-radius: 8px;
+}
+#messages {
+  padding-bottom: 40px;
+}
+.message {
+  font-size: 150%;
+  padding-bottom: 10px;
+}
+.log {
+  color: grey;
+  text-align:center;
+  margin: 5px;
+}
+.username {
+  font-weight: bold;
+  padding-right: 15px;
+  color: blue;
+}

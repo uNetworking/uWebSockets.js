@@ -1,11 +1,7 @@
 html {
   font-family: Arial, sans-serif;
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   background-color: #eee;
   height: 100%;
-}
-body{
-  margin:10px;
 }
 #nickname_request{
   position: absolute;

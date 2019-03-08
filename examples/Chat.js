@@ -16,12 +16,6 @@ const app = uWS./*SSL*/App({
   open: (ws, req) => {
     console.log('New connection from: ' + new Uint16Array(ws.getRemoteAddress()));
     console.log('User-Agent: ' + req.getHeader('user-agent'));
-    //console.log('Host: ' + req.getHeader('host'));
-    //console.log('Origin: ' + req.getHeader('origin'));
-    //console.log('X-Real-IP: ' + req.getHeader('x-real-ip'));
-    //console.log('X-Forwarded-For: ' + req.getHeader('x-forwarded-for'));
-    //console.log('RemoteAddress:' + new Uint16Array(ws.getRemoteAddress()));
-    //console.log('ipv6Localhost:' + new Uint16Array([0, 0, 0, 0, 0, 0xffff, 0x7f00, 1]));
     ws.client = {
       uuid: create_UUID(),
       nickname: ''

@@ -4,9 +4,9 @@ const stringDecoder = new (require('string_decoder').StringDecoder)('utf8');
 const connected_clients = new Map(); // Workaround until PubSub is available
 
 const app = uWS./*SSL*/App({
-  key_file_name: 'misc/key.pem',
+  /*key_file_name: 'misc/key.pem',
   cert_file_name: 'misc/cert.pem',
-  passphrase: '1234'
+  passphrase: '1234'*/
 }).ws('/io', {
   /* Options */
   compression: 0,

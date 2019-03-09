@@ -14,7 +14,7 @@ const app = uWS./*SSL*/App({
   idleTimeout: 30,
   /* Handlers */
   open: (ws, req) => {
-    console.log('New connection from: ' + new Uint16Array(ws.getRemoteAddress()));
+    console.log('New connection:');
     console.log('User-Agent: ' + req.getHeader('user-agent'));
     ws.client = {
       uuid: create_UUID(),

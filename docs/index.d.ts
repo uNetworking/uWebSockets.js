@@ -119,6 +119,8 @@ interface AppOptions {
     cert_file_name?: RecognizedString;
     passphrase?: RecognizedString;
     dh_params_file_name?: RecognizedString;
+    /** This translates to SSL_MODE_RELEASE_BUFFERS */
+    ssl_prefer_low_memory_usage?: boolean;
 }
 
 /** TemplatedApp is either an SSL or non-SSL app. */

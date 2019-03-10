@@ -265,6 +265,9 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 dhParamsFileName.append(dhParamsFileNameValue.getString());
                 ssl_options.dh_params_file_name = dhParamsFileName.c_str();
             }
+
+            /* ssl_prefer_low_memory_usage */
+            ssl_options.ssl_prefer_low_memory_usage = Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage"))->BooleanValue();
         }
 
         app = new APP(ssl_options);

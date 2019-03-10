@@ -16,6 +16,20 @@ struct HttpRequestWrapper {
         return req;
     }
 
+    /* Takes function of string, string. Returns this (doesn't really but should) */
+    static void req_forEach(const FunctionCallbackInfo<Value> &args) {
+        auto *req = getHttpRequest(args);
+        if (req) {
+            Local<Function> cb = Local<Function>::Cast(args[0]);
+
+            for (auto p : *req) {
+                Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), String::kNormalString, p.first.length()),
+                                       String::NewFromUtf8(isolate, p.second.data(), String::kNormalString, p.second.length())};
+                cb->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+            }
+        }
+    }
+
     /* Takes int, returns string (must be in bounds) */
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
         auto *req = getHttpRequest(args);
@@ -83,6 +97,7 @@ struct HttpRequestWrapper {
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUrl"), FunctionTemplate::New(isolate, req_getUrl));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getMethod"), FunctionTemplate::New(isolate, req_getMethod));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getQuery"), FunctionTemplate::New(isolate, req_getQuery));
+        reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forEach"), FunctionTemplate::New(isolate, req_forEach));
 
         /* Create the template */
         Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

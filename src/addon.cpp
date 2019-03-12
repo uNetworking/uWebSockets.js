@@ -61,10 +61,20 @@ void Main(Local<Object> exports) {
     isolate = exports->GetIsolate();
 
     /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
-    isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
+    // todo: setting this might be crashing nodejs?
+    // isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
 
     /* Integrate with existing libuv loop, we just pass a boolean basically */
     uWS::Loop::get((void *) 1);
+
+    // instead, for now we call this manually like before:
+    uWS::Loop::get()->setPostHandler([](uWS::Loop *) {
+        isolate->RunMicrotasks();
+    });
+
+    uWS::Loop::get()->setPreHandler([](uWS::Loop *) {
+        isolate->RunMicrotasks();
+    });
 
     /* uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());

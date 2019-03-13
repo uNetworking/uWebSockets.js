@@ -92,7 +92,7 @@ interface HttpRequest {
     /** Returns the part of URL after ? sign or empty string. */
     getQuery() : string;
     /** Loops over all headers. */
-    forEach(cb: (key: string, value: string) => void);
+    forEach(cb: (key: string, value: string) => void) : void;
 }
 
 /** A structure holding settings and handlers for a WebSocket route handler. */

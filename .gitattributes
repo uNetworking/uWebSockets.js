@@ -1,0 +1,2 @@
+# Don't include JavaScript example files in this GitHub repo language stats
+examples linguist-vendored=false

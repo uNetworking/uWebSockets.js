@@ -180,9 +180,9 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
     /* Invalid use */
-    if (args.Length() != 2 && args.Length() != 3) {
+    if (args.Length() != 2 && args.Length() != 3 && args.Length() != 4) {
         /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen takes 2 or 3 arguments")));
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen takes 2, 3, or 4 arguments")));
         return;
     }
 
@@ -197,10 +197,26 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
         int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
         app->listen(port, std::move(cb));
     } else if (args.Length() == 3) {
-        /* Host, port, callback */
+        /* Host, port, callback    */
+        /* OR                      */
+        /* Port, options, callback */
+        NativeString host(isolate, args[0]);
+        if (host.invalid) {
+            /* Port, options, callback */
+            int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+            int options = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+            app->listen(port, options, std::move(cb));
+        } else {
+            /* Host, port, callback    */
+            int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+            app->listen(std::string(host.getString().data(), host.getString().length()), port, std::move(cb));
+        }
+    } else if (args.Length() == 4) {
+        /* Host, port, options, callback */
         NativeString host(isolate, args[0]);
         int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        app->listen(std::string(host.getString().data(), host.getString().length()), port, std::move(cb));
+        int options = args[2]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+        app->listen(std::string(host.getString().data(), host.getString().length()), port, options, std::move(cb));
     }
 
     args.GetReturnValue().Set(args.Holder());

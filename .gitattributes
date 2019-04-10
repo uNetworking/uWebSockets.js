@@ -1,2 +1,3 @@
-# Don't include JavaScript example files in this GitHub repo language stats
-examples/* linguist-vendored
+*.js linguist-vendored
+*.pro linguist-vendored
+src/* linguist-vendored=false

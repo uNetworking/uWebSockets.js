@@ -232,7 +232,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 return;
             }
             if (keyFileNameValue.getString().length()) {
-                keyFileName.append(keyFileNameValue.getString());
+                keyFileName = keyFileNameValue.getString();
                 ssl_options.key_file_name = keyFileName.c_str();
             }
 
@@ -242,7 +242,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 return;
             }
             if (certFileNameValue.getString().length()) {
-                certFileName.append(certFileNameValue.getString());
+                certFileName = certFileNameValue.getString();
                 ssl_options.cert_file_name = certFileName.c_str();
             }
 
@@ -252,7 +252,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 return;
             }
             if (passphraseValue.getString().length()) {
-                passphrase.append(passphraseValue.getString());
+                passphrase = passphraseValue.getString();
                 ssl_options.passphrase = passphrase.c_str();
             }
 
@@ -262,7 +262,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 return;
             }
             if (dhParamsFileNameValue.getString().length()) {
-                dhParamsFileName.append(dhParamsFileNameValue.getString());
+                dhParamsFileName = dhParamsFileNameValue.getString();
                 ssl_options.dh_params_file_name = dhParamsFileName.c_str();
             }
 

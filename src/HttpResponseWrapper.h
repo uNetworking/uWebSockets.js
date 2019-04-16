@@ -215,6 +215,20 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes function, returns this (EXPERIMENTAL) */
+    template <bool SSL>
+    static void res_cork(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+
+            res->cork([cb = Local<Function>::Cast(args[0])]() {
+                cb->Call(isolate->GetCurrentContext()->Global(), 0, nullptr);
+            });
+
+            args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
     template <bool SSL>
     static void initResTemplate() {
         Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
@@ -237,6 +251,7 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted"), FunctionTemplate::New(isolate, res_onAborted<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData"), FunctionTemplate::New(isolate, res_onData<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress"), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "experimental_cork"), FunctionTemplate::New(isolate, res_cork<SSL>));
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

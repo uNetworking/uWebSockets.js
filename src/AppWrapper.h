@@ -180,44 +180,41 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
     /* Invalid use */
-    if (args.Length() != 2 && args.Length() != 3 && args.Length() != 4) {
+    if (args.Length() < 2) {
         /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen takes 2, 3, or 4 arguments")));
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback")));
         return;
     }
 
+    /* Callback is always present last */
     auto cb = [&args](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
         Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     };
 
-    if (args.Length() == 2) {
-        /* Port, callback */
-        int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        app->listen(port, std::move(cb));
-    } else if (args.Length() == 3) {
-        /* Host, port, callback    */
-        /* OR                      */
-        /* Port, options, callback */
-        NativeString host(isolate, args[0]);
-        if (host.invalid) {
-            /* Port, options, callback */
-            int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-            int options = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-            app->listen(port, options, std::move(cb));
+    /* Arguments we pass */
+    std::string host;
+    int port = 0, options = 0;
+
+    /* Loop over all but last argument */
+    for (int i = 0; i < args.Length() - 1; i++) {
+        /* Either number or string */
+        if (args[i]->IsNumber()) {
+            int n = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+            if (port) {
+                options = n;
+            } else {
+                port = n;
+            }
         } else {
-            /* Host, port, callback    */
-            int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-            app->listen(std::string(host.getString().data(), host.getString().length()), port, std::move(cb));
+            NativeString h(isolate, args[i]);
+            host = h.getString();
         }
-    } else if (args.Length() == 4) {
-        /* Host, port, options, callback */
-        NativeString host(isolate, args[0]);
-        int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        int options = args[2]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        app->listen(std::string(host.getString().data(), host.getString().length()), port, options, std::move(cb));
     }
+
+    /* We only use the most complete overload */
+    app->listen(host.length() ? host.c_str() : nullptr, port, options, std::move(cb));
 
     args.GetReturnValue().Set(args.Holder());
 }

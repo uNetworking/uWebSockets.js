@@ -17,7 +17,7 @@ interface WebSocket {
     getBufferedAmount() : number;
 
     /** Gradefully closes this WebSocket. Immediately calls close handler. */
-    end(code: number, shortMessage: RecognizedString) : WebSocket;
+    end(code?: number, shortMessage?: RecognizedString) : WebSocket;
 
     /** Forefully closes this WebSocket. Immediately calls close handler. */
     close() : WebSocket;

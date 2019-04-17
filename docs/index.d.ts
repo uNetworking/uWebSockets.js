@@ -11,7 +11,7 @@ type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | Uint16Ar
 /** A WebSocket connection that is valid from open to close event */
 interface WebSocket {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given. */
-    send(message: RecognizedString, isBinary: boolean, compress?: boolean) : boolean;
+    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** Returns the bytes buffered in backpressure. */
     getBufferedAmount() : number;

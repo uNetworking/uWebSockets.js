@@ -90,7 +90,7 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "DEDICATED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::DEDICATED_COMPRESSOR));
 
     /* Listen options */
-    exports->Set(String::NewFromUtf8(isolate, "OPTION_DO_NOT_REUSE_PORT"), Integer::NewFromUnsigned(isolate, /*uWS::*/OPTION_DO_NOT_REUSE_PORT));
+    exports->Set(String::NewFromUtf8(isolate, "LIBUS_LISTEN_EXCLUSIVE_PORT"), Integer::NewFromUnsigned(isolate, LIBUS_LISTEN_EXCLUSIVE_PORT));
 
     /* The template for websockets */
     WebSocketWrapper::initWsTemplate<0>();

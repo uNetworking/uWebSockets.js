@@ -171,3 +171,9 @@ export enum CompressOptions {
     /** Sliding dedicated compress window, requires lots of memory per socket */
     DEDICATED_COMPRESSOR
 }
+
+/** WebSocket listen() options */
+export enum ListenOptions {
+    /* SO_REUSEPORT disabled */
+    OPTION_DO_NOT_REUSE_PORT = 2
+}

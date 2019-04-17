@@ -179,29 +179,39 @@ template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
-    /* Invalid use */
-    if (args.Length() != 2 && args.Length() != 3) {
+    /* Require at least two arguments */
+    if (args.Length() < 2) {
         /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen takes 2 or 3 arguments")));
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback")));
         return;
     }
 
+    /* Callback is last */
     auto cb = [&args](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
         Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext()->Global(), 1, argv);
     };
 
-    if (args.Length() == 2) {
-        /* Port, callback */
-        int port = args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        app->listen(port, std::move(cb));
-    } else if (args.Length() == 3) {
-        /* Host, port, callback */
-        NativeString host(isolate, args[0]);
-        int port = args[1]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-        app->listen(std::string(host.getString().data(), host.getString().length()), port, std::move(cb));
+    /* Host is first, if present */
+    std::string host;
+    if (!args[0]->IsNumber()) {
+        NativeString h(isolate, args[0]);
+        if (h.isInvalid(args)) {
+            return;
+        }
+        host = h.getString();
     }
+
+    /* Port, options are in the middle, if present */
+    std::vector<int> numbers;
+    for (int i = std::min<int>(1, host.length()); i < args.Length() - 1; i++) {
+        numbers.push_back(args[i]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked());
+    }
+
+    /* We only use the most complete overload */
+    app->listen(host, numbers.size() ? numbers[0] : 0,
+                numbers.size() > 1 ? numbers[1] : 0, std::move(cb));
 
     args.GetReturnValue().Set(args.Holder());
 }

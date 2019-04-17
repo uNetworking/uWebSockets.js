@@ -89,6 +89,9 @@ void Main(Local<Object> exports) {
     exports->Set(String::NewFromUtf8(isolate, "SHARED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::SHARED_COMPRESSOR));
     exports->Set(String::NewFromUtf8(isolate, "DEDICATED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::DEDICATED_COMPRESSOR));
 
+    /* Listen options */
+    exports->Set(String::NewFromUtf8(isolate, "OPTION_DO_NOT_REUSE_PORT"), Integer::NewFromUnsigned(isolate, /*uWS::*/OPTION_DO_NOT_REUSE_PORT));
+
     /* The template for websockets */
     WebSocketWrapper::initWsTemplate<0>();
     WebSocketWrapper::initWsTemplate<1>();

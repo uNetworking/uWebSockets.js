@@ -25,7 +25,7 @@ struct HttpRequestWrapper {
             for (auto p : *req) {
                 Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), String::kNormalString, p.first.length()),
                                        String::NewFromUtf8(isolate, p.second.data(), String::kNormalString, p.second.length())};
-                cb->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+                cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv);
             }
         }
     }
@@ -34,7 +34,7 @@ struct HttpRequestWrapper {
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
         auto *req = getHttpRequest(args);
         if (req) {
-            int index = args[0]->Uint32Value();
+            int index = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             std::string_view parameter = req->getParameter(index);
 
             args.GetReturnValue().Set(String::NewFromUtf8(isolate, parameter.data(), v8::String::kNormalString, parameter.length()));
@@ -100,7 +100,7 @@ struct HttpRequestWrapper {
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forEach"), FunctionTemplate::New(isolate, req_forEach));
 
         /* Create the template */
-        Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+        Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
         reqTemplate.Reset(isolate, reqObjectLocal);
     }
 

@@ -62,7 +62,7 @@ struct WebSocketWrapper {
         if (ws) {
             int code = 0;
             if (args.Length() >= 1) {
-                code = args[0]->Uint32Value();
+                code = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
 
             NativeString message(args.GetIsolate(), args[1]);
@@ -107,7 +107,7 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->send(message.getString(), args[1]->BooleanValue() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT);
+            bool ok = ws->send(message.getString(), args[1]->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT);
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         }
@@ -133,7 +133,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish"), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
 
         /* Create the template */
-        Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+        Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
         wsTemplate[SSL].Reset(isolate, wsObjectLocal);
     }
 

@@ -77,12 +77,12 @@ void Main(Local<Object> exports) {
     });*/
 
     /* uWS namespace */
-    exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction());
-    exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction());
-    exports->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_free)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+    exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+    exports->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_free)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 
     /* Expose some µSockets functions directly under uWS namespace */
-    exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 
     /* Compression enum */
     exports->Set(String::NewFromUtf8(isolate, "DISABLED"), Integer::NewFromUnsigned(isolate, uWS::DISABLED));

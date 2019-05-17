@@ -31,11 +31,9 @@ int run(const char *cmd, ...) {
 /* List of Node.js versions */
 struct node_version {
     char *name;
-    char *abi;
 } versions[] = {
-    {"v10.0.0", "64"},
-    {"v11.1.0", "67"},
-    {"v12.0.0", "72"}
+    {"v11"},
+    {"v12"}
 };
 
 /* Downloads headers, creates folders */
@@ -44,11 +42,15 @@ void prepare() {
         return;
     }
 
+    for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
+        run("mkdir -p targets/node-%s", versions[i].name);
+    }
+
     /* For all versions */
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        run("curl -OJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz", versions[i].name, versions[i].name);
-        run("tar xzf node-%s-headers.tar.gz -C targets", versions[i].name);
-        run("curl https://nodejs.org/dist/%s/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
+        run("wget -r -l1 -np 'https://nodejs.org/dist/latest-%s.x' -nH --cut-dirs=2 -e robots=off -P . -A '*headers.tar.gz'", versions[i].name);
+        run("tar xzf node-%s*-headers.tar.gz -C targets/node-%s --strip-components=1", versions[i].name, versions[i].name);
+        run("curl https://nodejs.org/dist/latest-%s.x/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
     }
 }
 
@@ -60,7 +62,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, char 
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s %s %s -o dist/uws_%s_%s_%s.node", cpp_compiler, "-flto -O3 *.o -std=c++17 -shared", cpp_linker, os, arch, versions[i].abi);
+        run("%s %s %s -o dist/uws_%s_%s_%s.node", cpp_compiler, "-flto -O3 *.o -std=c++17 -shared", cpp_linker, os, arch, versions[i].name);
     }
 }
 
@@ -79,7 +81,7 @@ void build_windows(char *arch) {
         run("cl /D \"LIBUS_USE_LIBUV\" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c "
             "uWebSockets/uSockets/src/eventing/*.c /I targets/node-%s/include/node /I uWebSockets/src /EHsc "
             "/Ox /LD /Fedist/uws_win32_%s_%s.node src/addon.cpp targets/node-%s/node.lib",
-            versions[i].name, arch, versions[i].abi, versions[i].name);
+            versions[i].name, arch, versions[i].name, versions[i].name);
     }
 }
 

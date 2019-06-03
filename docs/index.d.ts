@@ -154,7 +154,7 @@ interface TemplatedApp {
 }
 
 /** Constructs a non-SSL app */
-export function App(options: AppOptions): TemplatedApp;
+export function App(options?: AppOptions): TemplatedApp;
 
 /** Constructs an SSL app */
 export function SSLApp(options: AppOptions): TemplatedApp;

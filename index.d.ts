@@ -11,13 +11,13 @@ type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | Uint16Ar
 /** A WebSocket connection that is valid from open to close event */
 interface WebSocket {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given. */
-    send(message: RecognizedString, isBinary: boolean, compress: boolean) : boolean;
+    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** Returns the bytes buffered in backpressure. */
     getBufferedAmount() : number;
 
     /** Gradefully closes this WebSocket. Immediately calls close handler. */
-    end(code: number, shortMessage: RecognizedString) : WebSocket;
+    end(code?: number, shortMessage?: RecognizedString) : WebSocket;
 
     /** Forefully closes this WebSocket. Immediately calls close handler. */
     close() : WebSocket;
@@ -154,7 +154,7 @@ interface TemplatedApp {
 }
 
 /** Constructs a non-SSL app */
-export function App(options: AppOptions): TemplatedApp;
+export function App(options?: AppOptions): TemplatedApp;
 
 /** Constructs an SSL app */
 export function SSLApp(options: AppOptions): TemplatedApp;

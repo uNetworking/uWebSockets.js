@@ -53,8 +53,11 @@ void uWS_free(const FunctionCallbackInfo<Value> &args) {
 
 /* todo: Put this function and all inits of it in its own header */
 void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
-    us_listen_socket_close((struct us_listen_socket *) External::Cast(*args[0])->Value());
+    // this should take int ssl first
+    us_listen_socket_close(0, (struct us_listen_socket_t *) External::Cast(*args[0])->Value());
 }
+
+#include <uv.h>
 
 void Main(Local<Object> exports) {
     /* I guess we store this statically */
@@ -65,7 +68,7 @@ void Main(Local<Object> exports) {
     isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
 
     /* Integrate with existing libuv loop, we just pass a boolean basically */
-    uWS::Loop::get((void *) 1);
+    uWS::Loop::get(uv_default_loop());
 
     // instead, for now we call this manually like before:
     /*uWS::Loop::get()->setPostHandler([](uWS::Loop *) {

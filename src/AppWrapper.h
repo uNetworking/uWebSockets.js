@@ -227,7 +227,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLApp"));
 
         /* We fill these below */
-        us_new_socket_context_options_t ssl_options = {};
+        us_socket_context_options_t ssl_options = {};
 
         static std::string keyFileName;
         static std::string certFileName;

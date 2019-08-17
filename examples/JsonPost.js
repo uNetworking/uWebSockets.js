@@ -33,5 +33,5 @@ function readBody(res, cb) {
   res.onData((arrayBuffer, isLast) => {
     body = Buffer.concat([body, Buffer.from(arrayBuffer)]);
     if (isLast) cb(body);
-  })
+  });
 }

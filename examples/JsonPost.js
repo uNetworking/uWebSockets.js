@@ -1,72 +1,37 @@
-/* Simple example of getting JSON from a POST */
+/* Simple example for reading Post body and parsing Json */
 
-const uWS = require('../dist/uws.js');
-const port = 9001;
+const uWS = require('../dist/uws.js')
+const port = 9001
+const app = uWS.App().post('/json', (res, req) => {
 
-const app = uWS./*SSL*/App({
-  key_file_name: 'misc/key.pem',
-  cert_file_name: 'misc/cert.pem',
-  passphrase: '1234'
-}).post('/*', (res, req) => {
+  /* onAborted needs to be set if doing anything async like reading body */
+  res.onAborted(() => res.aborted = true)
 
-  /* Note that you cannot read from req after returning from here */
-  let url = req.getUrl();
+  /* read the request body */
+  readBody(res, body => {
 
-  /* Read the body until done or error */
-  readJson(res, (obj) => {
-    console.log('Posted to ' + url + ': ');
-    console.log(obj);
+    /* get body text as string */
+    console.log('body text:', body.toString())
 
-    res.end('Thanks for this json!');
-  }, () => {
-    /* Request was prematurely aborted or invalid or missing, stop reading */
-    console.log('Invalid JSON or no data at all!');
-  });
+    /* parse json */
+    try { var obj = JSON.parse(body) }
+    catch(e) { console.log('json parse error') }
+    console.log('json object:', obj)
 
-}).listen(port, (token) => {
-  if (token) {
-    console.log('Listening to port ' + port);
-  } else {
-    console.log('Failed to listen to port ' + port);
-  }
-});
+    /* if response was aborted can't use it */
+    if (res.aborted) return
 
-/* Helper function for reading a posted JSON body */
-function readJson(res, cb, err) {
-  let buffer;
-  /* Register data cb */
-  res.onData((ab, isLast) => {
-    let chunk = Buffer.from(ab);
-    if (isLast) {
-      let json;
-      if (buffer) {
-        try {
-          json = JSON.parse(Buffer.concat([buffer, chunk]));
-        } catch (e) {
-          /* res.close calls onAborted */
-          res.close();
-          return;
-        }
-        cb(json);
-      } else {
-        try {
-          json = JSON.parse(chunk);
-        } catch (e) {
-          /* res.close calls onAborted */
-          res.close();
-          return;
-        }
-        cb(json);
-      }
-    } else {
-      if (buffer) {
-        buffer = Buffer.concat([buffer, chunk]);
-      } else {
-        buffer = Buffer.concat([chunk]);
-      }
-    }
-  });
+    /* respond to request */
+    if (!obj) return res.writeStatus('400').end('invalid json')
+    res.end('success')
+  })
+}).listen(port, token => token && console.log('Listening to port ' + port))
 
-  /* Register error cb */
-  res.onAborted(err);
+/* Helper function for reading body */
+function readBody(res, cb) {
+  let body = Buffer.from([])
+  res.onData((arrayBuffer, isLast) => {
+    body = Buffer.concat([body, Buffer.from(arrayBuffer)])
+    if (isLast) cb(body)
+  })
 }

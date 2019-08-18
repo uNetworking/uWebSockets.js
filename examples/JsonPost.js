@@ -31,8 +31,11 @@ const app = uWS./*SSL*/App({
     /* if response was aborted can't use it */
     if (res.aborted) return;
 
-    if (!obj) return res.writeStatus('400').end('invalid json');
-    res.end('Thanks for this json!');
+    if (obj) {
+      res.end('Thanks for this json!');
+    } else {
+      res.writeStatus('400').end('invalid json');
+    }
   });
 
 }).listen(port, (token) => {

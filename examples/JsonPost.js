@@ -9,18 +9,30 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).post('/*', (res, req) => {
 
+  /* onAborted needs to be set if doing anything async like reading body */
+  res.onAborted(() => res.aborted = true);
+
   /* Note that you cannot read from req after returning from here */
   let url = req.getUrl();
 
-  /* Read the body until done or error */
-  readJson(res, (obj) => {
+  /* Read the body until done */
+  readBody(res, (body) => {
+
+    /* body text as string */
+    console.log('body text:', body.toString());
+
+    /* parse json */
+    try { var obj = JSON.parse(body); }
+    catch(e) { console.log('json parse error'); }
+
     console.log('Posted to ' + url + ': ');
     console.log(obj);
 
+    /* if response was aborted can't use it */
+    if (res.aborted) return;
+
+    if (!obj) return res.writeStatus('400').end('invalid json');
     res.end('Thanks for this json!');
-  }, () => {
-    /* Request was prematurely aborted or invalid or missing, stop reading */
-    console.log('Invalid JSON or no data at all!');
   });
 
 }).listen(port, (token) => {
@@ -31,42 +43,12 @@ const app = uWS./*SSL*/App({
   }
 });
 
-/* Helper function for reading a posted JSON body */
-function readJson(res, cb, err) {
-  let buffer;
-  /* Register data cb */
-  res.onData((ab, isLast) => {
-    let chunk = Buffer.from(ab);
-    if (isLast) {
-      let json;
-      if (buffer) {
-        try {
-          json = JSON.parse(Buffer.concat([buffer, chunk]));
-        } catch (e) {
-          /* res.close calls onAborted */
-          res.close();
-          return;
-        }
-        cb(json);
-      } else {
-        try {
-          json = JSON.parse(chunk);
-        } catch (e) {
-          /* res.close calls onAborted */
-          res.close();
-          return;
-        }
-        cb(json);
-      }
-    } else {
-      if (buffer) {
-        buffer = Buffer.concat([buffer, chunk]);
-      } else {
-        buffer = Buffer.concat([chunk]);
-      }
-    }
+/* Helper function for reading a posted body */
+function readBody(res, cb) {
+  let body;
+  res.onData((arrayBuffer, isLast) => {
+    const chunk = Buffer.from(arrayBuffer);
+    body = body ? Buffer.concat([body, chunk]) : isLast ? chunk : Buffer.concat([chunk]);
+    if (isLast) cb(body);
   });
-
-  /* Register error cb */
-  res.onAborted(err);
 }

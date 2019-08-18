@@ -25,7 +25,7 @@ struct HttpRequestWrapper {
             for (auto p : *req) {
                 Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), String::kNormalString, p.first.length()),
                                        String::NewFromUtf8(isolate, p.second.data(), String::kNormalString, p.second.length())};
-                cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv);
+                cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
             }
         }
     }

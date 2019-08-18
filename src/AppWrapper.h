@@ -66,7 +66,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Function> openLf = Local<Function>::New(isolate, openPf);
         if (!openLf->IsUndefined()) {
             Local<Value> argv[] = {wsObject, reqObject};
-            openLf->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv);
+            openLf->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
         }
     };
 
@@ -81,7 +81,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
                                     messageArrayBuffer,
                                     Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
-            Local<Function>::New(isolate, messagePf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 3, argv);
+            Local<Function>::New(isolate, messagePf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 3, argv).IsEmpty();
 
             /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
             messageArrayBuffer->Neuter();
@@ -96,7 +96,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
             Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
                                     };
-            Local<Function>::New(isolate, drainPf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
+            Local<Function>::New(isolate, drainPf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
         };
     }
 
@@ -124,7 +124,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Function> closeLf = Local<Function>::New(isolate, closePf);
         if (!closeLf->IsUndefined()) {
             Local<Value> argv[3] = {wsObject, Integer::New(isolate, code), messageArrayBuffer};
-            closeLf->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 3, argv);
+            closeLf->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 3, argv).IsEmpty();
         }
 
         delete perSocketData->socketPf;
@@ -163,7 +163,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         reqObject->SetAlignedPointerInInternalField(0, req);
 
         Local<Value> argv[] = {resObject, reqObject};
-        Local<Function>::New(isolate, *pf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv);
+        Local<Function>::New(isolate, *pf)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
 
         /* Properly invalidate req */
         reqObject->SetAlignedPointerInInternalField(0, nullptr);
@@ -190,7 +190,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     auto cb = [&args](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
-        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
+        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
     };
 
     /* Host is first, if present */

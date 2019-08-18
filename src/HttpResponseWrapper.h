@@ -45,7 +45,7 @@ struct HttpResponseWrapper {
                 Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(isolate, (void *) data.data(), data.length());
 
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
-                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv);
+                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
 
                 dataArrayBuffer->Neuter();
             });
@@ -71,7 +71,7 @@ struct HttpResponseWrapper {
                 /* Mark this resObject invalid */
                 Local<Object>::New(isolate, resObject)->SetAlignedPointerInInternalField(0, nullptr);
 
-                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr);
+                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
             });
 
             args.GetReturnValue().Set(args.Holder());
@@ -111,7 +111,15 @@ struct HttpResponseWrapper {
                 HandleScope hs(isolate);
 
                 Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
-                return Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).ToLocalChecked()->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+
+                /* We should check if this is really here! */
+                MaybeLocal<Value> maybeBoolean = Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
+                if (maybeBoolean.IsEmpty()) {
+                    std::cerr << "ERROR! onWritable must return a boolean value according to documentation!" << std::endl;
+                    exit(-1);
+                }
+
+                return maybeBoolean.ToLocalChecked()->BooleanValue(isolate->GetCurrentContext()).ToChecked();
                 /* How important is this return? */
             });
 
@@ -222,7 +230,7 @@ struct HttpResponseWrapper {
         if (res) {
 
             res->cork([cb = Local<Function>::Cast(args[0])]() {
-                cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr);
+                cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
             });
 
             args.GetReturnValue().Set(args.Holder());

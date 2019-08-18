@@ -70,15 +70,6 @@ void Main(Local<Object> exports) {
     /* Integrate with existing libuv loop, we just pass a boolean basically */
     uWS::Loop::get(uv_default_loop());
 
-    // instead, for now we call this manually like before:
-    /*uWS::Loop::get()->setPostHandler([](uWS::Loop *) {
-        isolate->RunMicrotasks();
-    });
-
-    uWS::Loop::get()->setPreHandler([](uWS::Loop *) {
-        isolate->RunMicrotasks();
-    });*/
-
     /* uWS namespace */
     exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());

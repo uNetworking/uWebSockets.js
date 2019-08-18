@@ -51,7 +51,7 @@ function readBody(res, cb) {
   let body;
   res.onData((arrayBuffer, isLast) => {
     const chunk = Buffer.from(arrayBuffer);
-    body = body ? Buffer.concat([body, chunk]) : isLast ? chunk : Buffer.concat([chunk]);
+    body = body ? Buffer.concat([body, chunk]) : isLast ? chunk : Buffer.from(chunk);
     if (isLast) cb(body);
   });
 }

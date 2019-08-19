@@ -5,6 +5,8 @@
 
 • [TypeScript docs](https://unetworking.github.io/uWebSockets.js/generated/) • [Read more & user manual (C++ project)](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md)
 
+*© 2016-2019, >39,632,272 downloads*
+
 </div>
 
 #### In a nutshell.

@@ -38,7 +38,7 @@ struct WebSocketWrapper {
         if (ws) {
             NativeString topic(isolate, args[0]);
             NativeString message(isolate, args[1]);
-            ws->publish(topic.getString(), message.getString());
+            ws->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate->GetCurrentContext()).ToChecked());
         }
     }
 

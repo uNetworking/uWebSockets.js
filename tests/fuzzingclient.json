@@ -12,6 +12,14 @@
       {
          "url": "ws://localhost:9003",
          "agent": "uWebSockets.js non-SSL, dedicated compressor"
+      },
+      {
+         "url": "ws://localhost:9004",
+         "agent": "uWebSockets.js non-SSL, non-compression, pubsub based"
+      },
+      {
+         "url": "wss://localhost:9005",
+         "agent": "uWebSockets.js SSL, non-compression, pubsub based"
       }
    ],
    "cases": ["*.*"],

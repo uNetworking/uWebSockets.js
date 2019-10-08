@@ -21,8 +21,17 @@ function listenWithSettings(settings) {
     compression: settings.compression,
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 60,
+    open: (ws, req) => {
+      if (settings.pubsub) {
+        ws.subscribe('broadcast');
+      }
+    },
     message: (ws, message, isBinary) => {
-      ws.send(message, isBinary, true);
+      if (settings.pubsub) {
+        ws.publish('broadcast', message, isBinary);
+      } else {
+        ws.send(message, isBinary, true);
+      }
     }
   }).any('/exit', (res, req) => {
     /* Shut down everything on this route */
@@ -55,19 +64,38 @@ function listenWithSettings(settings) {
 listenWithSettings({
   port: 9001,
   ssl: false,
-  compression: uWS.DISABLED
+  compression: uWS.DISABLED,
+  pubsub: false
 });
 
 /* SSL, shared compressor */
 listenWithSettings({
   port: 9002,
   ssl: true,
-  compression: uWS.SHARED_COMPRESSOR
+  compression: uWS.SHARED_COMPRESSOR,
+  pubsub: false
 });
 
 /* non-SSL, dedicated compressor */
 listenWithSettings({
   port: 9003,
   ssl: false,
-  compression: uWS.DEDICATED_COMPRESSOR
+  compression: uWS.DEDICATED_COMPRESSOR,
+  pubsub: false
+});
+
+/* pub/sub based, non-SSL, non-compression */
+listenWithSettings({
+  port: 9004,
+  ssl: false,
+  compression: uWS.DISABLED,
+  pubsub: true
+});
+
+/* pub/sub based, SSL, non-compression */
+listenWithSettings({
+  port: 9005,
+  ssl: true,
+  compression: uWS.DISABLED,
+  pubsub: true
 });

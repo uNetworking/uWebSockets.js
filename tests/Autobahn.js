@@ -21,6 +21,7 @@ function listenWithSettings(settings) {
     compression: settings.compression,
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 60,
+    maxBackpressure: 16 * 1024 * 1204,
     open: (ws, req) => {
       if (settings.pubsub) {
         ws.subscribe('broadcast');

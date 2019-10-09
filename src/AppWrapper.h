@@ -7,6 +7,7 @@ using namespace v8;
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    /* This one is default constructed with defaults */
     typename APP::WebSocketBehavior behavior = {};
 
     NativeString pattern(args.GetIsolate(), args[0]);
@@ -27,14 +28,29 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     if (args.Length() == 2) {
         Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
 
-        /* maxPayloadLength */
-        behavior.maxPayloadLength = behaviorObject->Get(String::NewFromUtf8(isolate, "maxPayloadLength"))->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        /* maxPayloadLength or default */
+        MaybeLocal<Value> maybeMaxPayloadLength = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxPayloadLength"));
+        if (!maybeMaxPayloadLength.IsEmpty() && !maybeMaxPayloadLength.ToLocalChecked()->IsUndefined()) {
+            behavior.maxPayloadLength = maybeMaxPayloadLength.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
 
-        /* idleTimeout */
-        behavior.idleTimeout = behaviorObject->Get(String::NewFromUtf8(isolate, "idleTimeout"))->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        /* idleTimeout or default */
+        MaybeLocal<Value> maybeIdleTimeout = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "idleTimeout"));
+        if (!maybeIdleTimeout.IsEmpty() && !maybeIdleTimeout.ToLocalChecked()->IsUndefined()) {
+            behavior.idleTimeout = maybeIdleTimeout.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
 
-        /* Compression, map from 0, 1, 2 to disabled, shared, dedicated. This is actually the enum */
-        behavior.compression = (uWS::CompressOptions) behaviorObject->Get(String::NewFromUtf8(isolate, "compression"))->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        /* Compression or default, map from 0, 1, 2 to disabled, shared, dedicated. This is actually the enum */
+        MaybeLocal<Value> maybeCompression = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "compression"));
+        if (!maybeCompression.IsEmpty() && !maybeCompression.ToLocalChecked()->IsUndefined()) {
+            behavior.compression = (uWS::CompressOptions) maybeCompression.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
+
+        /* maxBackpressure or default */
+        MaybeLocal<Value> maybeMaxBackpressure = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxBackpressure"));
+        if (!maybeMaxBackpressure.IsEmpty() && !maybeMaxBackpressure.ToLocalChecked()->IsUndefined()) {
+            behavior.maxBackpressure = maybeMaxBackpressure.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
 
         /* Open */
         openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));

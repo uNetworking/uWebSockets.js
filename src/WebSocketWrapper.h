@@ -27,7 +27,24 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString topic(isolate, args[0]);
+            if (topic.isInvalid(args)) {
+                return;
+            }
             ws->subscribe(topic.getString());
+        }
+    }
+
+    /* Takes string topic, returns boolean success */
+    template <bool SSL>
+    static void uWS_WebSocket_unsubscribe(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString topic(isolate, args[0]);
+            if (topic.isInvalid(args)) {
+                return;
+            }
+            bool success = ws->unsubscribe(topic.getString());
+            args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }
 
@@ -130,6 +147,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount"), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress"), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddress<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe"), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe"), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish"), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
 
         /* Create the template */

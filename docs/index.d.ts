@@ -25,11 +25,11 @@ interface WebSocket {
     /** Subscribe to a topic in MQTT syntax */
     subscribe(topic: RecognizedString) : WebSocket;
 
-    /** Publish a message to a topic in MQTT syntax */
-    publish(topic: RecognizedString, message: RecognizedString) : WebSocket;
+    /** Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. */
+    unsubscribe(topic: RecognizedString) : boolean;
 
-    /** Unsubscribe from topic (not implemented yet) */
-    unsubscribe(topic: RecognizedString) : WebSocket;
+    /** Publish a message to a topic in MQTT syntax */
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;
 
     /** Returns the remote IP address */
     getRemoteAddress() : ArrayBuffer;
@@ -103,6 +103,8 @@ interface WebSocketBehavior {
     idleTimeout?: number;
     /** 0 = no compression, 1 = shared compressor, 2 = dedicated compressor. See C++ project. */
     compression?: CompressOptions;
+    /** Maximum length of allowed backpressure per socket when publishing messages. Slow receivers, WebSockets, will be disconnected if needed. */
+    maxBackpressure?: number;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
     open?: (ws: WebSocket, req: HttpRequest) => void;
     /** Handler for a WebSocket message. */

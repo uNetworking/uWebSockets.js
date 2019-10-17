@@ -153,6 +153,8 @@ interface TemplatedApp {
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
     ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
+    /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : TemplatedApp;
 }
 
 /** Constructs a non-SSL app */

@@ -36,7 +36,7 @@ public:
 
     bool isInvalid(const FunctionCallbackInfo<Value> &args) {
         if (invalid) {
-            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Text and data can only be passed by String, ArrayBuffer or TypedArray.")));
+            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Text and data can only be passed by String, ArrayBuffer or TypedArray.", NewStringType::kNormal).ToLocalChecked()));
         }
         return invalid;
     }

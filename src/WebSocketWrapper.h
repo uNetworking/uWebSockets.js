@@ -12,7 +12,7 @@ struct WebSocketWrapper {
     static inline uWS::WebSocket<SSL, true> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
         auto *ws = (uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!ws) {
-            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.")));
+            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.", NewStringType::kNormal).ToLocalChecked()));
         }
         return ws;
     }
@@ -55,7 +55,7 @@ struct WebSocketWrapper {
         if (ws) {
             NativeString topic(isolate, args[0]);
             NativeString message(isolate, args[1]);
-            ws->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate->GetCurrentContext()).ToChecked());
+            ws->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
         }
     }
 
@@ -124,7 +124,7 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->send(message.getString(), args[1]->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked());
+            bool ok = ws->send(message.getString(), BooleanValue(isolate, args[1]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[2]));
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         }
@@ -134,21 +134,21 @@ struct WebSocketWrapper {
     static void initWsTemplate() {
         Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
         if (SSL) {
-            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLWebSocket"));
+            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLWebSocket", NewStringType::kNormal).ToLocalChecked());
         } else {
-            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket"));
+            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket", NewStringType::kNormal).ToLocalChecked());
         }
         wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
         /* Register our functions */
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send"), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end"), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close"), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount"), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress"), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddress<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe"), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe"), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish"), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddress<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

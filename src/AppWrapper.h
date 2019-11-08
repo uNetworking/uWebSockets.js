@@ -29,37 +29,37 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Local<Object> behaviorObject = Local<Object>::Cast(args[1]);
 
         /* maxPayloadLength or default */
-        MaybeLocal<Value> maybeMaxPayloadLength = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxPayloadLength"));
+        MaybeLocal<Value> maybeMaxPayloadLength = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxPayloadLength", NewStringType::kNormal).ToLocalChecked());
         if (!maybeMaxPayloadLength.IsEmpty() && !maybeMaxPayloadLength.ToLocalChecked()->IsUndefined()) {
             behavior.maxPayloadLength = maybeMaxPayloadLength.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
         /* idleTimeout or default */
-        MaybeLocal<Value> maybeIdleTimeout = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "idleTimeout"));
+        MaybeLocal<Value> maybeIdleTimeout = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "idleTimeout", NewStringType::kNormal).ToLocalChecked());
         if (!maybeIdleTimeout.IsEmpty() && !maybeIdleTimeout.ToLocalChecked()->IsUndefined()) {
             behavior.idleTimeout = maybeIdleTimeout.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
         /* Compression or default, map from 0, 1, 2 to disabled, shared, dedicated. This is actually the enum */
-        MaybeLocal<Value> maybeCompression = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "compression"));
+        MaybeLocal<Value> maybeCompression = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "compression", NewStringType::kNormal).ToLocalChecked());
         if (!maybeCompression.IsEmpty() && !maybeCompression.ToLocalChecked()->IsUndefined()) {
             behavior.compression = (uWS::CompressOptions) maybeCompression.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
         /* maxBackpressure or default */
-        MaybeLocal<Value> maybeMaxBackpressure = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxBackpressure"));
+        MaybeLocal<Value> maybeMaxBackpressure = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxBackpressure", NewStringType::kNormal).ToLocalChecked());
         if (!maybeMaxBackpressure.IsEmpty() && !maybeMaxBackpressure.ToLocalChecked()->IsUndefined()) {
             behavior.maxBackpressure = maybeMaxBackpressure.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
         /* Open */
-        openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "open"))));
+        openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "open", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Message */
-        messagePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "message"))));
+        messagePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "message", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Drain */
-        drainPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "drain"))));
+        drainPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "drain", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Close */
-        closePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(String::NewFromUtf8(isolate, "close"))));
+        closePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
     }
 
     /* Open handler is NOT optional for the wrapper */
@@ -198,7 +198,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     /* Require at least two arguments */
     if (args.Length() < 2) {
         /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback")));
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback", NewStringType::kNormal).ToLocalChecked()));
         return;
     }
 
@@ -238,7 +238,7 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 
     NativeString topic(isolate, args[0]);
     NativeString message(isolate, args[1]);
-    app->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate->GetCurrentContext()).ToChecked());
+    app->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
 }
 
 template <typename APP>
@@ -249,7 +249,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     /* Name differs based on type */
     if (std::is_same<APP, uWS::SSLApp>::value) {
-        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLApp"));
+        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLApp", NewStringType::kNormal).ToLocalChecked());
 
         /* We fill these below */
         us_socket_context_options_t ssl_options = {};
@@ -261,8 +261,11 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
         /* Read the options object (SSL options) */
         if (args.Length() == 1) {
+
+            Local<Object> optionsObject = Local<Object>::Cast(args[0]);
+
             /* Key file name */
-            NativeString keyFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "key_file_name")));
+            NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
             if (keyFileNameValue.isInvalid(args)) {
                 return;
             }
@@ -272,7 +275,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             }
 
             /* Cert file name */
-            NativeString certFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "cert_file_name")));
+            NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
             if (certFileNameValue.isInvalid(args)) {
                 return;
             }
@@ -282,7 +285,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             }
 
             /* Passphrase */
-            NativeString passphraseValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "passphrase")));
+            NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
             if (passphraseValue.isInvalid(args)) {
                 return;
             }
@@ -292,7 +295,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             }
 
             /* DH params file name */
-            NativeString dhParamsFileNameValue(isolate, Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "dh_params_file_name")));
+            NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
             if (dhParamsFileNameValue.isInvalid(args)) {
                 return;
             }
@@ -302,70 +305,70 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             }
 
             /* ssl_prefer_low_memory_usage */
-            ssl_options.ssl_prefer_low_memory_usage = Local<Object>::Cast(args[0])->Get(String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage"))->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+            ssl_options.ssl_prefer_low_memory_usage = BooleanValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         }
 
         app = new APP(ssl_options);
     } else {
-        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.App"));
+        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.App", NewStringType::kNormal).ToLocalChecked());
         app = new APP;
     }
 
     /* Throw if we failed to construct the app */
     if (app->constructorFailed()) {
         delete app;
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App construction failed")));
+        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked()));
         return;
     }
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     /* All the http methods */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::get, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "post"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "post", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::post, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "options"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "options", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::options, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "del"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "del", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::del, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "patch"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "patch", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::patch, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "put"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "put", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::put, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "head"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "head", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::head, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "connect"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "connect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::connect, args);
     }));
 
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "trace"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "trace", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::trace, args);
     }));
 
     /* Any http method */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "any"), FunctionTemplate::New(isolate, [](auto &args) {
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "any", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         uWS_App_get<APP>(&APP::any, args);
     }));
 
     /* ws, listen */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws"), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen"), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish"), FunctionTemplate::New(isolate, uWS_App_publish<APP>));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen<APP>));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_publish<APP>));
 
     Local<Object> localApp = appTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);

@@ -31,6 +31,18 @@ bool valid = true;
 std::vector<std::unique_ptr<uWS::App>> apps;
 std::vector<std::unique_ptr<uWS::SSLApp>> sslApps;
 
+/* Compatibility for V8 7.0 and earlier */
+#include <v8-version.h>
+bool BooleanValue(Isolate *isolate, Local<Value> value) {
+    #if V8_MAJOR_VERSION < 7 || (V8_MAJOR_VERSION == 7 && V8_MINOR_VERSION == 0)
+        /* Old */
+        return value->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+    #else
+        /* Node.js 12, 13 */
+        return value->BooleanValue(isolate);
+    #endif
+}
+
 #include "Utilities.h"
 #include "WebSocketWrapper.h"
 #include "HttpResponseWrapper.h"
@@ -71,20 +83,20 @@ void Main(Local<Object> exports) {
     uWS::Loop::get(uv_default_loop());
 
     /* uWS namespace */
-    exports->Set(String::NewFromUtf8(isolate, "App"), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-    exports->Set(String::NewFromUtf8(isolate, "SSLApp"), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-    exports->Set(String::NewFromUtf8(isolate, "free"), FunctionTemplate::New(isolate, uWS_free)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::App>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SSLApp", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "free", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_free)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
-    exports->Set(String::NewFromUtf8(isolate, "us_listen_socket_close"), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Compression enum */
-    exports->Set(String::NewFromUtf8(isolate, "DISABLED"), Integer::NewFromUnsigned(isolate, uWS::DISABLED));
-    exports->Set(String::NewFromUtf8(isolate, "SHARED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::SHARED_COMPRESSOR));
-    exports->Set(String::NewFromUtf8(isolate, "DEDICATED_COMPRESSOR"), Integer::NewFromUnsigned(isolate, uWS::DEDICATED_COMPRESSOR));
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "DISABLED", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, uWS::DISABLED)).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SHARED_COMPRESSOR", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, uWS::SHARED_COMPRESSOR)).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "DEDICATED_COMPRESSOR", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, uWS::DEDICATED_COMPRESSOR)).ToChecked();
 
     /* Listen options */
-    exports->Set(String::NewFromUtf8(isolate, "LIBUS_LISTEN_EXCLUSIVE_PORT"), Integer::NewFromUnsigned(isolate, LIBUS_LISTEN_EXCLUSIVE_PORT));
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "LIBUS_LISTEN_EXCLUSIVE_PORT", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, LIBUS_LISTEN_EXCLUSIVE_PORT)).ToChecked();
 
     /* The template for websockets */
     WebSocketWrapper::initWsTemplate<0>();

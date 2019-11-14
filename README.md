@@ -11,7 +11,7 @@
 
 #### In a nutshell.
 
-There are tons of [examples](examples) but here's the gist of it all:
+You can think of it as a complete replacement to both Express.js and Socket.IO. There are tons of [examples](examples) but here's the gist of it all:
 
 ```javascript
 /* Non-SSL is simply App() */

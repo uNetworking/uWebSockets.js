@@ -167,11 +167,10 @@ export function SSLApp(options: AppOptions): TemplatedApp;
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;
 
 /** WebSocket compression options */
-export enum CompressOptions {
-    /** No compression (always a good idea) */
-    DISABLED,
-    /** Zero memory overhead compression (recommended) */
-    SHARED_COMPRESSOR,
-    /** Sliding dedicated compress window, requires lots of memory per socket */
-    DEDICATED_COMPRESSOR
-}
+export type CompressOptions = number;
+/** No compression (always a good idea) */
+export var DISABLED: CompressOptions;
+/** Zero memory overhead compression (recommended) */
+export var SHARED_COMPRESSOR: CompressOptions;
+/** Sliding dedicated compress window, requires lots of memory per socket */
+export var DEDICATED_COMPRESSOR: CompressOptions;

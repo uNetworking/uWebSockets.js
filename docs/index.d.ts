@@ -16,10 +16,10 @@ interface WebSocket {
     /** Returns the bytes buffered in backpressure. */
     getBufferedAmount() : number;
 
-    /** Gradefully closes this WebSocket. Immediately calls close handler. */
+    /** Gracefully closes this WebSocket. Immediately calls close handler. */
     end(code?: number, shortMessage?: RecognizedString) : WebSocket;
 
-    /** Forefully closes this WebSocket. Immediately calls close handler. */
+    /** Forcefully closes this WebSocket */
     close() : WebSocket;
 
     /** Subscribe to a topic in MQTT syntax */

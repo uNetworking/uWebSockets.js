@@ -17,7 +17,7 @@ if (isMainThread) {
   /* I guess main thread joins by default? */
 } else {
   /* Here we are inside a worker thread */
-  const app = uWS./*SSL*/App({
+  const app = uWS.SSLApp({
     key_file_name: 'misc/key.pem',
     cert_file_name: 'misc/cert.pem',
     passphrase: '1234'

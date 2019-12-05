@@ -256,79 +256,77 @@ template <typename APP>
 void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
-
     Local<FunctionTemplate> appTemplate = FunctionTemplate::New(isolate);
+    appTemplate->SetClassName(String::NewFromUtf8(isolate, std::is_same<APP, uWS::SSLApp>::value ? "uWS.SSLApp" : "uWS.App", NewStringType::kNormal).ToLocalChecked());
 
-    APP *app;
+    /* Read the options object if any */
+    us_socket_context_options_t options = {};
+    if (args.Length() == 1) {
 
-    /* These won't outlive the function, uSockets will have to copy strings it wants to keep! */
-    std::string keyFileName;
-    std::string certFileName;
-    std::string passphrase;
-    std::string dhParamsFileName;
+        Local<Object> optionsObject = Local<Object>::Cast(args[0]);
 
-    /* Name differs based on type */
-    if (std::is_same<APP, uWS::SSLApp>::value) {
-        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLApp", NewStringType::kNormal).ToLocalChecked());
+        std::string keyFileName;
+        std::string certFileName;
+        std::string passphrase;
+        std::string dhParamsFileName;
+        std::string caFileName;
 
-        /* We fill these below */
-        us_socket_context_options_t ssl_options = {};
-
-        /* Read the options object (SSL options) */
-        if (args.Length() == 1) {
-
-            Local<Object> optionsObject = Local<Object>::Cast(args[0]);
-
-            /* Key file name */
-            NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-            if (keyFileNameValue.isInvalid(args)) {
-                return;
-            }
-            if (keyFileNameValue.getString().length()) {
-                keyFileName = keyFileNameValue.getString();
-                ssl_options.key_file_name = keyFileName.c_str();
-            }
-
-            /* Cert file name */
-            NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-            if (certFileNameValue.isInvalid(args)) {
-                return;
-            }
-            if (certFileNameValue.getString().length()) {
-                certFileName = certFileNameValue.getString();
-                ssl_options.cert_file_name = certFileName.c_str();
-            }
-
-            /* Passphrase */
-            NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-            if (passphraseValue.isInvalid(args)) {
-                return;
-            }
-            if (passphraseValue.getString().length()) {
-                passphrase = passphraseValue.getString();
-                ssl_options.passphrase = passphrase.c_str();
-            }
-
-            /* DH params file name */
-            NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-            if (dhParamsFileNameValue.isInvalid(args)) {
-                return;
-            }
-            if (dhParamsFileNameValue.getString().length()) {
-                dhParamsFileName = dhParamsFileNameValue.getString();
-                ssl_options.dh_params_file_name = dhParamsFileName.c_str();
-            }
-
-            /* ssl_prefer_low_memory_usage */
-            ssl_options.ssl_prefer_low_memory_usage = BooleanValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        /* Key file name */
+        NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (keyFileNameValue.isInvalid(args)) {
+            return;
+        }
+        if (keyFileNameValue.getString().length()) {
+            keyFileName = keyFileNameValue.getString();
+            options.key_file_name = keyFileName.c_str();
         }
 
-        /* uSockets should really copy strings it wants to keep */
-        app = new APP(ssl_options);
-    } else {
-        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.App", NewStringType::kNormal).ToLocalChecked());
-        app = new APP;
+        /* Cert file name */
+        NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (certFileNameValue.isInvalid(args)) {
+            return;
+        }
+        if (certFileNameValue.getString().length()) {
+            certFileName = certFileNameValue.getString();
+            options.cert_file_name = certFileName.c_str();
+        }
+
+        /* Passphrase */
+        NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (passphraseValue.isInvalid(args)) {
+            return;
+        }
+        if (passphraseValue.getString().length()) {
+            passphrase = passphraseValue.getString();
+            options.passphrase = passphrase.c_str();
+        }
+
+        /* DH params file name */
+        NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (dhParamsFileNameValue.isInvalid(args)) {
+            return;
+        }
+        if (dhParamsFileNameValue.getString().length()) {
+            dhParamsFileName = dhParamsFileNameValue.getString();
+            options.dh_params_file_name = dhParamsFileName.c_str();
+        }
+
+        /* CA file name */
+        NativeString caFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ca_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (caFileNameValue.isInvalid(args)) {
+            return;
+        }
+        if (caFileNameValue.getString().length()) {
+            caFileName = caFileNameValue.getString();
+            options.ca_file_name = caFileName.c_str();
+        }
+
+        /* ssl_prefer_low_memory_usage */
+        options.ssl_prefer_low_memory_usage = BooleanValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
     }
+
+    /* uSockets copies strings here */
+    APP *app = new APP(options);
 
     /* Throw if we failed to construct the app */
     if (app->constructorFailed()) {

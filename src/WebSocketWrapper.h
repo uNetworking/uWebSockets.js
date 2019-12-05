@@ -1,15 +1,16 @@
 #include "App.h"
-#include <v8.h>
 #include "Utilities.h"
+
+#include <v8.h>
 using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
 
 struct WebSocketWrapper {
-    static Persistent<Object> wsTemplate[2];
 
     template <bool SSL>
     static inline uWS::WebSocket<SSL, true> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = (uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!ws) {
             args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.", NewStringType::kNormal).ToLocalChecked()));
@@ -24,6 +25,7 @@ struct WebSocketWrapper {
     /* Takes string topic */
     template <bool SSL>
     static void uWS_WebSocket_subscribe(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString topic(isolate, args[0]);
@@ -37,6 +39,7 @@ struct WebSocketWrapper {
     /* Takes string topic, returns boolean success */
     template <bool SSL>
     static void uWS_WebSocket_unsubscribe(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString topic(isolate, args[0]);
@@ -51,6 +54,7 @@ struct WebSocketWrapper {
     /* Takes string topic, message */
     template <bool SSL>
     static void uWS_WebSocket_publish(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString topic(isolate, args[0]);
@@ -75,6 +79,7 @@ struct WebSocketWrapper {
     /* Takes code, message, returns undefined */
     template <bool SSL>
     static void uWS_WebSocket_end(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             int code = 0;
@@ -95,6 +100,7 @@ struct WebSocketWrapper {
     /* Takes nothing returns arraybuffer */
     template <bool SSL>
     static void uWS_WebSocket_getRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             std::string_view ip = ws->getRemoteAddress();
@@ -107,6 +113,7 @@ struct WebSocketWrapper {
     /* Takes nothing, returns integer */
     template <bool SSL>
     static void uWS_WebSocket_getBufferedAmount(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             int bufferedAmount = ws->getBufferedAmount();
@@ -117,6 +124,7 @@ struct WebSocketWrapper {
     /* Takes message, isBinary. Returns true on success, false otherwise */
     template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString message(args.GetIsolate(), args[0]);
@@ -131,7 +139,7 @@ struct WebSocketWrapper {
     }
 
     template <bool SSL>
-    static void initWsTemplate() {
+    static Local<Object> init(Isolate *isolate) {
         Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
         if (SSL) {
             wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLWebSocket", NewStringType::kNormal).ToLocalChecked());
@@ -152,15 +160,7 @@ struct WebSocketWrapper {
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-        wsTemplate[SSL].Reset(isolate, wsObjectLocal);
-    }
-
-    /* This is where we output an instance */
-    template <class APP>
-    static Local<Object> getWsInstance() {
-        return Local<Object>::New(isolate, wsTemplate[std::is_same<APP, uWS::SSLApp>::value])->Clone();
+        
+        return wsObjectLocal;
     }
 };
-
-/* Fix this, should be nicer */
-Persistent<Object> WebSocketWrapper::wsTemplate[2];

@@ -1,13 +1,15 @@
 #include "App.h"
-#include <v8.h>
 #include "Utilities.h"
+
+#include <v8.h>
 using namespace v8;
 
 /* This one is the same for SSL and non-SSL */
 struct HttpRequestWrapper {
-    static Persistent<Object> reqTemplate;
 
+    /* Unwraps the HttpRequest from V8 object */
     static inline uWS::HttpRequest *getHttpRequest(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         /* Thow on deleted request */
         auto *req = (uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!req) {
@@ -18,6 +20,7 @@ struct HttpRequestWrapper {
 
     /* Takes function of string, string. Returns this (doesn't really but should) */
     static void req_forEach(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             Local<Function> cb = Local<Function>::Cast(args[0]);
@@ -32,6 +35,7 @@ struct HttpRequestWrapper {
 
     /* Takes int, returns string (must be in bounds) */
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             int index = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
@@ -43,6 +47,7 @@ struct HttpRequestWrapper {
 
     /* Takes nothing, returns string */
     static void req_getUrl(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             std::string_view url = req->getUrl();
@@ -53,6 +58,7 @@ struct HttpRequestWrapper {
 
     /* Takes String, returns String */
     static void req_getHeader(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             NativeString data(args.GetIsolate(), args[0]);
@@ -68,6 +74,7 @@ struct HttpRequestWrapper {
 
     /* Takes nothing, returns string */
     static void req_getMethod(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             std::string_view method = req->getMethod();
@@ -77,6 +84,7 @@ struct HttpRequestWrapper {
     }
 
     static void req_getQuery(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
             std::string_view query = req->getQuery();
@@ -85,7 +93,8 @@ struct HttpRequestWrapper {
         }
     }
 
-    static void initReqTemplate() {
+    /* Returns a clonable object wrapping an HttpRequest */
+    static Local<Object> init(Isolate *isolate) {
         /* We do clone every request object, we could share them, they are illegal to use outside the function anyways */
         Local<FunctionTemplate> reqTemplateLocal = FunctionTemplate::New(isolate);
         reqTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpRequest", NewStringType::kNormal).ToLocalChecked());
@@ -101,12 +110,7 @@ struct HttpRequestWrapper {
 
         /* Create the template */
         Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-        reqTemplate.Reset(isolate, reqObjectLocal);
-    }
 
-    static Local<Object> getReqInstance() {
-        return Local<Object>::New(isolate, reqTemplate)->Clone();
+        return reqObjectLocal;
     }
 };
-
-Persistent<Object> HttpRequestWrapper::reqTemplate;

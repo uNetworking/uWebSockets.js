@@ -3,6 +3,12 @@
 #include "Utilities.h"
 using namespace v8;
 
+char *copyString(const char* string) {
+    char *cstr = new char[strlen(string) + 1];
+    std::strcpy(cstr, string);
+    return cstr;
+}
+
 /* uWS.App.ws('/pattern', behavior) */
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
@@ -278,7 +284,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         }
         if (keyFileNameValue.getString().length()) {
             keyFileName = keyFileNameValue.getString();
-            options.key_file_name = keyFileName.c_str();
+            options.key_file_name = copyString(keyFileName.c_str());
         }
 
         /* Cert file name */
@@ -288,7 +294,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         }
         if (certFileNameValue.getString().length()) {
             certFileName = certFileNameValue.getString();
-            options.cert_file_name = certFileName.c_str();
+            options.cert_file_name = copyString(certFileName.c_str());
         }
 
         /* Passphrase */
@@ -298,7 +304,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         }
         if (passphraseValue.getString().length()) {
             passphrase = passphraseValue.getString();
-            options.passphrase = passphrase.c_str();
+            options.passphrase = copyString(passphrase.c_str());
         }
 
         /* DH params file name */
@@ -308,7 +314,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         }
         if (dhParamsFileNameValue.getString().length()) {
             dhParamsFileName = dhParamsFileNameValue.getString();
-            options.dh_params_file_name = dhParamsFileName.c_str();
+            options.dh_params_file_name = copyString(dhParamsFileName.c_str());
         }
 
         /* CA file name */
@@ -318,7 +324,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         }
         if (caFileNameValue.getString().length()) {
             caFileName = caFileNameValue.getString();
-            options.ca_file_name = caFileName.c_str();
+            options.ca_file_name = copyString(caFileName.c_str());
         }
 
         /* ssl_prefer_low_memory_usage */

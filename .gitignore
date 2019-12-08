@@ -1,0 +1,10 @@
+# Ignore dist files
+dist/
+
+# Ignore Temp Files
+headers/
+objects/
+targets/
+
+# Ignore .out
+a.out

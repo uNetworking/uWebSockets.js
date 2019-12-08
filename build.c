@@ -47,7 +47,7 @@ void prepare() {
 
     /* For all versions */
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        run("cd headers && curl -OJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz && cd ../", versions[i].name, versions[i].name);
+        run("cd headers ; curl -OJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz ; cd ../", versions[i].name, versions[i].name);
         run("tar xzf headers/node-%s-headers.tar.gz -C targets", versions[i].name);
         run("curl https://nodejs.org/dist/%s/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
     }

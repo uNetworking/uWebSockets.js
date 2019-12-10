@@ -261,15 +261,10 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     /* Read the options object if any */
     us_socket_context_options_t options = {};
+    std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
     if (args.Length() == 1) {
 
         Local<Object> optionsObject = Local<Object>::Cast(args[0]);
-
-        std::string keyFileName;
-        std::string certFileName;
-        std::string passphrase;
-        std::string dhParamsFileName;
-        std::string caFileName;
 
         /* Key file name */
         NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());

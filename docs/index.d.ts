@@ -75,6 +75,21 @@ export interface HttpResponse {
     /** Returns the remote IP address */
     getRemoteAddress() : ArrayBuffer;
 
+    /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
+     * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from
+     * await, or when being called back from an async database request or anything that isn't directly executing in the route handler, you'll want
+     * to cork before calling writeStatus, writeHeader or just write. Corking takes a callback in which you execute the writeHeader, writeStatus and
+     * such calls, in one atomic IO operation. This is important, not only for TCP but definitely for TLS where each write would otherwise result
+     * in one TLS block being sent off, each with one send syscall.
+     * 
+     * Example usage:
+     * 
+     * res.cork(() => {
+     *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
+     * });
+     */
+    cork(cb: () => void) : void;
+
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
 }
@@ -93,6 +108,8 @@ export interface HttpRequest {
     getQuery() : string;
     /** Loops over all headers. */
     forEach(cb: (key: string, value: string) => void) : void;
+    /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */
+    setYield(yield: boolean) : HttpRequest;
 }
 
 /** A structure holding settings and handlers for a WebSocket route handler. */

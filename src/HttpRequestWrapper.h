@@ -72,6 +72,18 @@ struct HttpRequestWrapper {
         }
     }
 
+    /* Takes boolean, returns this */
+    static void req_setYield(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *req = getHttpRequest(args);
+        if (req) {
+            bool yield = BooleanValue(args.GetIsolate(), args[0]);
+            req->setYield(yield);
+
+            args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
     /* Takes nothing, returns string */
     static void req_getMethod(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
@@ -107,6 +119,7 @@ struct HttpRequestWrapper {
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getMethod", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getMethod));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getQuery", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getQuery));
         reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forEach", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_forEach));
+        reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "setYield", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_setYield));
 
         /* Create the template */
         Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

@@ -51,12 +51,12 @@ void uWS_free(const FunctionCallbackInfo<Value> &args) {
     Local<Object> exports = args.Holder();
 
     /* See if we even have free anymore */
-    if (exports->Get(String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked()) == Undefined(args.GetIsolate())) {
+    if (exports->Get(args.GetIsolate()->GetCurrentContext(), String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked() == Undefined(args.GetIsolate())) {
         return;
     }
 
     /* Once we free uWS we remove the uWS.free function from exports */
-    exports->Set(args.GetIsolate()->GetCurrentContext(), String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked(), Undefined(args.GetIsolate()));
+    exports->Set(args.GetIsolate()->GetCurrentContext(), String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked(), Undefined(args.GetIsolate())).ToChecked();
 
     /* We get the External holding perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();

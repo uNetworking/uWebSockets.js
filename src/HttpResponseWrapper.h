@@ -232,7 +232,7 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* Takes function, returns this (EXPERIMENTAL) */
+    /* Takes function, returns this */
     template <bool SSL>
     static void res_cork(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();

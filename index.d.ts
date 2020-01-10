@@ -31,6 +31,9 @@ export interface WebSocket {
     /** Publish a message to a topic in MQTT syntax */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;
 
+    /** See HttpResponse.cork */
+    cork(cb: () => void) : void;
+
     /** Returns the remote IP address */
     getRemoteAddress() : ArrayBuffer;
     

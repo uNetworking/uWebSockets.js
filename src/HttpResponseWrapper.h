@@ -47,7 +47,7 @@ struct HttpResponseWrapper {
                 Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(isolate, (void *) data.data(), data.length());
 
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
-                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
+                CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
 
                 dataArrayBuffer->Neuter();
             });
@@ -74,7 +74,7 @@ struct HttpResponseWrapper {
                 /* Mark this resObject invalid */
                 Local<Object>::New(isolate, resObject)->SetAlignedPointerInInternalField(0, nullptr);
 
-                Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
+                CallJS(isolate, Local<Function>::New(isolate, p), 0, nullptr);
             });
 
             args.GetReturnValue().Set(args.Holder());
@@ -119,7 +119,7 @@ struct HttpResponseWrapper {
                 Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
 
                 /* We should check if this is really here! */
-                MaybeLocal<Value> maybeBoolean = Local<Function>::New(isolate, p)->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
+                MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
                 if (maybeBoolean.IsEmpty()) {
                     std::cerr << "ERROR! onWritable must return a boolean value according to documentation!" << std::endl;
                     exit(-1);
@@ -240,6 +240,7 @@ struct HttpResponseWrapper {
         if (res) {
 
             res->cork([cb = Local<Function>::Cast(args[0]), isolate]() {
+                /* This one is called from JS so we don't need CallJS */
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
             });
 

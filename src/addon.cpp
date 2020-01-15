@@ -82,9 +82,11 @@ void Main(Local<Object> exports) {
     /* We pass isolate everywhere */
     Isolate *isolate = exports->GetIsolate();
 
+#ifndef PERFORM_LIKE_GARBAGE
     /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
     /* Settings this crashes Node.js while debugging with breakpoints */
     isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
+#endif
 
     /* Init the template objects, SSL and non-SSL, store it in per context data */
     PerContextData *perContextData = new PerContextData;

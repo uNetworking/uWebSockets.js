@@ -157,6 +157,7 @@ struct WebSocketWrapper {
         if (ws) {
 
             ws->cork([cb = Local<Function>::Cast(args[0]), isolate]() {
+                /* No need for CallJS here */
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
             });
 

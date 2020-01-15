@@ -28,6 +28,7 @@ struct HttpRequestWrapper {
             for (auto p : *req) {
                 Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked(),
                                        String::NewFromUtf8(isolate, p.second.data(), NewStringType::kNormal, p.second.length()).ToLocalChecked()};
+                /* This one is also called from JS so no need for CallJS */
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
             }
         }

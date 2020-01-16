@@ -3,7 +3,7 @@
 
 *µWebSockets.js™ (it's "[micro](https://en.wikipedia.org/wiki/Micro-)") is simple, secure*<sup>[[1]](https://github.com/uNetworking/uWebSockets/tree/master/fuzzing)</sup> *& standards compliant*<sup>[[2]](https://unetworking.github.io/uWebSockets.js/report.pdf)</sup> *web I/O for the most demanding*<sup>[[3]](https://github.com/uNetworking/uWebSockets/tree/master/benchmarks)</sup> *of applications.*
 
-• [TypeScript docs](https://unetworking.github.io/uWebSockets.js/generated/) • [Read more & user manual (C++ project)](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md)
+• [Documentation](https://unetworking.github.io/uWebSockets.js/generated/) • [User manual (for C++)](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md) • [For Python](https://github.com/uNetworking/uWebSockets.py)
 
 *© 2016-2019, >39,632,272 downloads*
 

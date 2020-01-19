@@ -3,7 +3,7 @@
 
 *µWebSockets.js™ (it's "[micro](https://en.wikipedia.org/wiki/Micro-)") is simple, secure*<sup>[[1]](https://github.com/uNetworking/uWebSockets/tree/master/fuzzing)</sup> *& standards compliant*<sup>[[2]](https://unetworking.github.io/uWebSockets.js/report.pdf)</sup> *web I/O for the most demanding*<sup>[[3]](https://github.com/uNetworking/uWebSockets/tree/master/benchmarks)</sup> *of applications.*
 
-• [Documentation](https://unetworking.github.io/uWebSockets.js/generated/) • [User manual (for C++)](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md) • [For Python](https://github.com/uNetworking/uWebSockets.py)
+• [For Python](https://github.com/uNetworking/uWebSockets.py) • [User manual](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md) • [Docs](https://unetworking.github.io/uWebSockets.js/generated/)
 
 *© 2016-2019, >39,632,272 downloads*
 
@@ -44,7 +44,7 @@ require('uWebSockets.js').SSLApp({
 
 #### Ready all thrusters.
 
-Install with `npm install uNetworking/uWebSockets.js#v17.0.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+Install with `npm install uNetworking/uWebSockets.js#v17.1.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 
 ![](misc/features_strip.png)
 

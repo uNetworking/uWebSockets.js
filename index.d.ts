@@ -22,11 +22,17 @@ export interface WebSocket {
     /** Forcefully closes this WebSocket */
     close() : WebSocket;
 
+    /** Sends a ping control message. Returns true on success, see WebSocket.send. This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...). */
+    ping(message?: RecognizedString) : boolean;
+
     /** Subscribe to a topic in MQTT syntax */
     subscribe(topic: RecognizedString) : WebSocket;
 
     /** Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. */
     unsubscribe(topic: RecognizedString) : boolean;
+
+    /** Unsubscribe from all topics. */
+    unsubscribeAll() : void;
 
     /** Publish a message to a topic in MQTT syntax */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;

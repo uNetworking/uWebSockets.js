@@ -22,6 +22,9 @@
 #include <vector>
 #include <type_traits>
 
+/* This one can never change for the duration of this process, so never mind per context data:ing it, yes that is a word now */
+bool experimental_fastcall = 0;
+
 #include <v8.h>
 using namespace v8;
 
@@ -79,14 +82,17 @@ void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
 
 void Main(Local<Object> exports) {
 
+    /* We only care if it is defined, not what it says */
+    experimental_fastcall = getenv("EXPERIMENTAL_FASTCALL") != nullptr;
+
     /* We pass isolate everywhere */
     Isolate *isolate = exports->GetIsolate();
 
-#ifndef PERFORM_LIKE_GARBAGE
-    /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
-    /* Settings this crashes Node.js while debugging with breakpoints */
-    isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
-#endif
+    if (experimental_fastcall) {
+        /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
+        /* Settings this crashes Node.js while debugging with breakpoints */
+        isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
+    }
 
     /* Init the template objects, SSL and non-SSL, store it in per context data */
     PerContextData *perContextData = new PerContextData;

@@ -198,5 +198,22 @@ export type CompressOptions = number;
 export var DISABLED: CompressOptions;
 /** Zero memory overhead compression (recommended) */
 export var SHARED_COMPRESSOR: CompressOptions;
-/** Sliding dedicated compress window, requires lots of memory per socket */
+/** Sliding dedicated compress window, requires 256KB of memory per socket */
 export var DEDICATED_COMPRESSOR: CompressOptions;
+
+/** Sliding dedicated compress window, requires 3KB of memory per socket */
+export var DEDICATED_COMPRESSOR_3KB: CompressOptions;
+/** Sliding dedicated compress window, requires 4KB of memory per socket */
+export var DEDICATED_COMPRESSOR_4KB: CompressOptions;
+/** Sliding dedicated compress window, requires 8KB of memory per socket */
+export var DEDICATED_COMPRESSOR_8KB: CompressOptions;
+/** Sliding dedicated compress window, requires 16KB of memory per socket */
+export var DEDICATED_COMPRESSOR_16KB: CompressOptions;
+/** Sliding dedicated compress window, requires 32KB of memory per socket */
+export var DEDICATED_COMPRESSOR_32KB: CompressOptions;
+/** Sliding dedicated compress window, requires 64KB of memory per socket */
+export var DEDICATED_COMPRESSOR_64KB: CompressOptions;
+/** Sliding dedicated compress window, requires 128KB of memory per socket */
+export var DEDICATED_COMPRESSOR_128KB: CompressOptions;
+/** Sliding dedicated compress window, requires 256KB of memory per socket */
+export var DEDICATED_COMPRESSOR_256KB: CompressOptions;

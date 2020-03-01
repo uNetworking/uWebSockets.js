@@ -139,6 +139,10 @@ export interface WebSocketBehavior {
     drain?: (ws: WebSocket) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. */
     close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
+    /** Handler for received ping control message. */
+    ping?: (ws: WebSocket) => void;
+    /** Handler for received pong control message. */
+    pong?: (ws: WebSocket) => void;
 }
 
 /** Options used when constructing an app. */

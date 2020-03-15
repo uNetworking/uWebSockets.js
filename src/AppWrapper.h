@@ -236,7 +236,8 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     auto cb = [&args, isolate](auto *token) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
-        CallJS(isolate, Local<Function>::Cast(args[args.Length() - 1]), 1, argv);
+        /* Immediate call cannot be CallJS */
+        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
     };
 
     /* Host is first, if present */

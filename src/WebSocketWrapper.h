@@ -156,6 +156,24 @@ struct WebSocketWrapper {
         }
     }
 
+    /* Takes message. Returns true on success, false otherwise */
+    template <bool SSL>
+    static void uWS_WebSocket_pong(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString message(args.GetIsolate(), args[0]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
+            /* This is a wrapper that does not exist in the C++ project */
+            bool ok = ws->send(message.getString(), uWS::OpCode::PONG);
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
     /* Takes nothing, returns this */
     template <bool SSL>
     static void uWS_WebSocket_unsubscribeAll(const FunctionCallbackInfo<Value> &args) {
@@ -205,6 +223,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribeAll", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribeAll<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "pong", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_pong<SSL>));
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

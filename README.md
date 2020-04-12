@@ -48,6 +48,8 @@ Install with `npm install uNetworking/uWebSockets.js#v17.3.0` or any such [relea
 
 ![](misc/features_strip.png)
 
+Real-world tests over TLS 1.3 and Ethernet puts us **5x** as efficient as Socket.IO, **2x** as efficient as websockets/ws.
+
 #### Pay what you want.
 Commercially developed on a sponsored/consulting basis; BitMEX, Bitfinex and Coinbase are current or previous sponsors. Contact [me, the author](https://github.com/alexhultman) for support, feature development or consulting/contracting.
 

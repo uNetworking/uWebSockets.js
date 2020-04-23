@@ -40,6 +40,16 @@ bool BooleanValue(Isolate *isolate, Local<Value> value) {
     #endif
 }
 
+void NeuterArrayBuffer(Local<ArrayBuffer> ab) {
+    #if V8_MAJOR_VERSION < 7 || (V8_MAJOR_VERSION == 7 && V8_MINOR_VERSION == 0)
+        /* Old */
+        ab->Neuter();
+    #else
+        /* Node.js 12, 13 */
+        ab->Detach();
+    #endif
+}
+
 #include "Utilities.h"
 #include "WebSocketWrapper.h"
 #include "HttpResponseWrapper.h"

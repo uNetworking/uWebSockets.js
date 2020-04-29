@@ -101,6 +101,7 @@ const app = uWS./*SSL*/App({
   console.time(res.id = ++streamIndex);
   console.log('Stream was opened, openStreams: ' + ++openStreams);
   /* Create read stream with Node.js and start streaming over Http */
+  res.writeStatus('200');
   const readStream = fs.createReadStream(fileName);
   pipeStreamOverResponse(res, readStream, totalSize);
 }).get('/*', (res, req) => {

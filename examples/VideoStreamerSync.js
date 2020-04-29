@@ -29,6 +29,7 @@ const app = uWS.SSLApp({
   /* Log */
   console.log("Copying Sintel video...");
   /* Copy the entire video to backpressure */
+  res.writeStatus('200');
   res.end(videoFile);
 }).get('/*', (res, req) => {
   /* Make sure to always handle every route */

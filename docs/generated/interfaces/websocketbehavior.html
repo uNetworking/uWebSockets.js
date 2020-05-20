@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>WebSocketBehavior | uWebSockets.js v17.3.0 documentation</title>
+	<title>WebSocketBehavior | uWebSockets.js v17.6.0 documentation</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">uWebSockets.js v17.3.0 documentation</a>
+					<a href="../index.html" class="title">uWebSockets.js v17.6.0 documentation</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -67,7 +67,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A structure holding settings and handlers for a WebSocket route handler.</p>
+						<p>A structure holding settings and handlers for a WebSocket URL route handler.</p>
 					</div>
 				</div>
 			</section>
@@ -109,12 +109,12 @@
 					<div class="tsd-signature tsd-kind-icon">close<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L141">index.d.ts:141</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L178">index.d.ts:178</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event.</p>
+							<p>Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -151,12 +151,12 @@
 					<div class="tsd-signature tsd-kind-icon">compression<span class="tsd-signature-symbol">:</span> <a href="../index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L131">index.d.ts:131</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L166">index.d.ts:166</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>0 = no compression, 1 = shared compressor, 2 = dedicated compressor. See C++ project.</p>
+							<p>What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB.</p>
 						</div>
 					</div>
 				</section>
@@ -166,12 +166,12 @@
 					<div class="tsd-signature tsd-kind-icon">drain<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L139">index.d.ts:139</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L176">index.d.ts:176</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount().</p>
+							<p>Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -202,12 +202,13 @@
 					<div class="tsd-signature tsd-kind-icon">idle<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L129">index.d.ts:129</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L164">index.d.ts:164</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Maximum amount of seconds that may pass without sending or getting a message.</p>
+							<p>Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
+							Disable by leaving 0.</p>
 						</div>
 					</div>
 				</section>
@@ -217,12 +218,12 @@
 					<div class="tsd-signature tsd-kind-icon">max<wbr>Backpressure<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L133">index.d.ts:133</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L168">index.d.ts:168</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Maximum length of allowed backpressure per socket when publishing messages. Slow receivers, WebSockets, will be disconnected if needed.</p>
+							<p>Maximum length of allowed backpressure per socket when PUBLISHING messages (does not apply to ws.send). Slow receivers with too high backpressure will be skipped until they catch up or timeout.</p>
 						</div>
 					</div>
 				</section>
@@ -232,12 +233,12 @@
 					<div class="tsd-signature tsd-kind-icon">max<wbr>Payload<wbr>Length<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L127">index.d.ts:127</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L160">index.d.ts:160</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Maximum length of received message.</p>
+							<p>Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed.</p>
 						</div>
 					</div>
 				</section>
@@ -247,12 +248,12 @@
 					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L137">index.d.ts:137</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L174">index.d.ts:174</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Handler for a WebSocket message.</p>
+							<p>Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -289,12 +290,13 @@
 					<div class="tsd-signature tsd-kind-icon">open<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L135">index.d.ts:135</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L172">index.d.ts:172</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.</p>
+							<p>Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.
+							You may access the HttpRequest during the lifetime of the callback (until first await or return).</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -328,12 +330,12 @@
 					<div class="tsd-signature tsd-kind-icon">ping<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L143">index.d.ts:143</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L180">index.d.ts:180</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Handler for received ping control message.</p>
+							<p>Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -364,7 +366,7 @@
 					<div class="tsd-signature tsd-kind-icon">pong<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L145">index.d.ts:145</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L182">index.d.ts:182</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -468,9 +470,6 @@
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="../index.html#recognizedstring" class="tsd-kind-icon">Recognized<wbr>String</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../index.html#dedicated_compressor" class="tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR</a>
 					</li>
 					<li class=" tsd-kind-variable">
 						<a href="../index.html#dedicated_compressor_128kb" class="tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>128KB</a>

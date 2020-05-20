@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>WebSocket | uWebSockets.js v17.3.0 documentation</title>
+	<title>WebSocket | uWebSockets.js v17.6.0 documentation</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">uWebSockets.js v17.3.0 documentation</a>
+					<a href="../index.html" class="title">uWebSockets.js v17.6.0 documentation</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -67,7 +67,8 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A WebSocket connection that is valid from open to close event</p>
+						<p>A WebSocket connection that is valid from open to close event.
+						Read more about this in the user manual.</p>
 					</div>
 				</div>
 			</section>
@@ -84,7 +85,7 @@
 				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Arbitrary user data may be attached to this object</p>
+						<p>Arbitrary user data may be attached to this object. In C++ this is done by using getUserData().</p>
 					</div>
 				</div>
 			</section>
@@ -123,12 +124,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L23">index.d.ts:23</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L37">index.d.ts:37</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Forcefully closes this WebSocket</p>
+									<p>Forcefully closes this WebSocket. Immediately calls the close handler.
+									No WebSocket close message is sent.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <a href="websocket.html" class="tsd-signature-type">WebSocket</a></h4>
@@ -145,12 +147,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L41">index.d.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L68">index.d.ts:68</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>See HttpResponse.cork</p>
+									<p>See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block)</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -185,12 +187,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L20">index.d.ts:20</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L32">index.d.ts:32</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Gracefully closes this WebSocket. Immediately calls close handler.</p>
+									<p>Gracefully closes this WebSocket. Immediately calls the close handler.
+									A WebSocket close message is sent with code and shortMessage.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -216,12 +219,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L17">index.d.ts:17</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L27">index.d.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Returns the bytes buffered in backpressure.</p>
+									<p>Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
+									Check backpressure example.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -238,13 +242,16 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L44">index.d.ts:44</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L77">index.d.ts:77</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Returns the remote IP address</p>
+									<p>Returns the remote IP address. Note that the returned IP is binary, not text.</p>
 								</div>
+								<p>IPv4 is 4 byte long and can be converted to text by printing every byte as a digit between 0 and 255.
+								IPv6 is 16 byte long and can be converted to text in similar ways, but you typically print digits in HEX.</p>
+								<p>We will probably add a text converting function at some point as this is a common issue among users.</p>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
 						</li>
@@ -260,12 +267,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L26">index.d.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L40">index.d.ts:40</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Sends a ping control message. Returns true on success, see WebSocket.send. This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...).</p>
+									<p>Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -288,13 +295,19 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L38">index.d.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L65">index.d.ts:65</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Publish a message to a topic in MQTT syntax</p>
+									<p>Publish a message to a topic in MQTT syntax. You cannot publish using wildcards, only fully specified topics. Just like with MQTT.</p>
 								</div>
+								<p>&quot;parent/child&quot; kind of tree is allowed, but not &quot;parent/#&quot; kind of wildcard publishing.</p>
+								<p>NOTE: publish is NOT immediately active, the actual publish takes place at the end of the current event loop iteration.
+									This to efficiently pack and batch outgoing publishes, and to coalesce outgoing messages across multiple topics.
+								Publishing to many different topics, or to the same topic many times, will thus be properly coalesced into one single send syscall and one single SSL block, per socket.</p>
+								<p>This also means that publishing to a topic, then immediately subscribing to it in the same very event loop iteration will cause that publish to also affect the late subscription.
+								Think of it as - subscription vs. publish happens in terms of event loop iterations. If you REQUIRE a strict ordering you have to use Loop::defer or process.nextTick accordingly.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -325,13 +338,15 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L14">index.d.ts:14</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L22">index.d.ts:22</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.</p>
+									<p>Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
+									Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.</p>
 								</div>
+								<p>Make sure you properly understand the contept of backpressure. Check the backpressure example file.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -359,12 +374,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L29">index.d.ts:29</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L46">index.d.ts:46</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Subscribe to a topic in MQTT syntax</p>
+									<p>Subscribe to a topic in MQTT syntax. Subscription is immediately active.
+										MQTT syntax includes things like &quot;root/child/+/grandchild&quot; where &quot;+&quot; is a
+									wildcard and &quot;root/#&quot; where &quot;#&quot; is a terminating wildcard.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -387,12 +404,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L32">index.d.ts:32</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L49">index.d.ts:49</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed.</p>
+									<p>Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. Unsubscription is immediately active.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -415,12 +432,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f9c3cf4/docs/index.d.ts#L35">index.d.ts:35</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L52">index.d.ts:52</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Unsubscribe from all topics.</p>
+									<p>Unsubscribe from all topics. Immediately active. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -504,9 +521,6 @@
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="../index.html#recognizedstring" class="tsd-kind-icon">Recognized<wbr>String</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../index.html#dedicated_compressor" class="tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR</a>
 					</li>
 					<li class=" tsd-kind-variable">
 						<a href="../index.html#dedicated_compressor_128kb" class="tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>128KB</a>

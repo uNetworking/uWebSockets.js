@@ -155,7 +155,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior {
+export interface WebSocketBehavior<UserData = { [key: string]: any }> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. */
     maxPayloadLength?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
@@ -169,17 +169,17 @@ export interface WebSocketBehavior {
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.
      * You may access the HttpRequest during the lifetime of the callback (until first await or return).
      */
-    open?: (ws: WebSocket, req: HttpRequest) => void;
+    open?: (ws: WebSocket<UserData>, req: HttpRequest) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket) => void;
+    drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket) => void;
+    ping?: (ws: WebSocket<UserData>) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket) => void;
+    pong?: (ws: WebSocket<UserData>) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -221,7 +221,7 @@ export interface TemplatedApp {
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
+    ws<UserData = { [key: string]: any }>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : TemplatedApp;
 }

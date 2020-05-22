@@ -13,7 +13,10 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export interface WebSocket {
+export type WebSocket<UserData = {
+    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
+    [key: string]: any;
+}> = {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
      * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
@@ -75,10 +78,7 @@ export interface WebSocket {
      * We will probably add a text converting function at some point as this is a common issue among users.
      */
     getRemoteAddress() : ArrayBuffer;
-
-    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
-    [key: string]: any;
-}
+} & UserData
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {

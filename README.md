@@ -9,6 +9,16 @@
 
 </div>
 
+### Instructions
+
+#### Install
+
+Install with:
+```
+npm install uNetworking/uWebSockets.js#v17.6.0
+```
+Or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+
 #### In a nutshell.
 
 Think of it as a complete replacement to both Express.js and Socket.IO, written entirely in C/C++ for maximum performance and reliability. There are tons of [examples](examples) but here's the gist of it all:
@@ -43,8 +53,6 @@ require('uWebSockets.js').SSLApp({
 ```
 
 #### Ready all thrusters.
-
-Install with `npm install uNetworking/uWebSockets.js#v17.6.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 
 ![](misc/features_strip.png)
 

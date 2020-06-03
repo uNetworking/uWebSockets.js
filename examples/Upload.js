@@ -13,6 +13,7 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).post('/*', (res, req) => {
   console.log('Posted to ' + req.getUrl());
+  /* Make sure to handle when this content-length header not presetned or bad value etc */
   const contentLength = +req.getHeader("content-length");
   const bytes = new Uint8Array(contentLength);
   let offset = 0;

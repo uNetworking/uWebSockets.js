@@ -20,16 +20,13 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
+    UniquePersistent<Function> upgradePf;
     UniquePersistent<Function> openPf;
     UniquePersistent<Function> messagePf;
     UniquePersistent<Function> drainPf;
     UniquePersistent<Function> closePf;
     UniquePersistent<Function> pingPf;
     UniquePersistent<Function> pongPf;
-
-    struct PerSocketData {
-        UniquePersistent<Object> *socketPf;
-    };
 
     /* Get the behavior object */
     if (args.Length() == 2) {
@@ -59,6 +56,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             behavior.maxBackpressure = maybeMaxBackpressure.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
+        /* Upgrade */
+        upgradePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Open */
         openPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "open", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Message */
@@ -74,28 +73,58 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     }
 
+    /* Upgrade handler is always optional */
+    if (upgradePf != Undefined(isolate)) {
+        behavior.upgrade = [upgradePf = std::move(upgradePf), perContextData](auto *res, auto *req, auto *context) {
+            Isolate *isolate = perContextData->isolate;
+            HandleScope hs(isolate);
+
+            Local<Function> upgradeLf = Local<Function>::New(isolate, upgradePf);
+            Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
+            resObject->SetAlignedPointerInInternalField(0, res);
+
+            Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
+            reqObject->SetAlignedPointerInInternalField(0, req);
+
+            Local<Value> argv[3] = {resObject, reqObject, External::New(isolate, (void *) context)};
+            CallJS(isolate, upgradeLf, 3, argv);
+
+            /* Properly invalidate req */
+            reqObject->SetAlignedPointerInInternalField(0, nullptr);
+
+            /* µWS itself will terminate if not responded and not attached
+            * onAborted handler, so we can assume it's done */
+        };
+    }
+
     /* Open handler is NOT optional for the wrapper */
-    behavior.open = [openPf = std::move(openPf), perContextData](auto *ws, auto *req) {
+    behavior.open = [openPf = std::move(openPf), perContextData](auto *ws) {
         Isolate *isolate = perContextData->isolate;
         HandleScope hs(isolate);
+
+        printf("Open event called!\n");
+
+        /* Retrieve temporary userData object */
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+
+        // if socketPf is nullptr we have nothing to copy
+        Local<Object> userData = Local<Object>::New(isolate, *(perSocketData->socketPf));
 
         /* Create a new websocket object */
         Local<Object> wsObject = perContextData->wsTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
         wsObject->SetAlignedPointerInInternalField(0, ws);
 
-        /* Create the HttpRequest wrapper */
-        Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
-        reqObject->SetAlignedPointerInInternalField(0, req);
+        /* Copy entires from userData */
+        wsObject->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "userData"), userData);
 
         /* Attach a new V8 object with pointer to us, to us */
-        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         perSocketData->socketPf = new UniquePersistent<Object>;
         perSocketData->socketPf->Reset(isolate, wsObject);
 
         Local<Function> openLf = Local<Function>::New(isolate, openPf);
         if (!openLf->IsUndefined()) {
-            Local<Value> argv[] = {wsObject, reqObject};
-            CallJS(isolate, openLf, 2, argv);
+            Local<Value> argv[] = {wsObject};
+            CallJS(isolate, openLf, 1, argv);
         }
     };
 

@@ -226,7 +226,7 @@ struct HttpResponseWrapper {
             if (value.isInvalid(args)) {
                 return;
             }
-            res->writeHeader(header.getString(),value.getString());
+            res->writeHeader(header.getString(), value.getString());
 
             args.GetReturnValue().Set(args.Holder());
         }
@@ -245,6 +245,58 @@ struct HttpResponseWrapper {
             });
 
             args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
+    template <bool SSL>
+    static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+
+            printf("Calling upgrade!\n");
+
+            if (args.Length() != 5) {
+                return;
+            }
+
+            /* We are being passed userData (wsObject) */
+            //Local<Object> wsObject = args[0];
+            //Local<String> secWebSocketKey = args[1];
+            //Local<String> secWebSocketProtocol = args[2];
+            //Local<String> secWebSocketExtensions = args[3];
+            //Local<External> context = args[4];
+
+
+            NativeString secWebSocketKey(args.GetIsolate(), args[1]);
+            if (secWebSocketKey.isInvalid(args)) {
+                return;
+            }
+
+            NativeString secWebSocketProtocol(args.GetIsolate(), args[2]);
+            if (secWebSocketProtocol.isInvalid(args)) {
+                return;
+            }
+
+            NativeString secWebSocketExtensions(args.GetIsolate(), args[3]);
+            if (secWebSocketExtensions.isInvalid(args)) {
+                return;
+            }
+
+            auto *context = (struct us_socket_context_t *) Local<External>::Cast(args[4])->Value();
+
+            invalidateResObject(args);
+
+            UniquePersistent<Object> userData;
+            userData.Reset(isolate, Local<Object>::Cast(args[0]));
+
+            printf("Upgrading now!\n");
+            res->template upgrade<PerSocketData>({
+                .socketPf = &userData
+            }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),
+                secWebSocketExtensions.getString(), context);
+
+            /* Nothing is returned */
         }
     }
 
@@ -271,10 +323,11 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-        
+
         return resObjectLocal;
     }
 };

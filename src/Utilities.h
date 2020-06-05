@@ -17,6 +17,10 @@ MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Va
     }
 }
 
+struct PerSocketData {
+    UniquePersistent<Object> *socketPf = nullptr;
+};
+
 struct PerContextData {
     Isolate *isolate;
     UniquePersistent<Object> reqTemplate;

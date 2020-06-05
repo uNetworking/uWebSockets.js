@@ -9,7 +9,7 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).ws('/*', {
   /* Options */
-  compression: 0,
+  compression: uWS.SHARED_COMPRESSOR,
   maxPayloadLength: 16 * 1024 * 1024,
   idleTimeout: 10,
   /* Handlers */

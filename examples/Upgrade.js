@@ -9,17 +9,23 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).ws('/*', {
   /* Options */
-  compression: 0,
+  compression: uWS.SHARED_COMPRESSOR,
   maxPayloadLength: 16 * 1024 * 1024,
   idleTimeout: 10,
   /* Handlers */
   upgrade: (res, req, context) => {
     console.log('An Http connection wants to become WebSocket, URL: ' + req.getUrl() + '!');
 
-    res.upgrade({url: req.getUrl()}, req.getHeader('sec-websocket-key'),
+    /* This immediately calls open handler, you must not use res after this call */
+    res.upgrade({
+        url: req.getUrl()
+      },
+      /* Spell these correctly */
+      req.getHeader('sec-websocket-key'),
       req.getHeader('sec-websocket-protocol'),
       req.getHeader('sec-websocket-extensions'),
       context);
+
   },
   open: (ws) => {
     console.log('A WebSocket connected with URL: ' + ws.url);

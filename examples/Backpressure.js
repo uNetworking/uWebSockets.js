@@ -35,8 +35,8 @@ const app = uWS./*SSL*/App({
   /* We need a slightly higher timeout for this crazy example */
   idleTimeout: 60,
   /* Handlers */
-  open: (ws, req) => {
-    console.log('A WebSocket connected via URL: ' + req.getUrl() + '! Pushing data now!');
+  open: (ws) => {
+    console.log('A WebSocket connected!');
     /* We begin our example by sending until we have backpressure */
     while (ws.getBufferedAmount() < backpressure) {
         ws.send("This is a message, let's call it " + messageNumber);

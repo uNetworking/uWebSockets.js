@@ -22,7 +22,7 @@ const app = uWS./*SSL*/App({
       context);
   },
   open: (ws) => {
-    console.log('A WebSocket connected with URL: ' + ws.userData.url);
+    console.log('A WebSocket connected with URL: ' + ws.url);
   },
   message: (ws, message, isBinary) => {
     /* Ok is false if backpressure was built up, wait for drain */

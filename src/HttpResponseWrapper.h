@@ -248,25 +248,16 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes UserData, secKey, secProtocol, secExtensions, context. Returns nothing */
     template <bool SSL>
     static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-
-            printf("Calling upgrade!\n");
-
+            /* We require exactly 5 arguments */
             if (args.Length() != 5) {
                 return;
             }
-
-            /* We are being passed userData (wsObject) */
-            //Local<Object> wsObject = args[0];
-            //Local<String> secWebSocketKey = args[1];
-            //Local<String> secWebSocketProtocol = args[2];
-            //Local<String> secWebSocketExtensions = args[3];
-            //Local<External> context = args[4];
-
 
             NativeString secWebSocketKey(args.GetIsolate(), args[1]);
             if (secWebSocketKey.isInvalid(args)) {
@@ -287,10 +278,11 @@ struct HttpResponseWrapper {
 
             invalidateResObject(args);
 
+            /* This releases on return */
             UniquePersistent<Object> userData;
             userData.Reset(isolate, Local<Object>::Cast(args[0]));
 
-            printf("Upgrading now!\n");
+            /* Immediately calls open handler */
             res->template upgrade<PerSocketData>({
                 .socketPf = &userData
             }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),

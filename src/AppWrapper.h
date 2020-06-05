@@ -102,22 +102,31 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = perContextData->isolate;
         HandleScope hs(isolate);
 
-        printf("Open event called!\n");
-
-        /* Retrieve temporary userData object */
-        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-
-        // if socketPf is nullptr we have nothing to copy
-        Local<Object> userData = Local<Object>::New(isolate, *(perSocketData->socketPf));
-
         /* Create a new websocket object */
         Local<Object> wsObject = perContextData->wsTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
         wsObject->SetAlignedPointerInInternalField(0, ws);
 
-        /* Copy entires from userData */
-        wsObject->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "userData"), userData);
+        /* Retrieve temporary userData object */
+        PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
 
-        /* Attach a new V8 object with pointer to us, to us */
+        /* Copy entires from userData, only if we have it set */
+        if (perSocketData->socketPf) {
+            /* socketPf points to a stack allocated UniquePersistent, or nullptr, at this point */
+            Local<Object> userData = Local<Object>::New(isolate, *(perSocketData->socketPf));
+
+            /* Merge userData and wsObject; this code is exceedingly horrible */
+            Local<Array> keys;
+            if (userData->GetOwnPropertyNames(isolate->GetCurrentContext()).ToLocal(&keys)) {
+                for (int i = 0; i < keys->Length(); i++) {
+                    wsObject->Set(isolate->GetCurrentContext(),
+                        keys->Get(isolate->GetCurrentContext(), i).ToLocalChecked(),
+                        userData->Get(isolate->GetCurrentContext(), keys->Get(isolate->GetCurrentContext(), i).ToLocalChecked()).ToLocalChecked()
+                        );
+                }
+            }
+        }
+
+        /* Attach a new V8 object with pointer to us, to it */
         perSocketData->socketPf = new UniquePersistent<Object>;
         perSocketData->socketPf->Reset(isolate, wsObject);
 

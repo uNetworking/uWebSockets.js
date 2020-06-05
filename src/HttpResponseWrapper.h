@@ -284,7 +284,7 @@ struct HttpResponseWrapper {
 
             /* Immediately calls open handler */
             res->template upgrade<PerSocketData>({
-                .socketPf = &userData
+                &userData
             }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),
                 secWebSocketExtensions.getString(), context);
 

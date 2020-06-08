@@ -121,7 +121,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
                     wsObject->Set(isolate->GetCurrentContext(),
                         keys->Get(isolate->GetCurrentContext(), i).ToLocalChecked(),
                         userData->Get(isolate->GetCurrentContext(), keys->Get(isolate->GetCurrentContext(), i).ToLocalChecked()).ToLocalChecked()
-                        );
+                        ).ToChecked();
                 }
             }
         }
@@ -275,7 +275,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
         /* Return a false boolean if listen failed */
         Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
         /* Immediate call cannot be CallJS */
-        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv);
+        Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
     };
 
     /* Host is first, if present */

@@ -323,7 +323,7 @@ struct HttpResponseWrapper {
 
             /* Immediately calls open handler */
             res->template upgrade<PerSocketData>({
-                &userData
+                std::move(userData)
             }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),
                 secWebSocketExtensions.getString(), context);
 

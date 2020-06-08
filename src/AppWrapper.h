@@ -109,10 +109,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         /* Retrieve temporary userData object */
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
 
-        /* Copy entires from userData, only if we have it set */
-        if (perSocketData->socketPf) {
+        /* Copy entires from userData, only if we have it set (not the case for default constructor) */
+        if (!perSocketData->socketPf.IsEmpty()) {
             /* socketPf points to a stack allocated UniquePersistent, or nullptr, at this point */
-            Local<Object> userData = Local<Object>::New(isolate, *(perSocketData->socketPf));
+            Local<Object> userData = Local<Object>::New(isolate, perSocketData->socketPf);
 
             /* Merge userData and wsObject; this code is exceedingly horrible */
             Local<Array> keys;
@@ -127,8 +127,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         }
 
         /* Attach a new V8 object with pointer to us, to it */
-        perSocketData->socketPf = new UniquePersistent<Object>;
-        perSocketData->socketPf->Reset(isolate, wsObject);
+        perSocketData->socketPf.Reset(isolate, wsObject);
 
         Local<Function> openLf = Local<Function>::New(isolate, openPf);
         if (!openLf->IsUndefined()) {
@@ -145,7 +144,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[3] = {Local<Object>::New(isolate, *(perSocketData->socketPf)),
+            Local<Value> argv[3] = {Local<Object>::New(isolate, perSocketData->socketPf),
                                     messageArrayBuffer,
                                     Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
 
@@ -162,7 +161,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))
+            Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)
                                     };
             CallJS(isolate, Local<Function>::New(isolate, drainPf), 1, argv);
         };
@@ -174,7 +173,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))};
+            Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)};
             CallJS(isolate, Local<Function>::New(isolate, pingPf), 1, argv);
         };
     }
@@ -185,7 +184,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, *(perSocketData->socketPf))};
+            Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)};
             CallJS(isolate, Local<Function>::New(isolate, pongPf), 1, argv);
         };
     }
@@ -196,7 +195,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
         Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-        Local<Object> wsObject = Local<Object>::New(isolate, *(perSocketData->socketPf));
+        Local<Object> wsObject = Local<Object>::New(isolate, perSocketData->socketPf);
 
         /* Invalidate this wsObject */
         wsObject->SetAlignedPointerInInternalField(0, nullptr);
@@ -208,7 +207,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             CallJS(isolate, closeLf, 3, argv);
         }
 
-        delete perSocketData->socketPf;
+        /* This should technically not be required */
+        perSocketData->socketPf.Reset();
 
         /* Again, here we clear the buffer to avoid strange bugs */
         NeuterArrayBuffer(messageArrayBuffer);

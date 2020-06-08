@@ -191,10 +191,8 @@ export interface WebSocketBehavior {
      * See UpgradeAsync and UpgradeSync example files.
      */
     upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
-    /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.
-     * You may access the HttpRequest during the lifetime of the callback (until first await or return).
-     */
-    open?: (ws: WebSocket, req: HttpRequest) => void;
+    /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
+    open?: (ws: WebSocket) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
     message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */

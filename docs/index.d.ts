@@ -5,6 +5,12 @@ export interface us_listen_socket {
 
 }
 
+/** Native type representing a raw uSockets struct us_socket_context_t.
+ * Used while upgrading a WebSocket manually. */
+export interface us_socket_context_t {
+
+}
+
 /** Recognized string types, things C++ can read and understand as strings.
  * "String" does not have to mean "text", it can also be "binary".
  */
@@ -76,6 +82,9 @@ export interface WebSocket {
      */
     getRemoteAddress() : ArrayBuffer;
 
+    /** Returns the remote IP address as text. */
+    getRemoteAddressAsText() : ArrayBuffer;
+
     /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
     [key: string]: any;
 }
@@ -114,8 +123,17 @@ export interface HttpResponse {
     /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
 
-    /** Returns the remote IP address */
+    /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;
+
+    /** Returns the remote IP address as text. */
+    getRemoteAddressAsText() : ArrayBuffer;
+
+    /** Returns the remote IP address in binary format (4 or 16 bytes), as reported by the PROXY Protocol v2 compatible proxy. */
+    getProxiedRemoteAddress() : ArrayBuffer;
+
+    /** Returns the remote IP address as text, as reported by the PROXY Protocol v2 compatible proxy. */
+    getProxiedRemoteAddressAsText() : ArrayBuffer;
 
     /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
      * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from
@@ -131,6 +149,9 @@ export interface HttpResponse {
      * });
      */
     cork(cb: () => void) : void;
+
+    /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
+    upgrade<T>(userData : T, secWebSocketKey, secWebSocketProtocol, secWebSocketExtensions, context) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
@@ -166,6 +187,10 @@ export interface WebSocketBehavior {
     compression?: CompressOptions;
     /** Maximum length of allowed backpressure per socket when PUBLISHING messages (does not apply to ws.send). Slow receivers with too high backpressure will be skipped until they catch up or timeout. */
     maxBackpressure?: number;
+    /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
+     * See UpgradeAsync and UpgradeSync example files.
+     */
+    upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.
      * You may access the HttpRequest during the lifetime of the callback (until first await or return).
      */

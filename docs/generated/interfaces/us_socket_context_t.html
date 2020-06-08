@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>AppOptions | uWebSockets.js v18.1.0 documentation</title>
+	<title>us_socket_context_t | uWebSockets.js v18.1.0 documentation</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -54,10 +54,10 @@
 					<a href="../index.html">Globals</a>
 				</li>
 				<li>
-					<a href="appoptions.html">AppOptions</a>
+					<a href="us_socket_context_t.html">us_socket_context_t</a>
 				</li>
 			</ul>
-			<h1>Interface AppOptions</h1>
+			<h1>Interface us_socket_context_t</h1>
 		</div>
 	</div>
 </header>
@@ -67,8 +67,8 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Options used when constructing an app. Especially for SSLApp.
-						These are options passed directly to uSockets, C layer.</p>
+						<p>Native type representing a raw uSockets struct us_socket_context_t.
+						Used while upgrading a WebSocket manually.</p>
 					</div>
 				</div>
 			</section>
@@ -76,84 +76,9 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">AppOptions</span>
+						<span class="target">us_socket_context_t</span>
 					</li>
 				</ul>
-			</section>
-			<section class="tsd-panel-group tsd-index-group">
-				<h2>Index</h2>
-				<section class="tsd-panel tsd-index-panel">
-					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="appoptions.html#cert_file_name" class="tsd-kind-icon">cert_<wbr>file_<wbr>name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="appoptions.html#dh_params_file_name" class="tsd-kind-icon">dh_<wbr>params_<wbr>file_<wbr>name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="appoptions.html#key_file_name" class="tsd-kind-icon">key_<wbr>file_<wbr>name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="appoptions.html#passphrase" class="tsd-kind-icon">passphrase</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="appoptions.html#ssl_prefer_low_memory_usage" class="tsd-kind-icon">ssl_<wbr>prefer_<wbr>low_<wbr>memory_<wbr>usage</a></li>
-							</ul>
-						</section>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="cert_file_name" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cert_<wbr>file_<wbr>name</h3>
-					<div class="tsd-signature tsd-kind-icon">cert_<wbr>file_<wbr>name<span class="tsd-signature-symbol">:</span> <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1b6c029/docs/index.d.ts#L215">index.d.ts:215</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="dh_params_file_name" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> dh_<wbr>params_<wbr>file_<wbr>name</h3>
-					<div class="tsd-signature tsd-kind-icon">dh_<wbr>params_<wbr>file_<wbr>name<span class="tsd-signature-symbol">:</span> <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1b6c029/docs/index.d.ts#L217">index.d.ts:217</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="key_file_name" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> key_<wbr>file_<wbr>name</h3>
-					<div class="tsd-signature tsd-kind-icon">key_<wbr>file_<wbr>name<span class="tsd-signature-symbol">:</span> <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1b6c029/docs/index.d.ts#L214">index.d.ts:214</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="passphrase" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> passphrase</h3>
-					<div class="tsd-signature tsd-kind-icon">passphrase<span class="tsd-signature-symbol">:</span> <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1b6c029/docs/index.d.ts#L216">index.d.ts:216</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="ssl_prefer_low_memory_usage" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ssl_<wbr>prefer_<wbr>low_<wbr>memory_<wbr>usage</h3>
-					<div class="tsd-signature tsd-kind-icon">ssl_<wbr>prefer_<wbr>low_<wbr>memory_<wbr>usage<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1b6c029/docs/index.d.ts#L219">index.d.ts:219</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>This translates to SSL_MODE_RELEASE_BUFFERS</p>
-						</div>
-					</div>
-				</section>
 			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -166,30 +91,9 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface">
+					<li class=" tsd-kind-interface">
 						<a href="appoptions.html" class="tsd-kind-icon">App<wbr>Options</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="appoptions.html#cert_file_name" class="tsd-kind-icon">cert_<wbr>file_<wbr>name</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="appoptions.html#dh_params_file_name" class="tsd-kind-icon">dh_<wbr>params_<wbr>file_<wbr>name</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="appoptions.html#key_file_name" class="tsd-kind-icon">key_<wbr>file_<wbr>name</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="appoptions.html#passphrase" class="tsd-kind-icon">passphrase</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="appoptions.html#ssl_prefer_low_memory_usage" class="tsd-kind-icon">ssl_<wbr>prefer_<wbr>low_<wbr>memory_<wbr>usage</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="httprequest.html" class="tsd-kind-icon">Http<wbr>Request</a>
 					</li>
@@ -208,9 +112,13 @@
 					<li class=" tsd-kind-interface">
 						<a href="us_listen_socket.html" class="tsd-kind-icon">us_<wbr>listen_<wbr>socket</a>
 					</li>
-					<li class=" tsd-kind-interface">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
 						<a href="us_socket_context_t.html" class="tsd-kind-icon">us_<wbr>socket_<wbr>context_<wbr>t</a>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-type-alias">
 						<a href="../index.html#compressoptions" class="tsd-kind-icon">Compress<wbr>Options</a>
 					</li>

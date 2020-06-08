@@ -44,7 +44,7 @@ require('uWebSockets.js').SSLApp({
 
 ### :rocket: Ready all thrusters
 
-Install with `npm install uNetworking/uWebSockets.js#v18.0.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+Install with `npm install uNetworking/uWebSockets.js#v18.1.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 
 ![](misc/features_strip.png)
 

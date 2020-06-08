@@ -151,7 +151,7 @@ export interface HttpResponse {
     cork(cb: () => void) : void;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
-    upgrade<T>(userData : T, secWebSocketKey, secWebSocketProtocol, secWebSocketExtensions, context) : void;
+    upgrade<T>(userData : T, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;

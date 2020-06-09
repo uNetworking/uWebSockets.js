@@ -9,9 +9,9 @@
 </div>
 <br><br>
 
-### :bulb: In a nutshell
+### :bulb: Familiar face
 
-Think of it as a complete replacement to both Express.js and Socket.IO, written entirely in C/C++ for maximum performance and reliability. Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/). There are tons of [examples](examples) but here's the gist of it all:
+µWebSockets.js is a C++ implementation of the Http/WebSocket protocols for Node.js, easy to use from JavaScript. Think of it as a faster Express.js/Socket.IO alternative; it comes with both router and pub/sub support. Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 
 ```javascript
 /* Non-SSL is simply App() */
@@ -42,19 +42,21 @@ require('uWebSockets.js').SSLApp({
 });
 ```
 
-### :rocket: Ready all thrusters
+### :muscle: Unfair advantage
 
-Install with `npm install uNetworking/uWebSockets.js#v18.1.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+Being written in native code directly targeting the Linux kernel makes it way faster than any JavaScript implementation:
 
-![](misc/features_strip.png)
+![](misc/chart.png)
 
-Real-world tests over TLS 1.3 and Ethernet puts us **5x** as efficient as Socket.IO, **2x** as efficient as websockets/ws.
+* Install with `npm install uNetworking/uWebSockets.js#v18.1.0` or any such release. No compiler needed.
 
-### :dollar: Pay what you want
-Commercially developed on a sponsored/consulting basis; BitMEX, Bitfinex and Coinbase are current or previous sponsors. Contact [me, the author](https://github.com/alexhultman) for support, feature development or consulting/contracting.
+### :briefcase: Commercially supported
+<a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.
 
-![](https://raw.githubusercontent.com/uNetworking/uWebSockets/master/misc/2018.png)
+Don't hesitate <a href="mailto:alexhultman@gmail.com">sending a mail</a> if you're building something large, in need of advice or having other business inquiries in mind. We'll figure out what's best for both parties and make sure you're not stepping into one of the many common pitfalls.
 
-### :mortar_board: Know thy legal matters
+Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub for allowing the project itself to thrive on GitHub since 2016 - this project would not be possible without these beautiful companies.
 
-*µWebSockets.js is intellectual property licensed Apache 2.0 with limitations on trademark use. Forks must be clearly labelled as such and must not be confused with the original.*
+<img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
+
+* µWebSockets.js is the Node.js binding to µWebSockets. Read more over at [µWebSockets](https://github.com/uNetworking/uWebSockets).

@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>uWebSockets.js v18.1.0 documentation</title>
-	<meta name="description" content="">
+	<meta name="description" content="Documentation for uWebSockets.js v18.1.0 documentation">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -54,7 +54,7 @@
 					<a href="index.html">Globals</a>
 				</li>
 			</ul>
-			<h1> uWebSockets.js v18.1.0 documentation</h1>
+			<h1>uWebSockets.js v18.1.0 documentation</h1>
 		</div>
 	</div>
 </header>
@@ -119,7 +119,7 @@
 					<div class="tsd-signature tsd-kind-icon">Compress<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L264">index.d.ts:264</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L288">index.d.ts:288</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -134,7 +134,7 @@
 					<div class="tsd-signature tsd-kind-icon">Recognized<wbr>String<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Int8Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint16Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Int16Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint32Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Int32Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Float32Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Float64Array</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L17">index.d.ts:17</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L24">index.d.ts:24</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -142,6 +142,10 @@
 							<p>Recognized string types, things C++ can read and understand as strings.
 							&quot;String&quot; does not have to mean &quot;text&quot;, it can also be &quot;binary&quot;.</p>
 						</div>
+						<p>Ironically, JavaScript strings are the least performant of all options, to pass or receive to/from C++.
+						This because we expect UTF-8, which is packed in 8-byte chars. JavaScript strings are UTF-16 internally meaning extra copies and reinterpretation are required.</p>
+						<p>That&#39;s why all events pass data by ArrayBuffer and not JavaScript strings, as they allow zero-copy data passing.</p>
+						<p>You can always do Buffer.from(arrayBuffer).toString(), but keeping things binary and as ArrayBuffer is preferred.</p>
 					</div>
 				</section>
 			</section>
@@ -153,7 +157,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>128KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L282">index.d.ts:282</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L306">index.d.ts:306</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -168,7 +172,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>16KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L276">index.d.ts:276</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L300">index.d.ts:300</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -183,7 +187,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>256KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L284">index.d.ts:284</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L308">index.d.ts:308</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -198,7 +202,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>32KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L278">index.d.ts:278</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L302">index.d.ts:302</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -213,7 +217,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>3KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L270">index.d.ts:270</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L294">index.d.ts:294</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -228,7 +232,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>4KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L272">index.d.ts:272</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L296">index.d.ts:296</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -243,7 +247,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>64KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L280">index.d.ts:280</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L304">index.d.ts:304</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -258,7 +262,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEDICATED_<wbr>COMPRESSOR_<wbr>8KB<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L274">index.d.ts:274</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L298">index.d.ts:298</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -273,7 +277,7 @@
 					<div class="tsd-signature tsd-kind-icon">DISABLED<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L266">index.d.ts:266</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L290">index.d.ts:290</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -288,7 +292,7 @@
 					<div class="tsd-signature tsd-kind-icon">SHARED_<wbr>COMPRESSOR<span class="tsd-signature-symbol">:</span> <a href="index.html#compressoptions" class="tsd-signature-type">CompressOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L268">index.d.ts:268</a></li>
+							<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L292">index.d.ts:292</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -310,7 +314,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L255">index.d.ts:255</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L279">index.d.ts:279</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -339,7 +343,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L258">index.d.ts:258</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L282">index.d.ts:282</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -367,7 +371,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/1989d69/docs/index.d.ts#L261">index.d.ts:261</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L285">index.d.ts:285</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -476,62 +480,14 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
 </footer>
 <div class="container tsd-generator">
-	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
 <script src="assets/js/main.js"></script>

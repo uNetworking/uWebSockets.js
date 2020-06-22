@@ -61,7 +61,7 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 Install with `npm install uNetworking/uWebSockets.js#v18.2.0` or any such release. No compiler needed.
 
-* Runs on Linux (x64, ARM64), macOS (x64) and Windows (x64).
+* Runs on Linux (x64, ARM64), macOS (x64) and Windows (x64). Node.js 10, 11, 12, 13 & 14.
 
 ### :briefcase: Commercially supported
 <a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.

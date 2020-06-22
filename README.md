@@ -17,21 +17,30 @@
 /* Non-SSL is simply App() */
 require('uWebSockets.js').SSLApp({
 
-  /* There are tons of SSL options */
+  /* There are more SSL options, cut for brevity */
   key_file_name: 'misc/key.pem',
   cert_file_name: 'misc/cert.pem',
   
 }).ws('/*', {
 
-  /* For brevity we skip the other events */
+  /* There are many common helper features */
+  idleTimeout: 30,
+  maxBackpressure: 1024,
+  maxPayloadLength: 512,
+  compression: DEDICATED_COMPRESSOR_3KB,
+
+  /* For brevity we skip the other events (upgrade, open, ping, pong, close) */
   message: (ws, message, isBinary) => {
-    let ok = ws.send(message, isBinary);
+    /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
+    
+    /* Here we echo the message back, using compression if available */
+    let ok = ws.send(message, isBinary, true);
   }
   
-}).any('/*', (res, req) => {
+}).get('/*', (res, req) => {
 
-  /* Let's deny all Http */
-  res.end('Nothing to see here!');
+  /* It does Http as well */
+  res.writeStatus('200 OK').writeHeader('IsExample', 'Yes').end('Hello there!');
   
 }).listen(9001, (listenSocket) => {
 
@@ -48,7 +57,11 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 ![](misc/chart.png)
 
-* Install with `npm install uNetworking/uWebSockets.js#v18.2.0` or any such release. No compiler needed.
+### :package: Install anywhere
+
+Install with `npm install uNetworking/uWebSockets.js#v18.2.0` or any such release. No compiler needed.
+
+* Runs on Linux (x64, ARM64), macOS (x64) and Windows (x64).
 
 ### :briefcase: Commercially supported
 <a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.

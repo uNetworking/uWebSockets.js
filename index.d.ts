@@ -13,6 +13,13 @@ export interface us_socket_context_t {
 
 /** Recognized string types, things C++ can read and understand as strings.
  * "String" does not have to mean "text", it can also be "binary".
+ *
+ * Ironically, JavaScript strings are the least performant of all options, to pass or receive to/from C++.
+ * This because we expect UTF-8, which is packed in 8-byte chars. JavaScript strings are UTF-16 internally meaning extra copies and reinterpretation are required.
+ *
+ * That's why all events pass data by ArrayBuffer and not JavaScript strings, as they allow zero-copy data passing.
+ *
+ * You can always do Buffer.from(arrayBuffer).toString(), but keeping things binary and as ArrayBuffer is preferred.
  */
 export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array;
 
@@ -45,29 +52,31 @@ export interface WebSocket {
     /** Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
     ping(message?: RecognizedString) : boolean;
 
-    /** Subscribe to a topic in MQTT syntax. Subscription is immediately active.
+    /** Subscribe to a topic in MQTT syntax.
+     * 
      * MQTT syntax includes things like "root/child/+/grandchild" where "+" is a
      * wildcard and "root/#" where "#" is a terminating wildcard.
+     * 
+     * Read more about MQTT.
     */
     subscribe(topic: RecognizedString) : WebSocket;
 
-    /** Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. Unsubscription is immediately active. */
+    /** Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. */
     unsubscribe(topic: RecognizedString) : boolean;
 
-    /** Unsubscribe from all topics. Immediately active. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket. */
+    /** Unsubscribe from all topics. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket. */
     unsubscribeAll() : void;
 
     /** Publish a message to a topic in MQTT syntax. You cannot publish using wildcards, only fully specified topics. Just like with MQTT.
      *
      * "parent/child" kind of tree is allowed, but not "parent/#" kind of wildcard publishing.
      *
-     * NOTE: publish is NOT immediately active, the actual publish takes place at the end of the current event loop iteration.
-     * This to efficiently pack and batch outgoing publishes, and to coalesce outgoing messages across multiple topics.
-     * Publishing to many different topics, or to the same topic many times, will thus be properly coalesced into one single send syscall and one single SSL block, per socket.
-     *
-     * This also means that publishing to a topic, then immediately subscribing to it in the same very event loop iteration will cause that publish to also affect the late subscription.
-     * Think of it as - subscription vs. publish happens in terms of event loop iterations. If you REQUIRE a strict ordering you have to use Loop::defer or process.nextTick accordingly.
-     */
+     * The pub/sub system does not guarantee order between what you manually send using WebSocket.send
+     * and what you publish using WebSocket.publish. WebSocket messages are perfectly atomic, but the order in which they appear can get scrambled if you mix the two sending functions on the same socket.
+     * This shouldn't matter in most applications. Order is guaranteed relative to other calls to WebSocket.publish.
+     * 
+     * Also keep in mind that backpressure will be automatically managed with pub/sub, meaning some outgoing messages may be dropped if backpressure is greater than specified maxBackpressure.
+    */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
@@ -78,11 +87,11 @@ export interface WebSocket {
      * IPv4 is 4 byte long and can be converted to text by printing every byte as a digit between 0 and 255.
      * IPv6 is 16 byte long and can be converted to text in similar ways, but you typically print digits in HEX.
      *
-     * We will probably add a text converting function at some point as this is a common issue among users.
+     * See getRemoteAddressAsText() for a text version.
      */
     getRemoteAddress() : ArrayBuffer;
 
-    /** Returns the remote IP address as text. */
+    /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
     /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
@@ -91,9 +100,24 @@ export interface WebSocket {
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {
-    /** Writes the HTTP status message such as "200 OK". */
+    /** Writes the HTTP status message such as "200 OK".
+     * This has to be called first in any response, otherwise
+     * it will be called automatically with "200 OK".
+     * 
+     * If you want to send custom headers in a WebSocket
+     * upgrade response, you have to call writeStatus with
+     * "101 Switching Protocols" before you call writeHeader,
+     * otherwise your first call to writeHeader will call
+     * writeStatus with "200 OK" and the upgrade will fail.
+     * 
+     * As you can imagine, we format outgoing responses in a linear
+     * buffer, not in a hash table. You can read about this in
+     * the user manual under "corking".
+    */
     writeStatus(status: RecognizedString) : HttpResponse;
-    /** Writes key and value to HTTP response. */
+    /** Writes key and value to HTTP response. 
+     * See writeStatus and corking.
+    */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. */
     write(chunk: RecognizedString) : HttpResponse;
@@ -102,7 +126,7 @@ export interface HttpResponse {
     /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
 
-    /** Immediately force closes the connection. */
+    /** Immediately force closes the connection. Any onAborted callback will run. */
     close() : HttpResponse;
 
     /** Returns the global byte write offset for this response. Use with onWritable. */
@@ -191,10 +215,8 @@ export interface WebSocketBehavior {
      * See UpgradeAsync and UpgradeSync example files.
      */
     upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
-    /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.
-     * You may access the HttpRequest during the lifetime of the callback (until first await or return).
-     */
-    open?: (ws: WebSocket, req: HttpRequest) => void;
+    /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
+    open?: (ws: WebSocket) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
     message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */

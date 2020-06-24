@@ -59,7 +59,7 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 ### :package: Install anywhere
 
-Install with `npm install uNetworking/uWebSockets.js#v18.2.0` or any such release. No compiler needed.
+Install with `npm install uNetworking/uWebSockets.js#v18.3.0` or any such release. No compiler needed.
 
 * Runs on Linux (x64, ARM64), macOS (x64) and Windows (x64). Node.js 10, 11, 12, 13 & 14.
 

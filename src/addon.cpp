@@ -95,21 +95,22 @@ void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
 #include <string>
 #include <mutex>
 
-std::unordered_map<std::string, std::string> kvStore;
+std::unordered_map<std::string, std::string> kvStoreString;
+std::unordered_map<std::string, uint32_t> kvStoreInteger;
 std::mutex kvMutex;
 
-void uWS_get(const FunctionCallbackInfo<Value> &args) {
+void uWS_getString(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    std::string value = kvStore[std::string(key.getString())];
+    std::string value = kvStoreString[std::string(key.getString())];
 
     args.GetReturnValue().Set(String::NewFromUtf8(args.GetIsolate(), value.data(), NewStringType::kNormal, value.length()).ToLocalChecked());
 }
 
-void uWS_set(const FunctionCallbackInfo<Value> &args) {
+void uWS_setString(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
@@ -119,7 +120,42 @@ void uWS_set(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    kvStore[std::string(key.getString())] = value.getString();
+    kvStoreString[std::string(key.getString())] = value.getString();
+}
+
+void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    uint32_t value = kvStoreInteger[std::string(key.getString())];
+
+    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+}
+
+void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    uint32_t value = Local<Integer>::Cast(args[1])->Value();
+
+    kvStoreInteger[std::string(key.getString())] = value;
+}
+
+void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    uint32_t change = Local<Integer>::Cast(args[1])->Value();
+
+    uint32_t value = kvStoreInteger[std::string(key.getString())] += change;
+
+    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
 }
 
 void uWS_lock(const FunctionCallbackInfo<Value> &args) {
@@ -162,8 +198,11 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "free", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_free, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Temporary KV store */
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_get)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "set", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_set)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "setString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_setString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "setInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_setInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "incInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_incInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "lock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_lock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "unlock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_unlock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 

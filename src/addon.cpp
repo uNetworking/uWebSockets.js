@@ -90,6 +90,46 @@ void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
     us_listen_socket_close(0, (struct us_listen_socket_t *) External::Cast(*args[0])->Value());
 }
 
+/* Temporary KV store (doesn't belong here) */
+#include <unordered_map>
+#include <string>
+#include <mutex>
+
+std::unordered_map<std::string, std::string> kvStore;
+std::mutex kvMutex;
+
+void uWS_get(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    std::string value = kvStore[std::string(key.getString())];
+
+    args.GetReturnValue().Set(String::NewFromUtf8(args.GetIsolate(), value.data(), NewStringType::kNormal, value.length()).ToLocalChecked());
+}
+
+void uWS_set(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+    NativeString value(args.GetIsolate(), args[1]);
+    if (value.isInvalid(args)) {
+        return;
+    }
+
+    kvStore[std::string(key.getString())] = value.getString();
+}
+
+void uWS_lock(const FunctionCallbackInfo<Value> &args) {
+    kvMutex.lock();
+}
+
+void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
+    kvMutex.unlock();
+}
+
 void Main(Local<Object> exports) {
 
     /* We only care if it is defined, not what it says */
@@ -120,6 +160,12 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SSLApp", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "free", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_free, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+
+    /* Temporary KV store */
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_get)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "set", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_set)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "lock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_lock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "unlock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_unlock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

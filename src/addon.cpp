@@ -158,6 +158,33 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
 }
 
+/* This one will spike memory usage for large stores */
+void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
+
+    Local<Array> stringKeys = Array::New(args.GetIsolate(), kvStoreString.size());
+
+    int offset = 0;
+
+    for (auto p : kvStoreString) {
+        stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
+    }
+
+    args.GetReturnValue().Set(stringKeys);
+}
+
+void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
+
+    Local<Array> integerKeys = Array::New(args.GetIsolate(), kvStoreInteger.size());
+
+    int offset = 0;
+
+    for (auto p : kvStoreInteger) {
+        integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
+    }
+
+    args.GetReturnValue().Set(integerKeys);
+}
+
 void uWS_lock(const FunctionCallbackInfo<Value> &args) {
     kvMutex.lock();
 }
@@ -205,6 +232,8 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "incInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_incInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "lock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_lock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "unlock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_unlock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getIntegerKeys", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getIntegerKeys)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getStringKeys", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getStringKeys)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

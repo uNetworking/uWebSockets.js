@@ -129,8 +129,8 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            int bufferedAmount = ws->getBufferedAmount();
-            args.GetReturnValue().Set(Integer::New(isolate, bufferedAmount));
+            unsigned int bufferedAmount = ws->getBufferedAmount();
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, bufferedAmount));
         }
     }
 

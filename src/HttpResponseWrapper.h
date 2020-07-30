@@ -139,7 +139,7 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            args.GetReturnValue().Set(Integer::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+            args.GetReturnValue().Set(Number::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
         }
     }
 
@@ -155,7 +155,7 @@ struct HttpResponseWrapper {
             res->onWritable([p = std::move(p), isolate](int offset) -> bool {
                 HandleScope hs(isolate);
 
-                Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
+                Local<Value> argv[] = {Number::New(isolate, offset)};
 
                 /* We should check if this is really here! */
                 MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
@@ -214,9 +214,9 @@ struct HttpResponseWrapper {
                 return;
             }
 
-            int totalSize = 0;
+            size_t totalSize = 0;
             if (args.Length() > 1) {
-                totalSize = args[1]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                totalSize = (size_t) args[1]->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
 
             auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);

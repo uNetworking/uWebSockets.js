@@ -95,17 +95,23 @@ void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
 #include <string>
 #include <mutex>
 
-std::unordered_map<std::string, std::string> kvStoreString;
-std::unordered_map<std::string, uint32_t> kvStoreInteger;
+std::unordered_map<std::string, std::unordered_map<std::string, std::string>> kvStoreString;
+std::unordered_map<std::string, std::unordered_map<std::string, uint32_t>> kvStoreInteger;
 std::mutex kvMutex;
 
+// getString(key, collection)
 void uWS_getString(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    std::string value = kvStoreString[std::string(key.getString())];
+    NativeString collection(args.GetIsolate(), args[1]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    std::string value = kvStoreString[std::string(collection.getString())][std::string(key.getString())];
 
     args.GetReturnValue().Set(String::NewFromUtf8(args.GetIsolate(), value.data(), NewStringType::kNormal, value.length()).ToLocalChecked());
 }
@@ -120,7 +126,12 @@ void uWS_setString(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    kvStoreString[std::string(key.getString())] = value.getString();
+    NativeString collection(args.GetIsolate(), args[2]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    kvStoreString[std::string(collection.getString())][std::string(key.getString())] = value.getString();
 }
 
 void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
@@ -129,7 +140,12 @@ void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    uint32_t value = kvStoreInteger[std::string(key.getString())];
+    NativeString collection(args.GetIsolate(), args[1]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())];
 
     args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
 }
@@ -140,9 +156,14 @@ void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
+    NativeString collection(args.GetIsolate(), args[1]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
     uint32_t value = Local<Integer>::Cast(args[1])->Value();
 
-    kvStoreInteger[std::string(key.getString())] = value;
+    kvStoreInteger[std::string(collection.getString())][std::string(key.getString())] = value;
 }
 
 void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
@@ -153,7 +174,12 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t change = Local<Integer>::Cast(args[1])->Value();
 
-    uint32_t value = kvStoreInteger[std::string(key.getString())] += change;
+    NativeString collection(args.GetIsolate(), args[2]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())] += change;
 
     args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
 }
@@ -161,11 +187,16 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 /* This one will spike memory usage for large stores */
 void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 
+    NativeString collection(args.GetIsolate(), args[0]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
     Local<Array> stringKeys = Array::New(args.GetIsolate(), kvStoreString.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreString) {
+    for (auto p : kvStoreString[std::string(collection.getString())]) {
         stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
     }
 
@@ -174,11 +205,16 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
 
+    NativeString collection(args.GetIsolate(), args[0]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
     Local<Array> integerKeys = Array::New(args.GetIsolate(), kvStoreInteger.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreInteger) {
+    for (auto p : kvStoreInteger[std::string(collection.getString())]) {
         integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
     }
 

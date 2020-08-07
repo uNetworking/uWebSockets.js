@@ -152,7 +152,7 @@ struct HttpResponseWrapper {
             /* This thing perfectly fits in with unique_function, and will Reset on destructor */
             UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
-            res->onWritable([p = std::move(p), isolate](int offset) -> bool {
+            res->onWritable([p = std::move(p), isolate](size_t offset) -> bool {
                 HandleScope hs(isolate);
 
                 Local<Value> argv[] = {Number::New(isolate, offset)};

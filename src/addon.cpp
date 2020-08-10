@@ -221,6 +221,64 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
     args.GetReturnValue().Set(integerKeys);
 }
 
+void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
+
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    NativeString collection(args.GetIsolate(), args[1]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    kvStoreString[std::string(collection.getString())].erase(std::string(key.getString()));
+
+    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+}
+
+void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
+
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    NativeString collection(args.GetIsolate(), args[1]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    kvStoreInteger[std::string(collection.getString())].erase(std::string(key.getString()));
+
+    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+}
+
+void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {
+
+    NativeString collection(args.GetIsolate(), args[0]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    kvStoreString.erase(std::string(collection.getString()));
+
+    //args.GetReturnValue().Set(integerKeys);
+}
+
+void uWS_deleteIntegerCollection(const FunctionCallbackInfo<Value> &args) {
+
+    NativeString collection(args.GetIsolate(), args[0]);
+    if (collection.isInvalid(args)) {
+        return;
+    }
+
+    kvStoreInteger.erase(std::string(collection.getString()));
+
+    //args.GetReturnValue().Set(integerKeys);
+}
+
 void uWS_lock(const FunctionCallbackInfo<Value> &args) {
     kvMutex.lock();
 }
@@ -270,6 +328,10 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "unlock", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_unlock)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getIntegerKeys", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getIntegerKeys)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getStringKeys", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getStringKeys)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteStringCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteStringCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteIntegerCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteIntegerCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

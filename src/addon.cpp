@@ -156,12 +156,12 @@ void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[1]);
+    uint32_t value = Local<Integer>::Cast(args[1])->Value();
+    
+    NativeString collection(args.GetIsolate(), args[2]);
     if (collection.isInvalid(args)) {
         return;
     }
-
-    uint32_t value = Local<Integer>::Cast(args[1])->Value();
 
     kvStoreInteger[std::string(collection.getString())][std::string(key.getString())] = value;
 }

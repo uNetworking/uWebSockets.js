@@ -423,6 +423,25 @@ void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_missingServerName(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    Isolate *isolate = args.GetIsolate();
+
+    UniquePersistent<Function> missingPf;
+    missingPf.Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
+
+    app->missingServerName([missingPf = std::move(missingPf), isolate](const char *hostname) {
+        /* We hand a JavaScript string here */
+        HandleScope hs(isolate);
+        Local<Function> missingLf = Local<Function>::New(isolate, missingPf);
+        Local<Value> argv[1] = {String::NewFromUtf8(isolate, hostname, NewStringType::kNormal).ToLocalChecked()};
+        CallJS(isolate, missingLf, 1, argv);
+    });
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
@@ -496,6 +515,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* SNI */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addServerName<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeServerName<APP>, args.Data()));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "missingServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_missingServerName<APP>, args.Data()));
 
     Local<Object> localApp = appTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);

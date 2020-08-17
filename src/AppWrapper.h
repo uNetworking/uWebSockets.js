@@ -312,24 +312,20 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
     app->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
 }
 
-template <typename APP>
-void uWS_App(const FunctionCallbackInfo<Value> &args) {
-
+/* This one modified per-thread static strings temporarily */
+std::pair<struct us_socket_context_options_t, bool> readOptionsObject(const FunctionCallbackInfo<Value> &args, int index) {
     Isolate *isolate = args.GetIsolate();
-    Local<FunctionTemplate> appTemplate = FunctionTemplate::New(isolate);
-    appTemplate->SetClassName(String::NewFromUtf8(isolate, std::is_same<APP, uWS::SSLApp>::value ? "uWS.SSLApp" : "uWS.App", NewStringType::kNormal).ToLocalChecked());
-
     /* Read the options object if any */
     us_socket_context_options_t options = {};
-    std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
-    if (args.Length() == 1) {
+    thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
+    if (args.Length() > index) {
 
-        Local<Object> optionsObject = Local<Object>::Cast(args[0]);
+        Local<Object> optionsObject = Local<Object>::Cast(args[index]);
 
         /* Key file name */
         NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (keyFileNameValue.isInvalid(args)) {
-            return;
+            return {};
         }
         if (keyFileNameValue.getString().length()) {
             keyFileName = keyFileNameValue.getString();
@@ -339,7 +335,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         /* Cert file name */
         NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (certFileNameValue.isInvalid(args)) {
-            return;
+            return {};
         }
         if (certFileNameValue.getString().length()) {
             certFileName = certFileNameValue.getString();
@@ -349,7 +345,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         /* Passphrase */
         NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (passphraseValue.isInvalid(args)) {
-            return;
+            return {};
         }
         if (passphraseValue.getString().length()) {
             passphrase = passphraseValue.getString();
@@ -359,7 +355,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         /* DH params file name */
         NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (dhParamsFileNameValue.isInvalid(args)) {
-            return;
+            return {};
         }
         if (dhParamsFileNameValue.getString().length()) {
             dhParamsFileName = dhParamsFileNameValue.getString();
@@ -369,7 +365,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         /* CA file name */
         NativeString caFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ca_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (caFileNameValue.isInvalid(args)) {
-            return;
+            return {};
         }
         if (caFileNameValue.getString().length()) {
             caFileName = caFileNameValue.getString();
@@ -378,6 +374,64 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
         /* ssl_prefer_low_memory_usage */
         options.ssl_prefer_low_memory_usage = BooleanValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+    }
+
+    return {options, true};
+}
+
+template <typename APP>
+void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+    NativeString hostnamePatternValue(isolate, args[0]);
+    if (hostnamePatternValue.isInvalid(args)) {
+        return;
+    }
+    std::string hostnamePattern;
+    if (hostnamePatternValue.getString().length()) {
+        hostnamePattern = hostnamePatternValue.getString();
+    }
+
+    auto [options, valid] = readOptionsObject(args, 1);
+    if (!valid) {
+        return;
+    }
+
+    app->addServerName(hostnamePattern.c_str(), options);
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
+void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+    NativeString hostnamePatternValue(isolate, args[0]);
+    if (hostnamePatternValue.isInvalid(args)) {
+        return;
+    }
+    std::string hostnamePattern;
+    if (hostnamePatternValue.getString().length()) {
+        hostnamePattern = hostnamePatternValue.getString();
+    }
+
+    app->removeServerName(hostnamePattern.c_str());
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
+void uWS_App(const FunctionCallbackInfo<Value> &args) {
+
+    Isolate *isolate = args.GetIsolate();
+    Local<FunctionTemplate> appTemplate = FunctionTemplate::New(isolate);
+    appTemplate->SetClassName(String::NewFromUtf8(isolate, std::is_same<APP, uWS::SSLApp>::value ? "uWS.SSLApp" : "uWS.App", NewStringType::kNormal).ToLocalChecked());
+
+    auto [options, valid] = readOptionsObject(args, 0);
+    if (!valid) {
+        return;
     }
 
     /* uSockets copies strings here */
@@ -438,6 +492,10 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_publish<APP>, args.Data()));
+
+    /* SNI */
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addServerName<APP>, args.Data()));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeServerName<APP>, args.Data()));
 
     Local<Object> localApp = appTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);

@@ -241,12 +241,19 @@ export interface AppOptions {
     ssl_prefer_low_memory_usage?: boolean;
 }
 
+export enum ListenOptions {
+  LIBUS_LISTEN_DEFAULT = 0,
+  LIBUS_LISTEN_EXCLUSIVE_PORT = 1
+}
+
 /** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
 export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
     listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp;
     /** Listens to port. Callback hands either false or a listen socket. */
     listen(port: number, cb: (listenSocket: any) => void): TemplatedApp;
+    /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
+    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp;
     /** Registers an HTTP GET handler matching specified URL pattern. */
     get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP POST handler matching specified URL pattern. */

@@ -56,7 +56,23 @@ void NeuterArrayBuffer(Local<ArrayBuffer> ab) {
 #include "HttpRequestWrapper.h"
 #include "AppWrapper.h"
 
+#include <numeric>
+#include <functional>
+
 /* Todo: Apps should be freed once the GC says so BUT ALWAYS before freeing the loop */
+
+/* Pass various undocumented configs */
+void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
+    NativeString key(args.GetIsolate(), args[0]);
+    if (key.isInvalid(args)) {
+        return;
+    }
+
+    int keyCode = std::accumulate(key.getString().begin(), key.getString().end(), 1, std::plus<int>());
+    if (keyCode == 656) {
+        uWS::Loop::get()->setSilent(true);
+    }
+}
 
 /* This has to be called in beforeExit, but exit also seems okay */
 void uWS_free(const FunctionCallbackInfo<Value> &args) {
@@ -157,7 +173,7 @@ void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
     }
 
     uint32_t value = Local<Integer>::Cast(args[1])->Value();
-    
+
     NativeString collection(args.GetIsolate(), args[2]);
     if (collection.isInvalid(args)) {
         return;
@@ -332,6 +348,8 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteStringCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteStringCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteIntegerCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteIntegerCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

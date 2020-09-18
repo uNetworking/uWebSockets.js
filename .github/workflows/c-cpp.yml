@@ -5,6 +5,25 @@ on:
     branches: [ master ]
 
 jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Update binaries
+        run: |
+          $ErrorActionPreference = 'SilentlyContinue'
+          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+          cd uWebSockets.js
+          nmake
+          git checkout binaries
+          xcopy /Y dist\*.node .
+          git status
+          git pull origin binaries
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
+          git push "https://alexhultman:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+
   build-unix:
     runs-on: ${{ matrix.os }}
     strategy:

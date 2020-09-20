@@ -6,6 +6,8 @@
 
 <a href="https://github.com/uNetworking/uWebSockets.js/releases"><img src="https://img.shields.io/github/v/release/uNetworking/uWebSockets.js"></a> <a href="https://lgtm.com/projects/g/uNetworking/uWebSockets.js/context:cpp"><img alt="Language grade: C/C++" src="https://img.shields.io/lgtm/grade/cpp/g/uNetworking/uWebSockets.js.svg?logo=lgtm&logoWidth=18"/></a> <img src="https://img.shields.io/badge/downloads-55%20million-pink" />
 
+* [Regarding conspiracy theories and lack of intelligence](https://medium.com/@alexhultman/beware-of-tin-foil-hattery-f738b620468c)
+
 </div>
 <br><br>
 

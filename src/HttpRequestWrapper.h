@@ -100,7 +100,19 @@ struct HttpRequestWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
-            std::string_view query = req->getQuery();
+            std::string_view query;
+
+            /* Do we have a key argument? */
+            if (args.Length() == 1) {
+                NativeString keyString(isolate, args[0]);
+                if (keyString.isInvalid(args)) {
+                    return;
+                }
+
+                query = req->getQuery(keyString.getString());
+            } else {
+                query = req->getQuery();
+            }
 
             args.GetReturnValue().Set(String::NewFromUtf8(isolate, query.data(), NewStringType::kNormal, query.length()).ToLocalChecked());
         }

@@ -61,6 +61,75 @@ void NeuterArrayBuffer(Local<ArrayBuffer> ab) {
 
 /* Todo: Apps should be freed once the GC says so BUT ALWAYS before freeing the loop */
 
+#include "Multipart.h"
+
+/* This function is somewhat of a simplifying wrapper that does not follow the C++ library.
+ * It takes a POST:ed body and contentType, and returns an array of parts if
+ * the request is a multipart request */
+void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
+
+    /* Because we mutate the strings, it is important that we get mutable input like
+     * ArrayBuffer or Buffer, not String! */
+    Isolate *isolate = args.GetIsolate();
+
+    NativeString body(args.GetIsolate(), args[0]);
+    if (body.isInvalid(args)) {
+        return;
+    }
+
+    NativeString contentType(args.GetIsolate(), args[1]);
+    if (contentType.isInvalid(args)) {
+        return;
+    }
+
+    uWS::MultipartParser mp(contentType.getString());
+    if (mp.isValid()) {
+        mp.setBody(body.getString());
+
+        std::pair<std::string_view, std::string_view> headers[10];
+
+        Local<Array> parts = Array::New(args.GetIsolate(), 0);
+
+        while (true) {
+            std::string_view part = mp.getNextPart(headers);
+            if (!part.length()) {
+                break;
+            }
+
+            Local<ArrayBuffer> partArrayBuffer = ArrayBuffer::New(isolate, (void *) part.data(), part.length());
+            Local<Map> partMap = Map::New(isolate);
+            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "data", NewStringType::kNormal).ToLocalChecked(), partArrayBuffer);
+
+            for (int i = 0; headers[i].first.length(); i++) {
+                /* We care about content-type and content-disposition */
+                if (headers[i].first == "content-type") {
+                    partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "type", NewStringType::kNormal).ToLocalChecked(), String::NewFromUtf8(isolate, headers[i].second.data(), NewStringType::kNormal, headers[i].second.length()).ToLocalChecked());
+                } else if (headers[i].first == "content-disposition") {
+                    /* Parse the parameters */
+                    uWS::ParameterParser pp(headers[i].second);
+                    while (true) {
+                        auto [key, value] = pp.getKeyValue();
+                        if (!key.length()) {
+                            break;
+                        }
+
+                        // really anything that has both key and value and is not type or data?
+                        if (key == "name" || key == "filename") {
+                            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, key.data(), NewStringType::kNormal, key.length()).ToLocalChecked(), String::NewFromUtf8(isolate, value.data(), NewStringType::kNormal, value.length()).ToLocalChecked());
+                        }
+                    }
+                }
+            }
+
+            parts->Set(isolate->GetCurrentContext(), parts->Length(), partMap);
+        }
+
+        args.GetReturnValue().Set(parts);
+    }
+
+    /* We'll return undefined on error */
+}
+
 /* Pass various undocumented configs */
 void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
@@ -350,6 +419,7 @@ void Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteIntegerCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteIntegerCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getParts", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getParts)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

@@ -91,10 +91,12 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
         Local<Array> parts = Array::New(args.GetIsolate(), 0);
 
         while (true) {
-            std::string_view part = mp.getNextPart(headers);
-            if (!part.length()) {
+            std::optional<std::string_view> optionalPart = mp.getNextPart(headers);
+            if (!optionalPart.has_value()) {
                 break;
             }
+
+            std::string_view part = optionalPart.value();
 
             Local<ArrayBuffer> partArrayBuffer = ArrayBuffer::New(isolate, (void *) part.data(), part.length());
             Local<Map> partMap = Map::New(isolate);

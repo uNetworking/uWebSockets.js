@@ -95,8 +95,8 @@ int main() {
 #else
 #ifdef IS_MACOS
     /* Apple special case */
-    build("clang -mmacosx-version-min=10.7",
-          "clang++ -stdlib=libc++ -mmacosx-version-min=10.7",
+    build("clang -mmacosx-version-min=10.14",
+          "clang++ -stdlib=libc++ -mmacosx-version-min=10.14",
           "-undefined dynamic_lookup",
           OS,
           "x64");

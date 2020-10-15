@@ -59,9 +59,12 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 ![](misc/chart.png)
 
-### :package: Install anywhere
+### :crossed_swords: Battle proven
+Runs the trading APIs of [Bitfinex.com](https://bitfinex.com), handling volumes of ~170 million USD every day. Also runs [Trello](https://trello.com), serving their 50 million users with real-time board updates.
 
-Install with `npm install uNetworking/uWebSockets.js#v18.5.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+### :package: Runs anywhere
+
+Install with `npm install uNetworking/uWebSockets.js#v18.7.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 
 * Runs on Linux, macOS and Windows (ARM64, x64). Node.js 10, 11, 12, 13 & 14.
 * Installs from this GitHub repository, not the NPM registry; [hit "fork" to get your own copy](https://medium.com/@alexhultman/beware-of-tin-foil-hattery-f738b620468c).

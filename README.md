@@ -11,7 +11,7 @@
 </div>
 <br><br>
 
-### :bulb: Familiar face
+### :bulb: Quite simple
 
 µWebSockets.js is a C++ implementation of the Http/WebSocket protocols for Node.js, easy to use from JavaScript. Think of it as a faster Express.js/Socket.IO alternative; it comes with both router and pub/sub support. Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 
@@ -78,4 +78,5 @@ Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub 
 
 <img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
 
-* µWebSockets.js is the Node.js binding to µWebSockets. Read more over at [µWebSockets](https://github.com/uNetworking/uWebSockets).
+### :family: A family
+µWebSockets.js is the Node.js integration of [µWebSockets](https://github.com/uNetworking/uWebSockets); the standalone C++ project. If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using µWebSockets directly. It works exactly the same way, and will offer unbeatable performance for those highly demanding applications.

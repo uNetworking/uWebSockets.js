@@ -62,7 +62,7 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 ### :crossed_swords: Battle proven
 Runs the trading APIs of [Bitfinex.com](https://bitfinex.com), handling volumes of ~170 million USD every day. Also runs [Trello](https://trello.com), serving their 50 million users with real-time board updates.
 
-### :package: Runs anywhere
+### :package: Easily installed
 
 Install with `npm install uNetworking/uWebSockets.js#v18.7.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 

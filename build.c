@@ -37,7 +37,8 @@ struct node_version {
     {"v11.15.0", "67"},
     {"v12.13.0", "72"},
     {"v13.1.0", "79"},
-    {"v14.0.0", "83"}
+    {"v14.0.0", "83"},
+    {"v15.0.0", "88"}
 };
 
 /* Downloads headers, creates folders */

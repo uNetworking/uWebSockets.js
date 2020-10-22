@@ -101,6 +101,14 @@ int main() {
           "-undefined dynamic_lookup",
           OS,
           "x64");
+    
+        /* Try and build for arm64 macOS 11 */
+        build("clang -target arm64-apple-macos11",
+          "clang++ -stdlib=libc++ -target arm64-apple-macos11",
+          "-undefined dynamic_lookup",
+          OS,
+          "arm64");
+    
 #else
     /* Linux */
     build("clang",

@@ -99,7 +99,8 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
             std::string_view part = optionalPart.value();
 
             Local<ArrayBuffer> partArrayBuffer = ArrayBuffer::New(isolate, (void *) part.data(), part.length());
-            Local<Map> partMap = Map::New(isolate);
+            /* Map is 30% faster in this case, but a static Object could be faster still */
+            Local<Object> partMap = Object::New(isolate);
             partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "data", NewStringType::kNormal).ToLocalChecked(), partArrayBuffer);
 
             for (int i = 0; headers[i].first.length(); i++) {

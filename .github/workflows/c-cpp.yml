@@ -28,10 +28,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-11.0, ubuntu-latest]
     steps:
       - name: Update binaries
         run: |
+          sudo xcode-select -switch /Applications/Xcode_12.2.app || true
           sudo apt update || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

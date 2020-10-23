@@ -84,4 +84,4 @@ Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub 
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.
 
-Where such explicit notice is given, source code is licensed Apache License 2.0 which is a permissive OSI license with very few limitations. If you're uncertain about your permissions, please ask before assuming.
+Where such explicit notice is given, source code is licensed Apache License 2.0 which is a permissive OSI-approved license with very few limitations. If you're uncertain about your permissions, please ask before assuming.

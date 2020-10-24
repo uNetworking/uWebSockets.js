@@ -191,8 +191,10 @@ export interface HttpRequest {
     getUrl() : string;
     /** Returns the HTTP method, useful for "any" routes. */
     getMethod() : string;
-    /** Returns the part of URL after ? sign or empty string. */
+    /** Returns the raw querystring (the part of URL after ? sign) or empty string. */
     getQuery() : string;
+    /** Returns a decoded query parameter value or empty string. */
+    getQuery(key: string) : string;
     /** Loops over all headers. */
     forEach(cb: (key: string, value: string) => void) : void;
     /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */
@@ -290,6 +292,16 @@ export function SSLApp(options: AppOptions): TemplatedApp;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;
+
+export interface MultipartField {
+    data: ArrayBuffer;
+    name: string;
+    type?: string;
+    filename?: string;
+}
+
+/** Takes a POSTed body and contentType, and returns an array of parts if the request is a multipart request */
+export function getParts(body: RecognizedString, contentType: RecognizedString): MultipartField[] | undefined;
 
 /** WebSocket compression options */
 export type CompressOptions = number;

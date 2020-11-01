@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2019.
+ * Authored by Alex Hultman, 2018-2020.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,13 +91,16 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
         Local<Array> parts = Array::New(args.GetIsolate(), 0);
 
         while (true) {
-            std::string_view part = mp.getNextPart(headers);
-            if (!part.length()) {
+            std::optional<std::string_view> optionalPart = mp.getNextPart(headers);
+            if (!optionalPart.has_value()) {
                 break;
             }
 
+            std::string_view part = optionalPart.value();
+
             Local<ArrayBuffer> partArrayBuffer = ArrayBuffer::New(isolate, (void *) part.data(), part.length());
-            Local<Map> partMap = Map::New(isolate);
+            /* Map is 30% faster in this case, but a static Object could be faster still */
+            Local<Object> partMap = Object::New(isolate);
             partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "data", NewStringType::kNormal).ToLocalChecked(), partArrayBuffer);
 
             for (int i = 0; headers[i].first.length(); i++) {
@@ -141,32 +144,6 @@ void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
     if (keyCode == 656) {
         uWS::Loop::get()->setSilent(true);
     }
-}
-
-/* This has to be called in beforeExit, but exit also seems okay */
-void uWS_free(const FunctionCallbackInfo<Value> &args) {
-    /* Holder is exports */
-    Local<Object> exports = args.Holder();
-
-    /* See if we even have free anymore */
-    if (exports->Get(args.GetIsolate()->GetCurrentContext(), String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked() == Undefined(args.GetIsolate())) {
-        return;
-    }
-
-    /* Once we free uWS we remove the uWS.free function from exports */
-    exports->Set(args.GetIsolate()->GetCurrentContext(), String::NewFromUtf8(args.GetIsolate(), "free", NewStringType::kNormal).ToLocalChecked(), Undefined(args.GetIsolate())).ToChecked();
-
-    /* We get the External holding perContextData */
-    PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
-
-    /* Freeing apps here, it could be done earlier but not sooner */
-    perContextData->apps.clear();
-    perContextData->sslApps.clear();
-    /* Freeing the loop here means we give time for our timers to close, etc */
-    uWS::Loop::get()->free();
-
-    /* We can safely delete this since we no longer can call uWS.free */
-    delete perContextData;
 }
 
 /* todo: Put this function and all inits of it in its own header */
@@ -372,7 +349,7 @@ void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
     kvMutex.unlock();
 }
 
-void Main(Local<Object> exports) {
+PerContextData *Main(Local<Object> exports) {
 
     /* We only care if it is defined, not what it says */
     experimental_fastcall = getenv("EXPERIMENTAL_FASTCALL") != nullptr;
@@ -401,7 +378,6 @@ void Main(Local<Object> exports) {
     /* uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SSLApp", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "free", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_free, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Temporary KV store */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
@@ -439,6 +415,8 @@ void Main(Local<Object> exports) {
 
     /* Listen options */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "LIBUS_LISTEN_EXCLUSIVE_PORT", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, LIBUS_LISTEN_EXCLUSIVE_PORT)).ToChecked();
+
+    return perContextData;
 }
 
 /* This is required when building as a Node.js addon */
@@ -449,6 +427,22 @@ NODE_MODULE_INITIALIZER(Local<Object> exports, Local<Value> module, Local<Contex
     /* Integrate uSockets with existing libuv loop */
     uWS::Loop::get(node::GetCurrentEventLoop(context->GetIsolate()));
     /* Register vanilla V8 addon */
-    Main(exports);
+    PerContextData *perContextData = Main(exports);
+
+    /* We cannot rely on process.exit or process.beforeExit when it comes to WorkerThreads */
+    node::AddEnvironmentCleanupHook(context->GetIsolate(), [](void *arg) {
+
+        PerContextData *perContextData = (PerContextData *) arg;
+
+        /* Freeing apps here, it could be done earlier but not sooner */
+        perContextData->apps.clear();
+        perContextData->sslApps.clear();
+        /* Freeing the loop here means we give time for our timers to close, etc */
+        uWS::Loop::get()->free();
+
+        /* We can safely delete this since we no longer can call uWS.free */
+        delete perContextData;
+
+    }, perContextData);
 }
 #endif

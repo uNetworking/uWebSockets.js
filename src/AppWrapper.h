@@ -324,8 +324,21 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
 
+    /* topic, message [isBinary, compress] */
+    if (args.Length() < 2) {
+        return;
+    }
+
     NativeString topic(isolate, args[0]);
+    if (topic.isInvalid(args)) {
+        return;
+    }
+
     NativeString message(isolate, args[1]);
+    if (message.isInvalid(args)) {
+        return;
+    }
+
     app->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
 }
 

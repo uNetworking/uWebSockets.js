@@ -74,6 +74,10 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
+            if (missingArguments(2, args)) {
+                return;
+            }
+
             NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;

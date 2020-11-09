@@ -55,6 +55,17 @@ static constexpr int getAppTypeIndex() {
     return std::is_same<APP, uWS::SSLApp>::value;
 }
 
+static inline bool missingArguments(int length, const FunctionCallbackInfo<Value> &args) {
+    if (args.Length() < length) {
+        std::string message = "Function requires at least ";
+        message += std::to_string(length);
+        message += " arguments.";
+        args.GetReturnValue().Set(args.GetIsolate()->ThrowException(String::NewFromUtf8(args.GetIsolate(), message.c_str(), NewStringType::kNormal).ToLocalChecked()));
+        return true;
+    }
+    return false;
+}
+
 struct Callback {
     bool invalid = false;
     UniquePersistent<Function> f;

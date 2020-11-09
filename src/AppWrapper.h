@@ -24,6 +24,11 @@ using namespace v8;
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
+    /* pattern, behavior */
+    if (missingArguments(2, args)) {
+        return;
+    }
+
     Isolate *isolate = args.GetIsolate();
 
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -288,9 +293,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     Isolate *isolate = args.GetIsolate();
 
     /* Require at least two arguments */
-    if (args.Length() < 2) {
-        /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback", NewStringType::kNormal).ToLocalChecked()));
+    if (missingArguments(2, args)) {
         return;
     }
 
@@ -332,7 +335,7 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
     Isolate *isolate = args.GetIsolate();
 
     /* topic, message [isBinary, compress] */
-    if (args.Length() < 2) {
+    if (missingArguments(2, args)) {
         return;
     }
 

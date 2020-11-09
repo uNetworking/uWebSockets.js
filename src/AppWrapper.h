@@ -249,8 +249,8 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     }
 
     /* Handler */
-    Callback checkedCallback(args[1]);
-    if (checkedCallback.isInvalid()) {
+    Callback checkedCallback(args.GetIsolate(), args[1]);
+    if (checkedCallback.isInvalid(args)) {
         return;
     }
     UniquePersistent<Function> cb = checkedCallback.getFunction();

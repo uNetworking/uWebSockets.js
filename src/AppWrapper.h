@@ -242,14 +242,21 @@ template <typename APP, typename F>
 void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
+    /* Pattern */
     NativeString pattern(args.GetIsolate(), args[0]);
     if (pattern.isInvalid(args)) {
         return;
     }
 
+    /* Handler */
+    Callback checkedCallback(args[1]);
+    if (checkedCallback.isInvalid()) {
+        return;
+    }
+    UniquePersistent<Function> cb = checkedCallback.getFunction();
+
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
-    UniquePersistent<Function> cb(args.GetIsolate(), Local<Function>::Cast(args[1]));
 
     (app->*f)(std::string(pattern.getString()), [cb = std::move(cb), perContextData](auto *res, auto *req) {
         Isolate *isolate = perContextData->isolate;

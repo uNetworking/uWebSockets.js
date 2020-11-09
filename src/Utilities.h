@@ -55,6 +55,31 @@ static constexpr int getAppTypeIndex() {
     return std::is_same<APP, uWS::SSLApp>::value;
 }
 
+struct Callback {
+    bool invalid = false;
+    UniquePersistent<Function> f;
+    Callback(Isolate *isolate, const Local<Value> &value) {
+
+        if (!value->IsFunction()) {
+            invalid = true;
+            return;
+        }
+
+        f.Reset(isolate, Local<Function>::Cast(value));
+    }
+
+    bool isInvalid(const FunctionCallbackInfo<Value> &args) {
+        if (invalid) {
+            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(String::NewFromUtf8(args.GetIsolate(), "Passed callback is not a valid function.", NewStringType::kNormal).ToLocalChecked()));
+        }
+        return invalid;
+    }
+
+    UniquePersistent<Function> &&getFunction() {
+        return std::move(f);
+    }
+};
+
 class NativeString {
     char *data;
     size_t length;

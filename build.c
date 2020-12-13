@@ -16,6 +16,9 @@
 #define OS "darwin"
 #define IS_MACOS
 #endif
+#ifdef __FreeBSD__
+#define OS "freebsd"
+#define IS_FREEBSD
 
 /* System, but with string replace */
 int run(const char *cmd, ...) {
@@ -38,6 +41,7 @@ struct node_version {
     {"v12.13.0", "72"},
     {"v13.1.0", "79"},
     {"v14.0.0", "83"},
+    {"v14.5.0", "83"},
     {"v15.0.0", "88"}
 };
 
@@ -110,6 +114,15 @@ int main() {
           "arm64");
     
 #else
+#ifdef IS_FREEBSD
+
+build("clang",
+      "clang++",
+      "-static-libstdc++ -static-libgcc -s",
+      OS,
+      "x64");
+
+#else
     /* Linux */
     build("clang",
           "clang++",
@@ -120,6 +133,7 @@ int main() {
     /* If linux we also want arm64 */
     build("aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++", "-static-libstdc++ -static-libgcc -s", OS, "arm64");
 #endif
+#endif    
 #endif
 
     copy_files();

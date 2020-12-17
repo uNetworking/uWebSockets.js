@@ -64,7 +64,7 @@ Runs the trading APIs of [Bitfinex.com](https://bitfinex.com), handling volumes 
 
 ### :package: Easily installed
 
-Install with `npm install uNetworking/uWebSockets.js#v18.8.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+Install with `yarn add uNetworking/uWebSockets.js#v18.11.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
 
 * Runs on Linux, macOS and Windows (ARM64, x64). Node.js 10, 11, 12, 13, 14 & 15.
 * Installs from this GitHub repository, not the NPM registry; [hit "fork" to get your own copy](https://medium.com/@alexhultman/beware-of-tin-foil-hattery-f738b620468c).

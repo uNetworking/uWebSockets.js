@@ -203,15 +203,15 @@ export interface HttpRequest {
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
 export interface WebSocketBehavior {
-    /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. */
+    /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
-     * Disable by leaving 0.
+     * Disable by using 0. Defaults to 120.
      */
     idleTimeout?: number;
-    /** What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. */
+    /** What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. Defaults to uWS.DISABLED. */
     compression?: CompressOptions;
-    /** Maximum length of allowed backpressure per socket when PUBLISHING messages (does not apply to ws.send). Slow receivers with too high backpressure will be skipped until they catch up or timeout. */
+    /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 1024 * 1024. */
     maxBackpressure?: number;
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
      * See UpgradeAsync and UpgradeSync example files.

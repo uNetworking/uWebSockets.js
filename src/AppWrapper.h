@@ -353,10 +353,10 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 }
 
 /* This one modified per-thread static strings temporarily */
-std::pair<struct us_socket_context_options_t, bool> readOptionsObject(const FunctionCallbackInfo<Value> &args, int index) {
+std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallbackInfo<Value> &args, int index) {
     Isolate *isolate = args.GetIsolate();
     /* Read the options object if any */
-    us_socket_context_options_t options = {};
+    uWS::SocketContextOptions options = {};
     thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
     if (args.Length() > index) {
 

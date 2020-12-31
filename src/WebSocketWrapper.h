@@ -74,8 +74,19 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
+            if (missingArguments(2, args)) {
+                return;
+            }
+
             NativeString topic(isolate, args[0]);
+            if (topic.isInvalid(args)) {
+                return;
+            }
             NativeString message(isolate, args[1]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
             ws->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
         }
     }

@@ -63,7 +63,7 @@ We've been fully standards compliant with a perfect Autobahn|Testsuite score sin
 ### :package: Easily installed
 We *humbly recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
-*Source code is [automatically and transparently](https://github.com/uNetworking/uWebSockets.js/blob/master/.github/workflows/c-cpp.yml) precompiled by GitHub Actions and we happily encourage [conspiracy theorists](https://alexhultman.medium.com/beware-of-tin-foil-hattery-f738b620468c) to build their own binaries from source and report any evidence of fraud to the police. We want to reiterate that evidence-lacking slander is a criminal offense.*
+If you have strong opinions regarding the installation process, [please read this](https://alexhultman.medium.com/a-short-note-on-opinions-996700da995d).
 
 ### :briefcase: Commercially supported
 <a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.

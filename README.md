@@ -4,7 +4,7 @@
 <br><br>
 
 
-<a href="https://github.com/uNetworking/uWebSockets.js/releases"><img src="https://img.shields.io/github/v/release/uNetworking/uWebSockets.js"></a> <a href="https://lgtm.com/projects/g/uNetworking/uWebSockets.js/context:cpp"><img alt="Language grade: C/C++" src="https://img.shields.io/lgtm/grade/cpp/g/uNetworking/uWebSockets.js.svg?logo=lgtm&logoWidth=18"/></a> <img src="https://img.shields.io/badge/downloads-55%20million-pink" />
+<a href="https://github.com/uNetworking/uWebSockets.js/releases"><img src="https://img.shields.io/github/v/release/uNetworking/uWebSockets.js"></a> <a href="https://lgtm.com/projects/g/uNetworking/uWebSockets.js/context:cpp"><img alt="Language grade: C/C++" src="https://img.shields.io/lgtm/grade/cpp/g/uNetworking/uWebSockets.js.svg?logo=lgtm&logoWidth=18"/></a> <a href="https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:uwebsockets"><img src="https://oss-fuzz-build-logs.storage.googleapis.com/badges/uwebsockets.svg" /></a> <img src="https://img.shields.io/badge/downloads-55%20million-pink" />
 
 </div>
 <br><br>
@@ -61,10 +61,9 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">[2]</a></sup>. Companies with everything to lose rely on µWebSockets on a daily basis - we power the trading APIs of [Bitfinex.com](https://bitfinex.com), handling volumes of about a billion USD every day. Other companies include [Trello](https://trello.com), where µWebSockets is serving their 50 million users with real-time board updates.
 
 ### :package: Easily installed
+We *humbly recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
-(Recommended) Install with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.12.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
-
-uNetworking AB does not mutate any releases, but if you require cryptographically immutable releases you may directly refer to the commit hash instead of a named tag. Nobody is twisting anyone's arm here.
+*Source code is [automatically and transparently](https://github.com/uNetworking/uWebSockets.js/blob/master/.github/workflows/c-cpp.yml) precompiled by GitHub Actions and we happily encourage [conspiracy theorists](https://alexhultman.medium.com/beware-of-tin-foil-hattery-f738b620468c) to build their own binaries from source and report any evidence of fraud to the police. We want to reiterate that evidence-lacking slander is a criminal offense.*
 
 ### :briefcase: Commercially supported
 <a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.

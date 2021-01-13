@@ -61,9 +61,9 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">[2]</a></sup>. Companies with everything to lose rely on µWebSockets on a daily basis - we power the trading APIs of [Bitfinex.com](https://bitfinex.com), handling volumes of about a billion USD every day. Other companies include [Trello](https://trello.com), where µWebSockets is serving their 50 million users with real-time board updates.
 
 ### :package: Easily installed
-We *humbly recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
+We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
-If you have strong opinions regarding the installation process, [please read this](https://alexhultman.medium.com/a-short-note-on-opinions-996700da995d).
+Being an open source project, you are of course perfectly free to choose other ways of installation as you might prefer.
 
 ### :briefcase: Commercially supported
 <a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.

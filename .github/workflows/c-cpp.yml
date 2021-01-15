@@ -39,6 +39,7 @@ jobs:
           cd uWebSockets.js
           make
           git checkout binaries
+          git rev-parse master > source_commit
           git checkout master docs/index.d.ts && mv docs/index.d.ts .
           cp dist/*.node .
           git status

@@ -213,8 +213,14 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
+
+            bool closeConnection = false;
+            if (args.Length() >= 2) {
+                closeConnection = BooleanValue(args.GetIsolate(), args[1]);
+            }
+
             invalidateResObject(args);
-            res->end(data.getString());
+            res->end(data.getString(), closeConnection);
 
             args.GetReturnValue().Set(args.Holder());
         }

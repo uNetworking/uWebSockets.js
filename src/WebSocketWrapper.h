@@ -49,7 +49,8 @@ struct WebSocketWrapper {
             if (topic.isInvalid(args)) {
                 return;
             }
-            ws->subscribe(topic.getString());
+            bool nonStrict = args.Length() > 1 && BooleanValue(isolate, args[1]);
+            ws->subscribe(topic.getString(), nonStrict);
         }
     }
 
@@ -63,7 +64,8 @@ struct WebSocketWrapper {
             if (topic.isInvalid(args)) {
                 return;
             }
-            bool success = ws->unsubscribe(topic.getString());
+            bool nonStrict = args.Length() > 1 && BooleanValue(isolate, args[1]);
+            bool success = ws->unsubscribe(topic.getString(), nonStrict);
             args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }

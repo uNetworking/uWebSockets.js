@@ -1,0 +1,143 @@
+name: Build with node-gyp
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    if: ${{ !startsWith(github.event.head_commit.message, '[Github Actions]') && !startsWith(github.event.head_commit.message, '[Skip CI]') }} # Prevent recursive builds
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [10.x, 11.x, 12.x, 13.x, 14.x, 15.x]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: yarn
+      - run: cp -f ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      - run: cp -Force ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'windows')
+      - name: Build for ARM64
+        if: startsWith(matrix.os, 'ubuntu')
+        run: yarn build --arch arm64
+      - run: cp -f ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'ubuntu')
+      - name: Configure Git
+        run: |
+          git config --global user.email "davidmurdoch@users.noreply.github.com"
+          git config --global user.name "David Murdoch"
+          git config pull.rebase true
+      - run: git add binaries
+      - run: git checkout -b temp_${{ github.sha }} # create it if it doesn't exist
+        continue-on-error: true
+      - run: git push origin temp_${{ github.sha }}
+        continue-on-error: true
+      - run: git checkout temp_${{ github.sha }} # checkout if it already existed
+      - run: git fetch
+      - run: git branch -u origin/temp_${{ github.sha }} temp_${{ github.sha }}
+      - name: Commit
+        run: git commit -m "[GitHub Actions] Updated ${{ matrix.os }} NodeJS ${{ matrix.node }} binaries" || true
+      - name: Push
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 1
+          max_attempts: 20
+          retry_wait_seconds: 5
+          on_retry_command: git pull
+          command: git push origin temp_${{ github.sha }}
+
+  build-electron:
+    if: ${{ !startsWith(github.event.head_commit.message, '[Github Actions]') && !startsWith(github.event.head_commit.message, '[Skip CI]') }} # Prevent recursive builds
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [14.x]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Initial Build
+        run: yarn
+      - name: Rebuild for Electron v8
+        run: npx electron-rebuild --version 8.5.5
+      - run: cp -f ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      - run: cp -Force ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'windows')
+      - name: Rebuild for Electron v9
+        run: npx electron-rebuild --version 9.4.3
+      - run: cp -f ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      - run: cp -Force ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'windows')
+      - name: Rebuild for Electron v10
+        run: npx electron-rebuild --version 10.3.2
+      - run: cp -f ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      - run: cp -Force ./build/Release/*.node ./binaries/
+        if: startsWith(matrix.os, 'windows')
+      - name: Configure Git
+        run: |
+          git config --global user.email "davidmurdoch@users.noreply.github.com"
+          git config --global user.name "David Murdoch"
+          git config pull.rebase true
+      - run: git add binaries
+      - run: git checkout -b temp_${{ github.sha }} # create it if it doesn't exist
+        continue-on-error: true
+      - run: git push origin temp_${{ github.sha }}
+        continue-on-error: true
+      - run: git checkout temp_${{ github.sha }} # checkout if it already existed
+      - run: git fetch
+      - run: git branch -u origin/temp_${{ github.sha }} temp_${{ github.sha }}
+      - name: Commit
+        run: git commit -m "[GitHub Actions] Updated ${{ matrix.os }} NodeJS ${{ matrix.node }} binaries" || true
+      - name: Push
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 1
+          max_attempts: 20
+          retry_wait_seconds: 5
+          on_retry_command: git pull
+          command: git push origin temp_${{ github.sha }}
+
+  commit-to-master:
+    if: ${{ !startsWith(github.event.head_commit.message, '[Github Actions]') && !startsWith(github.event.head_commit.message, '[Skip CI]') }} # Prevent recursive builds
+    needs: [build, build-electron]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          submodules: "recursive"
+      - name: Configure Git
+        run: |
+          git config --global user.email "davidmurdoch@users.noreply.github.com"
+          git config --global user.name "David Murdoch"
+          git config pull.rebase true
+      - run: git fetch origin
+      - run: git merge --squash origin/temp_${{ github.sha }}
+      - name: Commit
+        run: git commit -m "[GitHub Actions] Updated all binaries" || true
+      - name: Push
+        uses: nick-invision/retry@v2 # retry just in case a person is pushing simultaneously
+        with:
+          timeout_minutes: 1
+          max_attempts: 3
+          retry_wait_seconds: 5
+          on_retry_command: git pull
+          command: git push origin
+      - name: Delete Temporary Branch
+        run: git push origin --delete temp_${{ github.sha }}

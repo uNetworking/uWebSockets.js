@@ -1,0 +1,11 @@
+build
+bin
+.vscode
+node_modules
+examples
+.github
+misc
+src/*.h
+src/*.cpp
+uWebSockets
+binding.gyp

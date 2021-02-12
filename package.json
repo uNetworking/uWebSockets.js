@@ -1,0 +1,30 @@
+{
+  "name": "@trufflesuite/uwebsockets.js",
+  "version": "18.15.0",
+  "description": "Simple, secure, & standards compliant web server for the most demanding of applications.",
+  "main": "src/uws.js",
+  "types": "docs/index.d.ts",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seesemichaelj/uWebSockets.js.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/seesemichaelj/uWebSockets.js/issues"
+  },
+  "homepage": "https://github.com/seesemichaelj/uWebSockets.js#readme",
+  "devDependencies": {
+    "electron-rebuild": "^2.3.5",
+    "node-gyp": "^7.1.2"
+  }
+}

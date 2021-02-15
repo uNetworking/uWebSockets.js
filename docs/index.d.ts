@@ -40,7 +40,10 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export interface WebSocket {
+export type WebSocket<UserData = {
+    /** Arbitrary user data may be attached to this object. */
+    [key: string]: any;
+}> = {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
      * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
@@ -108,9 +111,7 @@ export interface WebSocket {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
-    [key: string]: any;
-}
+} & UserData
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {
@@ -216,7 +217,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior {
+export interface WebSocketBehavior<UserData = { [key: string]: any }> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
@@ -232,17 +233,17 @@ export interface WebSocketBehavior {
      */
     upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket) => void;
+    open?: (ws: WebSocket<UserData>) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket) => void;
+    drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket) => void;
+    ping?: (ws: WebSocket<UserData>) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket) => void;
+    pong?: (ws: WebSocket<UserData>) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -291,7 +292,7 @@ export interface TemplatedApp {
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
+    ws<UserData = { [key: string]: any }>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : TemplatedApp;
 }

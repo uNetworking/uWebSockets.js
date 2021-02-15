@@ -14,7 +14,7 @@ const app = uWS./*SSL*/App({
   idleTimeout: 10,
 
   /* Handlers */
-  open: (ws, req) => {
+  open: (ws) => {
     /* Let this client listen to topic "broadcast" */
     ws.subscribe('broadcast');
   },

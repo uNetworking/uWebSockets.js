@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>WebSocket | uWebSockets.js v17.6.0 documentation</title>
-	<meta name="description" content="">
+	<title>WebSocket | uWebSockets.js v18.1.0 documentation</title>
+	<meta name="description" content="Documentation for uWebSockets.js v18.1.0 documentation">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">uWebSockets.js v17.6.0 documentation</a>
+					<a href="../index.html" class="title">uWebSockets.js v18.1.0 documentation</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -101,6 +101,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#end" class="tsd-kind-icon">end</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#getbufferedamount" class="tsd-kind-icon">get<wbr>Buffered<wbr>Amount</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#getremoteaddress" class="tsd-kind-icon">get<wbr>Remote<wbr>Address</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#getremoteaddressastext" class="tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#ping" class="tsd-kind-icon">ping</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#publish" class="tsd-kind-icon">publish</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="websocket.html#send" class="tsd-kind-icon">send</a></li>
@@ -124,7 +125,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L37">index.d.ts:37</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L50">index.d.ts:50</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -141,13 +142,13 @@
 					<a name="cork" class="tsd-anchor"></a>
 					<h3>cork</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L68">index.d.ts:68</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L83">index.d.ts:83</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -158,10 +159,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>cb: <span class="tsd-signature-type">function</span></h5>
+									<h5>cb: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -187,7 +188,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L32">index.d.ts:32</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L45">index.d.ts:45</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -219,7 +220,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L27">index.d.ts:27</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L40">index.d.ts:40</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -242,7 +243,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L77">index.d.ts:77</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L92">index.d.ts:92</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -251,7 +252,29 @@
 								</div>
 								<p>IPv4 is 4 byte long and can be converted to text by printing every byte as a digit between 0 and 255.
 								IPv6 is 16 byte long and can be converted to text in similar ways, but you typically print digits in HEX.</p>
-								<p>We will probably add a text converting function at some point as this is a common issue among users.</p>
+								<p>See getRemoteAddressAsText() for a text version.</p>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getremoteaddressastext" class="tsd-anchor"></a>
+					<h3>get<wbr>Remote<wbr>Address<wbr>AsText</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L95">index.d.ts:95</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the remote IP address as text. See RecognizedString.</p>
+								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
 						</li>
@@ -267,7 +290,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L40">index.d.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L53">index.d.ts:53</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -295,7 +318,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L65">index.d.ts:65</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L80">index.d.ts:80</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -303,11 +326,10 @@
 									<p>Publish a message to a topic in MQTT syntax. You cannot publish using wildcards, only fully specified topics. Just like with MQTT.</p>
 								</div>
 								<p>&quot;parent/child&quot; kind of tree is allowed, but not &quot;parent/#&quot; kind of wildcard publishing.</p>
-								<p>NOTE: publish is NOT immediately active, the actual publish takes place at the end of the current event loop iteration.
-									This to efficiently pack and batch outgoing publishes, and to coalesce outgoing messages across multiple topics.
-								Publishing to many different topics, or to the same topic many times, will thus be properly coalesced into one single send syscall and one single SSL block, per socket.</p>
-								<p>This also means that publishing to a topic, then immediately subscribing to it in the same very event loop iteration will cause that publish to also affect the late subscription.
-								Think of it as - subscription vs. publish happens in terms of event loop iterations. If you REQUIRE a strict ordering you have to use Loop::defer or process.nextTick accordingly.</p>
+								<p>The pub/sub system does not guarantee order between what you manually send using WebSocket.send
+									and what you publish using WebSocket.publish. WebSocket messages are perfectly atomic, but the order in which they appear can get scrambled if you mix the two sending functions on the same socket.
+								This shouldn&#39;t matter in most applications. Order is guaranteed relative to other calls to WebSocket.publish.</p>
+								<p>Also keep in mind that backpressure will be automatically managed with pub/sub, meaning some outgoing messages may be dropped if backpressure is greater than specified maxBackpressure.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -338,7 +360,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L22">index.d.ts:22</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L35">index.d.ts:35</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -374,15 +396,16 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L46">index.d.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L62">index.d.ts:62</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Subscribe to a topic in MQTT syntax. Subscription is immediately active.
-										MQTT syntax includes things like &quot;root/child/+/grandchild&quot; where &quot;+&quot; is a
-									wildcard and &quot;root/#&quot; where &quot;#&quot; is a terminating wildcard.</p>
+									<p>Subscribe to a topic in MQTT syntax.</p>
 								</div>
+								<p>MQTT syntax includes things like &quot;root/child/+/grandchild&quot; where &quot;+&quot; is a
+								wildcard and &quot;root/#&quot; where &quot;#&quot; is a terminating wildcard.</p>
+								<p>Read more about MQTT.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -404,12 +427,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L49">index.d.ts:49</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L65">index.d.ts:65</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. Unsubscription is immediately active.</p>
+									<p>Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -432,12 +455,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L52">index.d.ts:52</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L68">index.d.ts:68</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Unsubscribe from all topics. Immediately active. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket.</p>
+									<p>Unsubscribe from all topics. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -489,6 +512,9 @@
 								<a href="websocket.html#getremoteaddress" class="tsd-kind-icon">get<wbr>Remote<wbr>Address</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="websocket.html#getremoteaddressastext" class="tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="websocket.html#ping" class="tsd-kind-icon">ping</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
@@ -515,6 +541,9 @@
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="us_listen_socket.html" class="tsd-kind-icon">us_<wbr>listen_<wbr>socket</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="us_socket_context_t.html" class="tsd-kind-icon">us_<wbr>socket_<wbr>context_<wbr>t</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="../index.html#compressoptions" class="tsd-kind-icon">Compress<wbr>Options</a>
@@ -571,57 +600,8 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>

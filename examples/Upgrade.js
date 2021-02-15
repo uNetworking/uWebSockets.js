@@ -13,8 +13,22 @@ const app = uWS./*SSL*/App({
   maxPayloadLength: 16 * 1024 * 1024,
   idleTimeout: 10,
   /* Handlers */
+  upgrade: (res, req, context) => {
+    console.log('An Http connection wants to become WebSocket, URL: ' + req.getUrl() + '!');
+
+    /* This immediately calls open handler, you must not use res after this call */
+    res.upgrade({
+        url: req.getUrl()
+      },
+      /* Spell these correctly */
+      req.getHeader('sec-websocket-key'),
+      req.getHeader('sec-websocket-protocol'),
+      req.getHeader('sec-websocket-extensions'),
+      context);
+
+  },
   open: (ws) => {
-    console.log('A WebSocket connected!');
+    console.log('A WebSocket connected with URL: ' + ws.url);
   },
   message: (ws, message, isBinary) => {
     /* Ok is false if backpressure was built up, wait for drain */

@@ -1,3 +1,20 @@
+/*
+ * Authored by Alex Hultman, 2018-2020.
+ * Intellectual property of third-party.
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "App.h"
 #include "Utilities.h"
 
@@ -100,7 +117,19 @@ struct HttpRequestWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
-            std::string_view query = req->getQuery();
+            std::string_view query;
+
+            /* Do we have a key argument? */
+            if (args.Length() == 1) {
+                NativeString keyString(isolate, args[0]);
+                if (keyString.isInvalid(args)) {
+                    return;
+                }
+
+                query = req->getQuery(keyString.getString());
+            } else {
+                query = req->getQuery();
+            }
 
             args.GetReturnValue().Set(String::NewFromUtf8(isolate, query.data(), NewStringType::kNormal, query.length()).ToLocalChecked());
         }

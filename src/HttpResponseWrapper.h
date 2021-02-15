@@ -1,3 +1,20 @@
+/*
+ * Authored by Alex Hultman, 2018-2020.
+ * Intellectual property of third-party.
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "App.h"
 #include "Utilities.h"
 
@@ -94,13 +111,52 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes nothing, returns arraybuffer */
+    template <bool SSL>
+    static void res_getRemoteAddressAsText(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            std::string_view ip = res->getRemoteAddressAsText();
+
+            /* Todo: we need to pass a copy here */
+            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+        }
+    }
+
+    /* Takes nothing, returns arraybuffer */
+    template <bool SSL>
+    static void res_getProxiedRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            std::string_view ip = res->getProxiedRemoteAddress();
+
+            /* Todo: we need to pass a copy here */
+            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+        }
+    }
+
+    /* Takes nothing, returns arraybuffer */
+    template <bool SSL>
+    static void res_getProxiedRemoteAddressAsText(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            std::string_view ip = res->getProxiedRemoteAddressAsText();
+
+            /* Todo: we need to pass a copy here */
+            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+        }
+    }
+
     /* Returns the current write offset */
     template <bool SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            args.GetReturnValue().Set(Integer::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+            args.GetReturnValue().Set(Number::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
         }
     }
 
@@ -113,10 +169,10 @@ struct HttpResponseWrapper {
             /* This thing perfectly fits in with unique_function, and will Reset on destructor */
             UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
-            res->onWritable([p = std::move(p), isolate](int offset) -> bool {
+            res->onWritable([p = std::move(p), isolate](size_t offset) -> bool {
                 HandleScope hs(isolate);
 
-                Local<Value> argv[] = {Integer::NewFromUnsigned(isolate, offset)};
+                Local<Value> argv[] = {Number::New(isolate, offset)};
 
                 /* We should check if this is really here! */
                 MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
@@ -157,8 +213,14 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
+
+            bool closeConnection = false;
+            if (args.Length() >= 2) {
+                closeConnection = BooleanValue(args.GetIsolate(), args[1]);
+            }
+
             invalidateResObject(args);
-            res->end(data.getString());
+            res->end(data.getString(), closeConnection);
 
             args.GetReturnValue().Set(args.Holder());
         }
@@ -175,9 +237,9 @@ struct HttpResponseWrapper {
                 return;
             }
 
-            int totalSize = 0;
+            size_t totalSize = 0;
             if (args.Length() > 1) {
-                totalSize = args[1]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                totalSize = (size_t) args[1]->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
 
             auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);
@@ -226,7 +288,7 @@ struct HttpResponseWrapper {
             if (value.isInvalid(args)) {
                 return;
             }
-            res->writeHeader(header.getString(),value.getString());
+            res->writeHeader(header.getString(), value.getString());
 
             args.GetReturnValue().Set(args.Holder());
         }
@@ -245,6 +307,50 @@ struct HttpResponseWrapper {
             });
 
             args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
+    /* Takes UserData, secKey, secProtocol, secExtensions, context. Returns nothing */
+    template <bool SSL>
+    static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* We require exactly 5 arguments */
+            if (args.Length() != 5) {
+                return;
+            }
+
+            NativeString secWebSocketKey(args.GetIsolate(), args[1]);
+            if (secWebSocketKey.isInvalid(args)) {
+                return;
+            }
+
+            NativeString secWebSocketProtocol(args.GetIsolate(), args[2]);
+            if (secWebSocketProtocol.isInvalid(args)) {
+                return;
+            }
+
+            NativeString secWebSocketExtensions(args.GetIsolate(), args[3]);
+            if (secWebSocketExtensions.isInvalid(args)) {
+                return;
+            }
+
+            auto *context = (struct us_socket_context_t *) Local<External>::Cast(args[4])->Value();
+
+            invalidateResObject(args);
+
+            /* This releases on return */
+            UniquePersistent<Object> userData;
+            userData.Reset(isolate, Local<Object>::Cast(args[0]));
+
+            /* Immediately calls open handler */
+            res->template upgrade<PerSocketData>({
+                std::move(userData)
+            }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),
+                secWebSocketExtensions.getString(), context);
+
+            /* Nothing is returned */
         }
     }
 
@@ -271,10 +377,14 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddressAsText<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddress<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddressAsText<SSL>));
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-        
+
         return resObjectLocal;
     }
 };

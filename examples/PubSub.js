@@ -9,18 +9,16 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).ws('/*', {
   /* Options */
-  compression: 0,
+  compression: uWS.SHARED_COMPRESSOR,
   maxPayloadLength: 16 * 1024 * 1024,
   idleTimeout: 10,
-  // would be nice to have maxBackpressure to automatically close slow receivers
+  maxBackpressure: 1024,
 
-  /* Setting 1: merge messages in one, or keep them as separate WebSocket frames - mergePublishedMessages */
-  /* Setting 2: compression on/off - cannot have dedicated compressor for pubsub yet */
-  /* Setting 3: maxBackpressure - when we want to automatically terminate a slow receiver */
-  /* Setting 4: send to all including us, or not? That's not a setting really just use ws.publish or global uWS.publish */
+  /* Todo, Setting 1: merge messages in one, or keep them as separate WebSocket frames - mergePublishedMessages */
+  /* Todo, Setting 4: send to all including us, or not? That's not a setting really just use ws.publish or global uWS.publish */
 
   /* Handlers */
-  open: (ws, req) => {
+  open: (ws) => {
     /* Let this client listen to all sensor topics */
     ws.subscribe('home/sensors/#');
   },

@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>HttpResponse | uWebSockets.js v17.6.0 documentation</title>
-	<meta name="description" content="">
+	<title>HttpResponse | uWebSockets.js v18.1.0 documentation</title>
+	<meta name="description" content="Documentation for uWebSockets.js v18.1.0 documentation">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">uWebSockets.js v17.6.0 documentation</a>
+					<a href="../index.html" class="title">uWebSockets.js v18.1.0 documentation</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -98,12 +98,16 @@
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#close" class="tsd-kind-icon">close</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#cork" class="tsd-kind-icon">cork</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#end" class="tsd-kind-icon">end</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#getproxiedremoteaddress" class="tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#getproxiedremoteaddressastext" class="tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address<wbr>AsText</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#getremoteaddress" class="tsd-kind-icon">get<wbr>Remote<wbr>Address</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#getremoteaddressastext" class="tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#getwriteoffset" class="tsd-kind-icon">get<wbr>Write<wbr>Offset</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#onaborted" class="tsd-kind-icon">on<wbr>Aborted</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#ondata" class="tsd-kind-icon">on<wbr>Data</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#onwritable" class="tsd-kind-icon">on<wbr>Writable</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#tryend" class="tsd-kind-icon">try<wbr>End</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="httpresponse.html#upgrade" class="tsd-kind-icon">upgrade</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#write" class="tsd-kind-icon">write</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#writeheader" class="tsd-kind-icon">write<wbr>Header</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="httpresponse.html#writestatus" class="tsd-kind-icon">write<wbr>Status</a></li>
@@ -124,12 +128,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L97">index.d.ts:97</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L130">index.d.ts:130</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Immediately force closes the connection.</p>
+									<p>Immediately force closes the connection. Any onAborted callback will run.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></h4>
@@ -140,13 +144,13 @@
 					<a name="cork" class="tsd-anchor"></a>
 					<h3>cork</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L133">index.d.ts:133</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L175">index.d.ts:175</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -166,10 +170,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>cb: <span class="tsd-signature-type">function</span></h5>
+									<h5>cb: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -195,7 +199,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L92">index.d.ts:92</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L125">index.d.ts:125</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -214,6 +218,50 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getproxiedremoteaddress" class="tsd-anchor"></a>
+					<h3>get<wbr>Proxied<wbr>Remote<wbr>Address</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L157">index.d.ts:157</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the remote IP address in binary format (4 or 16 bytes), as reported by the PROXY Protocol v2 compatible proxy.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getproxiedremoteaddressastext" class="tsd-anchor"></a>
+					<h3>get<wbr>Proxied<wbr>Remote<wbr>Address<wbr>AsText</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address<wbr>AsText<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L160">index.d.ts:160</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the remote IP address as text, as reported by the PROXY Protocol v2 compatible proxy.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
 					<a name="getremoteaddress" class="tsd-anchor"></a>
 					<h3>get<wbr>Remote<wbr>Address</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -223,12 +271,34 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L118">index.d.ts:118</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L151">index.d.ts:151</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Returns the remote IP address</p>
+									<p>Returns the remote IP address in binary format (4 or 16 bytes).</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getremoteaddressastext" class="tsd-anchor"></a>
+					<h3>get<wbr>Remote<wbr>Address<wbr>AsText</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L154">index.d.ts:154</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the remote IP address as text.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4>
@@ -245,7 +315,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L100">index.d.ts:100</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L133">index.d.ts:133</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -261,13 +331,13 @@
 					<a name="onaborted" class="tsd-anchor"></a>
 					<h3>on<wbr>Aborted</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Aborted<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Aborted<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L112">index.d.ts:112</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L145">index.d.ts:145</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -281,10 +351,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>handler: <span class="tsd-signature-type">function</span></h5>
+									<h5>handler: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -304,13 +374,13 @@
 					<a name="ondata" class="tsd-anchor"></a>
 					<h3>on<wbr>Data</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Data<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Data<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>chunk<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isLast<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L115">index.d.ts:115</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L148">index.d.ts:148</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -321,10 +391,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>handler: <span class="tsd-signature-type">function</span></h5>
+									<h5>handler: <span class="tsd-signature-symbol">(</span>chunk<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isLast<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>chunk<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isLast<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -353,13 +423,13 @@
 					<a name="onwritable" class="tsd-anchor"></a>
 					<h3>on<wbr>Writable</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Writable<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Writable<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="httpresponse.html" class="tsd-signature-type">HttpResponse</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L106">index.d.ts:106</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L139">index.d.ts:139</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -372,10 +442,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>handler: <span class="tsd-signature-type">function</span></h5>
+									<h5>handler: <span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">boolean</span></h5>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -407,7 +477,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L94">index.d.ts:94</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L127">index.d.ts:127</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -428,6 +498,52 @@
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<a name="upgrade" class="tsd-anchor"></a>
+					<h3>upgrade</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">upgrade&lt;T&gt;<span class="tsd-signature-symbol">(</span>userData<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span>, secWebSocketKey<span class="tsd-signature-symbol">: </span><a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a>, secWebSocketProtocol<span class="tsd-signature-symbol">: </span><a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a>, secWebSocketExtensions<span class="tsd-signature-symbol">: </span><a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a>, context<span class="tsd-signature-symbol">: </span><a href="us_socket_context_t.html" class="tsd-signature-type">us_socket_context_t</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L178">index.d.ts:178</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files.</p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>userData: <span class="tsd-signature-type">T</span></h5>
+								</li>
+								<li>
+									<h5>secWebSocketKey: <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></h5>
+								</li>
+								<li>
+									<h5>secWebSocketProtocol: <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></h5>
+								</li>
+								<li>
+									<h5>secWebSocketExtensions: <a href="../index.html#recognizedstring" class="tsd-signature-type">RecognizedString</a></h5>
+								</li>
+								<li>
+									<h5>context: <a href="us_socket_context_t.html" class="tsd-signature-type">us_socket_context_t</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
 					<a name="write" class="tsd-anchor"></a>
 					<h3>write</h3>
@@ -438,7 +554,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L90">index.d.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L123">index.d.ts:123</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -466,12 +582,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L88">index.d.ts:88</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L121">index.d.ts:121</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Writes key and value to HTTP response.</p>
+									<p>Writes key and value to HTTP response.
+									See writeStatus and corking.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -497,13 +614,23 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/be45fb6/docs/index.d.ts#L86">index.d.ts:86</a></li>
+									<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/f35f8c7/docs/index.d.ts#L117">index.d.ts:117</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Writes the HTTP status message such as &quot;200 OK&quot;.</p>
+									<p>Writes the HTTP status message such as &quot;200 OK&quot;.
+										This has to be called first in any response, otherwise
+									it will be called automatically with &quot;200 OK&quot;.</p>
 								</div>
+								<p>If you want to send custom headers in a WebSocket
+									upgrade response, you have to call writeStatus with
+									&quot;101 Switching Protocols&quot; before you call writeHeader,
+									otherwise your first call to writeHeader will call
+								writeStatus with &quot;200 OK&quot; and the upgrade will fail.</p>
+								<p>As you can imagine, we format outgoing responses in a linear
+									buffer, not in a hash table. You can read about this in
+								the user manual under &quot;corking&quot;.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -548,7 +675,16 @@
 								<a href="httpresponse.html#end" class="tsd-kind-icon">end</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="httpresponse.html#getproxiedremoteaddress" class="tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="httpresponse.html#getproxiedremoteaddressastext" class="tsd-kind-icon">get<wbr>Proxied<wbr>Remote<wbr>Address<wbr>AsText</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="httpresponse.html#getremoteaddress" class="tsd-kind-icon">get<wbr>Remote<wbr>Address</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="httpresponse.html#getremoteaddressastext" class="tsd-kind-icon">get<wbr>Remote<wbr>Address<wbr>AsText</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="httpresponse.html#getwriteoffset" class="tsd-kind-icon">get<wbr>Write<wbr>Offset</a>
@@ -564,6 +700,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="httpresponse.html#tryend" class="tsd-kind-icon">try<wbr>End</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+								<a href="httpresponse.html#upgrade" class="tsd-kind-icon">upgrade</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="httpresponse.html#write" class="tsd-kind-icon">write</a>
@@ -589,6 +728,9 @@
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="us_listen_socket.html" class="tsd-kind-icon">us_<wbr>listen_<wbr>socket</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="us_socket_context_t.html" class="tsd-kind-icon">us_<wbr>socket_<wbr>context_<wbr>t</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="../index.html#compressoptions" class="tsd-kind-icon">Compress<wbr>Options</a>
@@ -645,57 +787,8 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>

@@ -1,37 +1,45 @@
 <div align="center">
-<img src="misc/logo.svg" height="180" />
+<img src="https://raw.githubusercontent.com/uNetworking/uWebSockets/master/misc/logo.svg" height="180" /><br>
+<i>Simple, secure</i><sup><a href="https://github.com/uNetworking/uWebSockets/tree/master/fuzzing#fuzz-testing-of-various-parsers-and-mocked-examples">[1]</a></sup><i> & standards compliant</i><sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">[2]</a></sup><i> web server for the most demanding</i><sup><a href="https://github.com/uNetworking/uWebSockets/tree/master/benchmarks#benchmark-driven-development">[3]</a></sup><i> of applications.</i> <a href="https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md">Read more...</a>
+<br><br>
 
-*µWebSockets.js™ (it's "[micro](https://en.wikipedia.org/wiki/Micro-)") is simple, secure*<sup>[[1]](https://github.com/uNetworking/uWebSockets/tree/master/fuzzing)</sup> *& standards compliant*<sup>[[2]](https://unetworking.github.io/uWebSockets.js/report.pdf)</sup> *web I/O for the most demanding*<sup>[[3]](https://github.com/uNetworking/uWebSockets/tree/master/benchmarks)</sup> *of applications.*
 
-• [For Python](https://github.com/uNetworking/uWebSockets.py) • [User manual](https://github.com/uNetworking/uWebSockets/blob/master/misc/READMORE.md) • [Docs](https://unetworking.github.io/uWebSockets.js/generated/)
-
-*© 2016-2019, >39,632,272 downloads*
+<a href="https://github.com/uNetworking/uWebSockets.js/releases"><img src="https://img.shields.io/github/v/release/uNetworking/uWebSockets.js"></a> <a href="https://lgtm.com/projects/g/uNetworking/uWebSockets.js/context:cpp"><img alt="Language grade: C/C++" src="https://img.shields.io/lgtm/grade/cpp/g/uNetworking/uWebSockets.js.svg?logo=lgtm&logoWidth=18"/></a> <a href="https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:uwebsockets"><img src="https://oss-fuzz-build-logs.storage.googleapis.com/badges/uwebsockets.svg" /></a> <img src="https://img.shields.io/badge/downloads-55%20million-pink" />
 
 </div>
+<br><br>
 
-#### In a nutshell.
-
-Think of it as a complete replacement to both Express.js and Socket.IO, written entirely in C/C++ for maximum performance and reliability. There are tons of [examples](examples) but here's the gist of it all:
+### :zap: Simple performance
+µWebSockets.js is an HTTP/WebSocket server for Node.js that runs **[8.5x that of Fastify](https://alexhultman.medium.com/serving-100k-requests-second-from-a-fanless-raspberry-pi-4-over-ethernet-fdd2c2e05a1e)** and at least **[10x that of Socket.IO](https://medium.com/swlh/100k-secure-websockets-with-raspberry-pi-4-1ba5d2127a23)**. It comes with both router and pub/sub support and is suited for extraordinary performance needs. Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 
 ```javascript
 /* Non-SSL is simply App() */
 require('uWebSockets.js').SSLApp({
 
-  /* There are tons of SSL options */
+  /* There are more SSL options, cut for brevity */
   key_file_name: 'misc/key.pem',
   cert_file_name: 'misc/cert.pem',
   
 }).ws('/*', {
 
-  /* For brevity we skip the other events */
+  /* There are many common helper features */
+  idleTimeout: 30,
+  maxBackpressure: 1024,
+  maxPayloadLength: 512,
+  compression: DEDICATED_COMPRESSOR_3KB,
+
+  /* For brevity we skip the other events (upgrade, open, ping, pong, close) */
   message: (ws, message, isBinary) => {
-    let ok = ws.send(message, isBinary);
+    /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
+    
+    /* Here we echo the message back, using compression if available */
+    let ok = ws.send(message, isBinary, true);
   }
   
-}).any('/*', (res, req) => {
+}).get('/*', (res, req) => {
 
-  /* Let's deny all Http */
-  res.end('Nothing to see here!');
+  /* It does Http as well */
+  res.writeStatus('200 OK').writeHeader('IsExample', 'Yes').end('Hello there!');
   
 }).listen(9001, (listenSocket) => {
 
@@ -42,19 +50,33 @@ require('uWebSockets.js').SSLApp({
 });
 ```
 
-#### Ready all thrusters.
+### :muscle: Unfair advantage
 
-Install with `npm install uNetworking/uWebSockets.js#v17.6.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). No compiler needed.
+Being written in native code directly targeting the Linux kernel makes it way faster than any JavaScript implementation.
 
-![](misc/features_strip.png)
+![](misc/chart.png)
 
-Real-world tests over TLS 1.3 and Ethernet puts us **5x** as efficient as Socket.IO, **2x** as efficient as websockets/ws.
+### :crossed_swords: Battle proven
+We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">[2]</a></sup>. Companies with everything to lose rely on µWebSockets on a daily basis - we power the trading APIs of [Bitfinex.com](https://bitfinex.com) & [Kraken.com](https://www.kraken.com/), handling volumes of multiple billions of USD every day. Other companies include [Trello](https://trello.com), where µWebSockets is serving their 50 million users with real-time board updates.
 
-#### Pay what you want.
-Commercially developed on a sponsored/consulting basis; BitMEX, Bitfinex and Coinbase are current or previous sponsors. Contact [me, the author](https://github.com/alexhultman) for support, feature development or consulting/contracting.
+### :package: Easily installed
+We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
-![](https://raw.githubusercontent.com/uNetworking/uWebSockets/master/misc/2018.png)
+Being an open source project, you are of course perfectly free to choose other ways of installation as you might prefer.
 
-#### Know thy legal matters.
+### :briefcase: Commercially supported
+<a href="https://github.com/uNetworking">uNetworking AB</a> is a Swedish consulting & contracting company dealing with anything related to µWebSockets; development, support and customer success.
 
-*µWebSockets.js is intellectual property licensed Apache 2.0 with limitations on trademark use. Forks must be clearly labelled as such and must not be confused with the original.*
+Don't hesitate <a href="mailto:alexhultman@gmail.com">sending a mail</a> if you're building something large, in need of advice or having other business inquiries in mind. We'll figure out what's best for both parties and make sure you're not stepping into one of the many common pitfalls.
+
+Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub for allowing the project itself to thrive on GitHub since 2016 - this project would not be possible without these beautiful companies.
+
+<img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
+
+### :family: A family
+µWebSockets.js is the Node.js integration of [µWebSockets](https://github.com/uNetworking/uWebSockets); the standalone C++ project. If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using µWebSockets directly. It works exactly the same way, and will offer unbeatable performance for those highly demanding applications. Either way - the two projects both follow the same security testing, compliance testing and receive the same bug fixes and features. They are part of the same family.
+
+### :handshake: Permissively licensed
+Intellectual property, all rights reserved.
+
+Where such explicit notice is given, source code is licensed Apache License 2.0 which is a permissive OSI-approved license with very few limitations. Modified "forks" should be of nothing but licensed source code, and be made available under another product name. If you're uncertain about any of this, please ask before assuming.

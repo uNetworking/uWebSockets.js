@@ -41,7 +41,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export type WebSocket<UserData = {
-    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
+    /** Arbitrary user data may be attached to this object. */
     [key: string]: any;
 }> = {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.

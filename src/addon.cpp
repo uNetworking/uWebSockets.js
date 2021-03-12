@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2019.
+ * Authored by Alex Hultman, 2018-2020.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,13 +99,14 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
             std::string_view part = optionalPart.value();
 
             Local<ArrayBuffer> partArrayBuffer = ArrayBuffer::New(isolate, (void *) part.data(), part.length());
-            Local<Map> partMap = Map::New(isolate);
-            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "data", NewStringType::kNormal).ToLocalChecked(), partArrayBuffer);
+            /* Map is 30% faster in this case, but a static Object could be faster still */
+            Local<Object> partMap = Object::New(isolate);
+            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "data", NewStringType::kNormal).ToLocalChecked(), partArrayBuffer).IsNothing();
 
             for (int i = 0; headers[i].first.length(); i++) {
                 /* We care about content-type and content-disposition */
                 if (headers[i].first == "content-type") {
-                    partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "type", NewStringType::kNormal).ToLocalChecked(), String::NewFromUtf8(isolate, headers[i].second.data(), NewStringType::kNormal, headers[i].second.length()).ToLocalChecked());
+                    partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "type", NewStringType::kNormal).ToLocalChecked(), String::NewFromUtf8(isolate, headers[i].second.data(), NewStringType::kNormal, headers[i].second.length()).ToLocalChecked()).IsNothing();
                 } else if (headers[i].first == "content-disposition") {
                     /* Parse the parameters */
                     uWS::ParameterParser pp(headers[i].second);
@@ -117,13 +118,13 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
                         // really anything that has both key and value and is not type or data?
                         if (key == "name" || key == "filename") {
-                            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, key.data(), NewStringType::kNormal, key.length()).ToLocalChecked(), String::NewFromUtf8(isolate, value.data(), NewStringType::kNormal, value.length()).ToLocalChecked());
+                            partMap->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, key.data(), NewStringType::kNormal, key.length()).ToLocalChecked(), String::NewFromUtf8(isolate, value.data(), NewStringType::kNormal, value.length()).ToLocalChecked()).IsNothing();
                         }
                     }
                 }
             }
 
-            parts->Set(isolate->GetCurrentContext(), parts->Length(), partMap);
+            parts->Set(isolate->GetCurrentContext(), parts->Length(), partMap).IsNothing();
         }
 
         args.GetReturnValue().Set(parts);
@@ -258,7 +259,7 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
     int offset = 0;
 
     for (auto p : kvStoreString[std::string(collection.getString())]) {
-        stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
+        stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 
     args.GetReturnValue().Set(stringKeys);
@@ -276,7 +277,7 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
     int offset = 0;
 
     for (auto p : kvStoreInteger[std::string(collection.getString())]) {
-        integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked());
+        integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 
     args.GetReturnValue().Set(integerKeys);

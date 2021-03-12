@@ -37,7 +37,8 @@ struct node_version {
     {"v11.15.0", "67"},
     {"v12.13.0", "72"},
     {"v13.1.0", "79"},
-    {"v14.0.0", "83"}
+    {"v14.0.0", "83"},
+    {"v15.0.0", "88"}
 };
 
 /* Downloads headers, creates folders */
@@ -100,6 +101,14 @@ int main() {
           "-undefined dynamic_lookup",
           OS,
           "x64");
+    
+        /* Try and build for arm64 macOS 11 */
+        build("clang -target arm64-apple-macos11",
+          "clang++ -stdlib=libc++ -target arm64-apple-macos11",
+          "-undefined dynamic_lookup",
+          OS,
+          "arm64");
+    
 #else
     /* Linux */
     build("clang",

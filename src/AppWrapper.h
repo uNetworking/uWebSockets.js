@@ -1,3 +1,20 @@
+/*
+ * Authored by Alex Hultman, 2018-2020.
+ * Intellectual property of third-party.
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "App.h"
 #include <v8.h>
 #include "Utilities.h"
@@ -6,6 +23,11 @@ using namespace v8;
 /* uWS.App.ws('/pattern', behavior) */
 template <typename APP>
 void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
+
+    /* pattern, behavior */
+    if (missingArguments(2, args)) {
+        return;
+    }
 
     Isolate *isolate = args.GetIsolate();
 
@@ -225,14 +247,21 @@ template <typename APP, typename F>
 void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
+    /* Pattern */
     NativeString pattern(args.GetIsolate(), args[0]);
     if (pattern.isInvalid(args)) {
         return;
     }
 
+    /* Handler */
+    Callback checkedCallback(args.GetIsolate(), args[1]);
+    if (checkedCallback.isInvalid(args)) {
+        return;
+    }
+    UniquePersistent<Function> cb = checkedCallback.getFunction();
+
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
-    UniquePersistent<Function> cb(args.GetIsolate(), Local<Function>::Cast(args[1]));
 
     (app->*f)(std::string(pattern.getString()), [cb = std::move(cb), perContextData](auto *res, auto *req) {
         Isolate *isolate = perContextData->isolate;
@@ -264,9 +293,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     Isolate *isolate = args.GetIsolate();
 
     /* Require at least two arguments */
-    if (args.Length() < 2) {
-        /* Throw here */
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App.listen requires port and callback", NewStringType::kNormal).ToLocalChecked()));
+    if (missingArguments(2, args)) {
         return;
     }
 
@@ -307,16 +334,29 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
 
+    /* topic, message [isBinary, compress] */
+    if (missingArguments(2, args)) {
+        return;
+    }
+
     NativeString topic(isolate, args[0]);
+    if (topic.isInvalid(args)) {
+        return;
+    }
+
     NativeString message(isolate, args[1]);
+    if (message.isInvalid(args)) {
+        return;
+    }
+
     app->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
 }
 
 /* This one modified per-thread static strings temporarily */
-std::pair<struct us_socket_context_options_t, bool> readOptionsObject(const FunctionCallbackInfo<Value> &args, int index) {
+std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallbackInfo<Value> &args, int index) {
     Isolate *isolate = args.GetIsolate();
     /* Read the options object if any */
-    us_socket_context_options_t options = {};
+    uWS::SocketContextOptions options = {};
     thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
     if (args.Length() > index) {
 

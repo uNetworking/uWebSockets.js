@@ -28,10 +28,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-11.0, ubuntu-latest]
     steps:
       - name: Update binaries
         run: |
+          sudo xcode-select -switch /Applications/Xcode_12.2.app || true
           sudo apt update || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
@@ -41,6 +42,8 @@ jobs:
           cp dist/*.node .
           git status
           git pull origin binaries
+          git rev-parse master > source_commit
+          git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true

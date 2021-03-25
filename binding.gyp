@@ -75,7 +75,8 @@
           "is_electron=='true'",
           {
             "defines": [
-              "LIBUS_NO_SSL"
+              "LIBUS_NO_SSL",
+              "UWS_NO_ZLIB"
             ]
           }
         ],
@@ -83,7 +84,8 @@
           "is_electron=='false'",
           {
             "defines": [
-              "LIBUS_NO_SSL"
+              "LIBUS_NO_SSL",
+              "UWS_NO_ZLIB"
             ]
           }
         ],
@@ -95,7 +97,7 @@
       "OS=='win'",
       {
         "variables": {
-    "target_node_module_version": "<!(node -p \"require('fs').readFileSync(require('path').join(String.raw`<(nodedir)`, 'include', 'node', 'node_version.h'), { encoding: 'utf8' }).match(/#define NODE_MODULE_VERSION ([0-9]+)/)[1]\")",
+          "target_node_module_version": "<!(node -p \"require('fs').readFileSync(require('path').join(String.raw`<(nodedir)`, 'include', 'node', 'node_version.h'), { encoding: 'utf8' }).match(/#define NODE_MODULE_VERSION ([0-9]+)/)[1]\")",
         }
       }
     ],
@@ -103,7 +105,7 @@
       "OS!='win'",
       {
         "variables": {
-    "target_node_module_version": "<!(node -p \"require('fs').readFileSync(require('path').join(String.raw\`<(nodedir)\`, 'include', 'node', 'node_version.h'), { encoding: 'utf8' }).match(/#define NODE_MODULE_VERSION ([0-9]+)/)[1]\")",
+          "target_node_module_version": "<!(node -p \"require('fs').readFileSync(require('path').join(String.raw\`<(nodedir)\`, 'include', 'node', 'node_version.h'), { encoding: 'utf8' }).match(/#define NODE_MODULE_VERSION ([0-9]+)/)[1]\")",
         }
       }
     ]

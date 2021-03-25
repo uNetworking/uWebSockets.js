@@ -25,7 +25,6 @@
   "homepage": "https://github.com/seesemichaelj/uWebSockets.js#readme",
   "devDependencies": {
     "electron-rebuild": "^2.3.5",
-    "node-abi": "^2.21.0",
     "node-gyp": "^7.1.2"
   }
 }

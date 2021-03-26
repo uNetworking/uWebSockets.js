@@ -45,8 +45,11 @@ export interface WebSocket {
      * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
      * Make sure you properly understand the contept of backpressure. Check the backpressure example file.
+     *
+     * **NOTE:** Compression is disabled by Truffle Suite in this fork due to issues
+     * with rebuilding for electron with compression available.
      */
-    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
+    send(message: RecognizedString, isBinary?: boolean, compress?: false) : boolean;
 
     /** Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
      * Check backpressure example.
@@ -67,10 +70,10 @@ export interface WebSocket {
     ping(message?: RecognizedString) : boolean;
 
     /** Subscribe to a topic in MQTT syntax.
-     * 
+     *
      * MQTT syntax includes things like "root/child/+/grandchild" where "+" is a
      * wildcard and "root/#" where "#" is a terminating wildcard.
-     * 
+     *
      * Read more about MQTT.
     */
     subscribe(topic: RecognizedString) : WebSocket;
@@ -88,7 +91,7 @@ export interface WebSocket {
      * The pub/sub system does not guarantee order between what you manually send using WebSocket.send
      * and what you publish using WebSocket.publish. WebSocket messages are perfectly atomic, but the order in which they appear can get scrambled if you mix the two sending functions on the same socket.
      * This shouldn't matter in most applications. Order is guaranteed relative to other calls to WebSocket.publish.
-     * 
+     *
      * Also keep in mind that backpressure will be automatically managed with pub/sub, meaning some outgoing messages may be dropped if backpressure is greater than specified maxBackpressure.
     */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;
@@ -117,19 +120,19 @@ export interface HttpResponse {
     /** Writes the HTTP status message such as "200 OK".
      * This has to be called first in any response, otherwise
      * it will be called automatically with "200 OK".
-     * 
+     *
      * If you want to send custom headers in a WebSocket
      * upgrade response, you have to call writeStatus with
      * "101 Switching Protocols" before you call writeHeader,
      * otherwise your first call to writeHeader will call
      * writeStatus with "200 OK" and the upgrade will fail.
-     * 
+     *
      * As you can imagine, we format outgoing responses in a linear
      * buffer, not in a hash table. You can read about this in
      * the user manual under "corking".
     */
     writeStatus(status: RecognizedString) : HttpResponse;
-    /** Writes key and value to HTTP response. 
+    /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
@@ -223,8 +226,13 @@ export interface WebSocketBehavior {
      * Disable by using 0. Defaults to 120.
      */
     idleTimeout?: number;
-    /** What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. Defaults to uWS.DISABLED. */
-    compression?: CompressOptions;
+    /**
+     * What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. Defaults to uWS.DISABLED.
+     *
+     * **NOTE:** Compression is disabled by Truffle Suite in this fork due to issues
+     * with rebuilding for electron with compression available.
+     */
+    compression?: 0;
     /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 1024 * 1024. */
     maxBackpressure?: number;
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
@@ -247,14 +255,18 @@ export interface WebSocketBehavior {
 
 /** Options used when constructing an app. Especially for SSLApp.
  * These are options passed directly to uSockets, C layer.
+ *
+ * **NOTE:** SSL is disabled by Truffle Suite in this fork due to issues
+ * with rebuilding for electron with compression available. All SSL options
+ * are not available.
  */
 export interface AppOptions {
-    key_file_name?: RecognizedString;
-    cert_file_name?: RecognizedString;
-    passphrase?: RecognizedString;
-    dh_params_file_name?: RecognizedString;
-    /** This translates to SSL_MODE_RELEASE_BUFFERS */
-    ssl_prefer_low_memory_usage?: boolean;
+    // key_file_name?: RecognizedString;
+    // cert_file_name?: RecognizedString;
+    // passphrase?: RecognizedString;
+    // dh_params_file_name?: RecognizedString;
+    // /** This translates to SSL_MODE_RELEASE_BUFFERS */
+    // ssl_prefer_low_memory_usage?: boolean;
 }
 
 export enum ListenOptions {
@@ -297,12 +309,13 @@ export interface TemplatedApp {
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.
- * This is also where you listen and run your app, set any SSL options (in case of SSLApp) and the like.
+ * This is also where you listen and run your app.
+ *
+ * **NOTE:** SSL is disabled by Truffle Suite in this fork due to issues
+ * with rebuilding for electron with compression available. All SSL options
+ * and the SSLApp constructor are not available.
  */
 export function App(options?: AppOptions): TemplatedApp;
-
-/** Constructs an SSL app. See App. */
-export function SSLApp(options: AppOptions): TemplatedApp;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;

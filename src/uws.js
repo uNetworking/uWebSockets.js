@@ -27,6 +27,9 @@ module.exports = (() => {
 		}
 		return uWS;
 	} catch (e) {
-		throw new Error('This version of µWS is not compatible with your Node.js build:\n\n' + e.toString());
+		console.warn('This version of µWS is not compatible with your Node.js build:\n\n' + e.toString());
+		console.warn("Falling back to an Express + express-ws implementation.\n\n");
+		const fallback = require("./fallback/index");
+		return fallback;
 	}
 })();

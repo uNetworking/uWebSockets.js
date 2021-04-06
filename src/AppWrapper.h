@@ -65,6 +65,12 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         if (!maybeIdleTimeout.IsEmpty() && !maybeIdleTimeout.ToLocalChecked()->IsUndefined()) {
             behavior.idleTimeout = maybeIdleTimeout.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
+        
+        /* closeOnBackpressureLimit or default */
+        MaybeLocal<Value> maybeCloseOnBackpressureLimit = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "closeOnBackpressureLimit", NewStringType::kNormal).ToLocalChecked());
+        if (!maybeCloseOnBackpressureLimit.IsEmpty() && !maybeCloseOnBackpressureLimit.ToLocalChecked()->IsUndefined()) {
+            behavior.closeOnBackpressureLimit = maybeCloseOnBackpressureLimit.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
 
         /* Compression or default, map from 0, 1, 2 to disabled, shared, dedicated. This is actually the enum */
         MaybeLocal<Value> maybeCompression = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "compression", NewStringType::kNormal).ToLocalChecked());

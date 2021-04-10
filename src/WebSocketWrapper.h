@@ -181,6 +181,23 @@ struct WebSocketWrapper {
         }
     }
 
+    /* Takes topic string, returns bool */
+    template <bool SSL>
+    static void uWS_WebSocket_isSubscribed(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString topic(args.GetIsolate(), args[0]);
+            if (topic.isInvalid(args)) {
+                return;
+            }
+
+            bool subscribed = ws->isSubscribed(topic.getString());
+
+            args.GetReturnValue().Set(Boolean::New(isolate, subscribed));
+        }
+    }
+
     /* Takes message. Returns true on success, false otherwise */
     template <bool SSL>
     static void uWS_WebSocket_ping(const FunctionCallbackInfo<Value> &args) {
@@ -237,6 +254,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddressAsText<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "isSubscribed", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_isSubscribed<SSL>));
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

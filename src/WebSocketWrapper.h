@@ -50,7 +50,8 @@ struct WebSocketWrapper {
                 return;
             }
             bool nonStrict = args.Length() > 1 && args[1]->BooleanValue(isolate);
-            ws->subscribe(topic.getString(), nonStrict);
+            bool success = ws->subscribe(topic.getString(), nonStrict);
+            args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }
 

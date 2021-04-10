@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2020.
+ * Authored by Alex Hultman, 2018-2021.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,15 +17,7 @@
 
 module.exports = (() => {
 	try {
-		const uWS = require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
-		if (process.env.EXPERIMENTAL_FASTCALL) {
-			process.nextTick = (f, ...args) => {
-				Promise.resolve().then(() => {
-					f(...args);
-				});
-			};
-		}
-		return uWS;
+		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
 	} catch (e) {
 		throw new Error('This version of µWS is not compatible with your Node.js build:\n\n' + e.toString());
 	}

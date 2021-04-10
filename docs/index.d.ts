@@ -44,7 +44,7 @@ export interface WebSocket {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
      * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
-     * Make sure you properly understand the contept of backpressure. Check the backpressure example file.
+     * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
      */
     send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 

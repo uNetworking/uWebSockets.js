@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2020.
+ * Authored by Alex Hultman, 2018-2021.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
     /* This one is default constructed with defaults */
-    typename APP::WebSocketBehavior behavior = {};
+    typename APP::template WebSocketBehavior<PerSocketData> behavior = {};
 
     NativeString pattern(args.GetIsolate(), args[0]);
     if (pattern.isInvalid(args)) {
@@ -65,7 +65,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         if (!maybeIdleTimeout.IsEmpty() && !maybeIdleTimeout.ToLocalChecked()->IsUndefined()) {
             behavior.idleTimeout = maybeIdleTimeout.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
-        
+
         /* closeOnBackpressureLimit or default */
         MaybeLocal<Value> maybeCloseOnBackpressureLimit = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "closeOnBackpressureLimit", NewStringType::kNormal).ToLocalChecked());
         if (!maybeCloseOnBackpressureLimit.IsEmpty() && !maybeCloseOnBackpressureLimit.ToLocalChecked()->IsUndefined()) {
@@ -179,7 +179,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             CallJS(isolate, Local<Function>::New(isolate, messagePf), 3, argv);
 
             /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
-            NeuterArrayBuffer(messageArrayBuffer);
+            messageArrayBuffer->Detach();
         };
     }
 
@@ -197,7 +197,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     /* Ping handler is always optional */
     if (pingPf != Undefined(isolate)) {
-        behavior.ping = [pingPf = std::move(pingPf), isolate](auto *ws) {
+        behavior.ping = [pingPf = std::move(pingPf), isolate](auto *ws, std::string_view message) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
@@ -208,7 +208,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     /* Pong handler is always optional */
     if (pongPf != Undefined(isolate)) {
-        behavior.pong = [pongPf = std::move(pongPf), isolate](auto *ws) {
+        behavior.pong = [pongPf = std::move(pongPf), isolate](auto *ws, std::string_view message) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
@@ -239,7 +239,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         perSocketData->socketPf.Reset();
 
         /* Again, here we clear the buffer to avoid strange bugs */
-        NeuterArrayBuffer(messageArrayBuffer);
+        messageArrayBuffer->Detach();
     };
 
     app->template ws<PerSocketData>(std::string(pattern.getString()), std::move(behavior));
@@ -355,7 +355,7 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    app->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
+    app->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
 }
 
 /* This one modified per-thread static strings temporarily */
@@ -419,7 +419,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         }
 
         /* ssl_prefer_low_memory_usage */
-        options.ssl_prefer_low_memory_usage = BooleanValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        options.ssl_prefer_low_memory_usage = optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()->BooleanValue(isolate);
     }
 
     return {options, true};

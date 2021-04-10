@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2020.
+ * Authored by Alex Hultman, 2018-2021.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +25,8 @@ using namespace v8;
 #include <node.h>
 
 MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Value> *argv) {
-    if (experimental_fastcall) {
-        /* Fast path */
-        return f->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), argc, argv);
-    } else {
-        /* Slow path */
-        return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
-    }
+    /* Slow path */
+    return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
 }
 
 struct PerSocketData {

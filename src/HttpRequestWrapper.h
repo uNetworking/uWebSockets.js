@@ -95,7 +95,7 @@ struct HttpRequestWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest(args);
         if (req) {
-            bool yield = BooleanValue(args.GetIsolate(), args[0]);
+            bool yield = args[0]->BooleanValue(isolate);
             req->setYield(yield);
 
             args.GetReturnValue().Set(args.Holder());

@@ -26,9 +26,9 @@ using namespace v8;
 struct WebSocketWrapper {
 
     template <bool SSL>
-    static inline uWS::WebSocket<SSL, true> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
+    static inline uWS::WebSocket<SSL, true, PerSocketData> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *ws = (uWS::WebSocket<SSL, true> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!ws) {
             args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.", NewStringType::kNormal).ToLocalChecked()));
         }
@@ -49,7 +49,7 @@ struct WebSocketWrapper {
             if (topic.isInvalid(args)) {
                 return;
             }
-            bool nonStrict = args.Length() > 1 && BooleanValue(isolate, args[1]);
+            bool nonStrict = args.Length() > 1 && args[1]->BooleanValue(isolate);
             ws->subscribe(topic.getString(), nonStrict);
         }
     }
@@ -64,7 +64,7 @@ struct WebSocketWrapper {
             if (topic.isInvalid(args)) {
                 return;
             }
-            bool nonStrict = args.Length() > 1 && BooleanValue(isolate, args[1]);
+            bool nonStrict = args.Length() > 1 && args[1]->BooleanValue(isolate);
             bool success = ws->unsubscribe(topic.getString(), nonStrict);
             args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
@@ -89,7 +89,7 @@ struct WebSocketWrapper {
                 return;
             }
 
-            ws->publish(topic.getString(), message.getString(), BooleanValue(isolate, args[2]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[3]));
+            ws->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
         }
     }
 
@@ -175,7 +175,7 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->send(message.getString(), BooleanValue(isolate, args[1]) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, BooleanValue(isolate, args[2]));
+            bool ok = ws->send(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         }
@@ -196,17 +196,6 @@ struct WebSocketWrapper {
             bool ok = ws->send(message.getString(), uWS::OpCode::PING);
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
-        }
-    }
-
-    /* Takes nothing, returns this */
-    template <bool SSL>
-    static void uWS_WebSocket_unsubscribeAll(const FunctionCallbackInfo<Value> &args) {
-        Isolate *isolate = args.GetIsolate();
-        auto *ws = getWebSocket<SSL>(args);
-        if (ws) {
-            ws->unsubscribeAll();
-            args.GetReturnValue().Set(args.Holder());
         }
     }
 
@@ -245,7 +234,6 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribeAll", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribeAll<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddressAsText<SSL>));

@@ -66,7 +66,7 @@ struct HttpResponseWrapper {
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
                 CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
 
-                NeuterArrayBuffer(dataArrayBuffer);
+                dataArrayBuffer->Detach();
             });
 
             args.GetReturnValue().Set(args.Holder());
@@ -181,7 +181,7 @@ struct HttpResponseWrapper {
                     exit(-1);
                 }
 
-                return BooleanValue(isolate, maybeBoolean.ToLocalChecked());
+                return maybeBoolean.ToLocalChecked()->BooleanValue(isolate);
                 /* How important is this return? */
             });
 
@@ -216,7 +216,7 @@ struct HttpResponseWrapper {
 
             bool closeConnection = false;
             if (args.Length() >= 2) {
-                closeConnection = BooleanValue(args.GetIsolate(), args[1]);
+                closeConnection = args[1]->BooleanValue(args.GetIsolate());
             }
 
             invalidateResObject(args);

@@ -22,33 +22,8 @@
 #include <vector>
 #include <type_traits>
 
-/* This one can never change for the duration of this process, so never mind per context data:ing it, yes that is a word now */
-bool experimental_fastcall = 0;
-
 #include <v8.h>
 using namespace v8;
-
-/* Compatibility for V8 7.0 and earlier */
-#include <v8-version.h>
-bool BooleanValue(Isolate *isolate, Local<Value> value) {
-    #if V8_MAJOR_VERSION < 7 || (V8_MAJOR_VERSION == 7 && V8_MINOR_VERSION == 0)
-        /* Old */
-        return value->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-    #else
-        /* Node.js 12, 13 */
-        return value->BooleanValue(isolate);
-    #endif
-}
-
-void NeuterArrayBuffer(Local<ArrayBuffer> ab) {
-    #if V8_MAJOR_VERSION < 7 || (V8_MAJOR_VERSION == 7 && V8_MINOR_VERSION == 0)
-        /* Old */
-        ab->Neuter();
-    #else
-        /* Node.js 12, 13 */
-        ab->Detach();
-    #endif
-}
 
 #include "Utilities.h"
 #include "WebSocketWrapper.h"
@@ -351,17 +326,8 @@ void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
 
 PerContextData *Main(Local<Object> exports) {
 
-    /* We only care if it is defined, not what it says */
-    experimental_fastcall = getenv("EXPERIMENTAL_FASTCALL") != nullptr;
-
     /* We pass isolate everywhere */
     Isolate *isolate = exports->GetIsolate();
-
-    if (experimental_fastcall) {
-        /* We want this so that we can redefine process.nextTick to using the V8 native microtask queue */
-        /* Settings this crashes Node.js while debugging with breakpoints */
-        isolate->SetMicrotasksPolicy(MicrotasksPolicy::kAuto);
-    }
 
     /* Init the template objects, SSL and non-SSL, store it in per context data */
     PerContextData *perContextData = new PerContextData;

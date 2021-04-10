@@ -67,19 +67,22 @@ export interface WebSocket {
     ping(message?: RecognizedString) : boolean;
 
     /** Subscribe to a topic in MQTT syntax.
-     * 
+     *
      * MQTT syntax includes things like "root/child/+/grandchild" where "+" is a
      * wildcard and "root/#" where "#" is a terminating wildcard.
-     * 
+     *
      * Read more about MQTT.
     */
-    subscribe(topic: RecognizedString) : WebSocket;
+    subscribe(topic: RecognizedString) : boolean;
 
     /** Unsubscribe from a topic. Returns true on success, if the WebSocket was subscribed. */
     unsubscribe(topic: RecognizedString) : boolean;
 
-    /** Unsubscribe from all topics. This is called automatically before any close handler is called, so you never need to call this manually in the close handler of a WebSocket. */
-    unsubscribeAll() : void;
+    /** Returns whether this websocket is subscribed to topic. */
+    isSubscribed(topic: RecognizedString) : boolean;
+
+    /** Returns a list of topics this websocket is subscribed to. */
+    getTopics() : string[];
 
     /** Publish a message to a topic in MQTT syntax. You cannot publish using wildcards, only fully specified topics. Just like with MQTT.
      *
@@ -88,10 +91,10 @@ export interface WebSocket {
      * The pub/sub system does not guarantee order between what you manually send using WebSocket.send
      * and what you publish using WebSocket.publish. WebSocket messages are perfectly atomic, but the order in which they appear can get scrambled if you mix the two sending functions on the same socket.
      * This shouldn't matter in most applications. Order is guaranteed relative to other calls to WebSocket.publish.
-     * 
+     *
      * Also keep in mind that backpressure will be automatically managed with pub/sub, meaning some outgoing messages may be dropped if backpressure is greater than specified maxBackpressure.
     */
-    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : WebSocket;
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
     cork(cb: () => void) : void;
@@ -117,19 +120,19 @@ export interface HttpResponse {
     /** Writes the HTTP status message such as "200 OK".
      * This has to be called first in any response, otherwise
      * it will be called automatically with "200 OK".
-     * 
+     *
      * If you want to send custom headers in a WebSocket
      * upgrade response, you have to call writeStatus with
      * "101 Switching Protocols" before you call writeHeader,
      * otherwise your first call to writeHeader will call
      * writeStatus with "200 OK" and the upgrade will fail.
-     * 
+     *
      * As you can imagine, we format outgoing responses in a linear
      * buffer, not in a hash table. You can read about this in
      * the user manual under "corking".
     */
     writeStatus(status: RecognizedString) : HttpResponse;
-    /** Writes key and value to HTTP response. 
+    /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
@@ -240,9 +243,9 @@ export interface WebSocketBehavior {
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
     close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket) => void;
+    ping?: (ws: WebSocket, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket) => void;
+    pong?: (ws: WebSocket, message: ArrayBuffer) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -293,7 +296,9 @@ export interface TemplatedApp {
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
     ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
-    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : TemplatedApp;
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
+    /** Returns number of subscribers for this topic. */
+    numSubscribers(topic: RecognizedString) : number;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.

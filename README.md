@@ -56,7 +56,7 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 ![](misc/chart.png)
 
-Zero-allocation hot paths and lack of garbage collection leads to stable and low latencies.
+Low latencies are key to customer satisfaction and your competitive edge. Run low latency services at a lower cost.
 
 ![](misc/Manycast%20latency%20comparison%20%5Blower%20is%20better%5D.png)
 

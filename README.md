@@ -56,6 +56,10 @@ Being written in native code directly targeting the Linux kernel makes it way fa
 
 ![](misc/chart.png)
 
+Zero-allocation hot paths and lack of garbage collection leads to stable and low latencies.
+
+![](misc/Manycast%20latency%20comparison%20%5Blower%20is%20better%5D.png)
+
 ### :crossed_swords: Battle proven
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">[2]</a></sup>. Companies with everything to lose rely on µWebSockets on a daily basis - we power the trading APIs of [Bitfinex.com](https://bitfinex.com) & [Kraken.com](https://www.kraken.com/), handling volumes of multiple billions of USD every day. Other companies include [Trello](https://trello.com), where µWebSockets is serving their 50 million users with real-time board updates.
 

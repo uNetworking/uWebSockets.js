@@ -111,6 +111,11 @@ public:
             ArrayBuffer::Contents contents = arrayBuffer->GetContents();
             length = contents.ByteLength();
             data = (char *) contents.Data();
+        } else if (value->isSharedArrayBuffer()) {
+            Local<SharedArrayBuffer> arrayBuffer = Local<SharedArrayBuffer>::Cast(value);
+            SharedArrayBuffer::Contents contents = arrayBuffer->GetContents();
+            length = contents.ByteLength();
+            data = (char *) contents.Data();
         } else {
             invalid = true;
         }

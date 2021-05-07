@@ -47,7 +47,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export interface WebSocket {
+export interface WebSocket<Data> {
     /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
      * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
@@ -63,12 +63,12 @@ export interface WebSocket {
     /** Gracefully closes this WebSocket. Immediately calls the close handler.
      * A WebSocket close message is sent with code and shortMessage.
      */
-    end(code?: number, shortMessage?: RecognizedString) : WebSocket;
+    end(code?: number, shortMessage?: RecognizedString) : WebSocket<Data>;
 
     /** Forcefully closes this WebSocket. Immediately calls the close handler.
      * No WebSocket close message is sent.
      */
-    close() : WebSocket;
+    close() : WebSocket<Data>;
 
     /** Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
     ping(message?: RecognizedString) : boolean;
@@ -105,8 +105,10 @@ export interface WebSocket {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
-    [key: string]: any;
+    data: Data;
+
+    // /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
+    // [key: string]: any;
 }
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
@@ -213,7 +215,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior {
+export interface WebSocketBehavior<Data> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
@@ -231,17 +233,17 @@ export interface WebSocketBehavior {
      */
     upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket) => void;
+    open?: (ws: WebSocket<Data>) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<Data>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket) => void;
+    drain?: (ws: WebSocket<Data>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<Data>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket, message: ArrayBuffer) => void;
+    ping?: (ws: WebSocket<Data>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket, message: ArrayBuffer) => void;
+    pong?: (ws: WebSocket<Data>, message: ArrayBuffer) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -262,35 +264,35 @@ export enum ListenOptions {
 }
 
 /** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
-export interface TemplatedApp {
+export interface TemplatedApp<Data> {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
-    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp;
+    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp<Data>;
     /** Listens to port. Callback hands either false or a listen socket. */
-    listen(port: number, cb: (listenSocket: any) => void): TemplatedApp;
+    listen(port: number, cb: (listenSocket: any) => void): TemplatedApp<Data>;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
-    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp;
+    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp<Data>;
     /** Registers an HTTP GET handler matching specified URL pattern. */
-    get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP POST handler matching specified URL pattern. */
-    post(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    post(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP OPTIONS handler matching specified URL pattern. */
-    options(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    options(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP DELETE handler matching specified URL pattern. */
-    del(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    del(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP PATCH handler matching specified URL pattern. */
-    patch(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    patch(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP PUT handler matching specified URL pattern. */
-    put(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    put(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP HEAD handler matching specified URL pattern. */
-    head(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    head(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP CONNECT handler matching specified URL pattern. */
-    connect(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    connect(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP TRACE handler matching specified URL pattern. */
-    trace(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    trace(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
-    any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp<Data>;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
+    ws(pattern: RecognizedString, behavior: WebSocketBehavior<Data>) : TemplatedApp<Data>;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */
@@ -306,10 +308,10 @@ export interface TemplatedApp {
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.
  * This is also where you listen and run your app, set any SSL options (in case of SSLApp) and the like.
  */
-export function App(options?: AppOptions): TemplatedApp;
+export function App<UserData = any>(options?: AppOptions): TemplatedApp<UserData>;
 
 /** Constructs an SSL app. See App. */
-export function SSLApp(options: AppOptions): TemplatedApp;
+export function SSLApp<UserData = any>(options: AppOptions): TemplatedApp<UserData>;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;

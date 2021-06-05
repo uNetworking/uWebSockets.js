@@ -30,7 +30,7 @@ struct HttpRequestWrapper {
         /* Thow on deleted request */
         auto *req = (uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!req) {
-            args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "Using uWS.HttpRequest past its request handler return is forbidden (it is stack allocated).", NewStringType::kNormal).ToLocalChecked()));
+            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Using uWS.HttpRequest past its request handler return is forbidden (it is stack allocated).", NewStringType::kNormal).ToLocalChecked())));
         }
         return req;
     }

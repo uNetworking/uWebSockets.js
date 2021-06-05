@@ -524,7 +524,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* Throw if we failed to construct the app */
     if (app->constructorFailed()) {
         delete app;
-        args.GetReturnValue().Set(isolate->ThrowException(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked()));
+        args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked())));
         return;
     }
 

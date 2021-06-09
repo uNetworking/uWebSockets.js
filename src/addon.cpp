@@ -127,6 +127,12 @@ void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
     us_listen_socket_close(0, (struct us_listen_socket_t *) External::Cast(*args[0])->Value());
 }
 
+void uWS_us_socket_local_port(const FunctionCallbackInfo<Value> &args) {
+    // this should take int ssl first, but us_socket_local_port doesn't use it so it doesn't matter
+    int port = us_socket_local_port(0, (struct us_socket_t *) External::Cast(*args[0])->Value());
+    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), port));
+}
+
 /* Temporary KV store (doesn't belong here) */
 #include <unordered_map>
 #include <string>
@@ -365,6 +371,7 @@ PerContextData *Main(Local<Object> exports) {
 
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_socket_local_port", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_socket_local_port)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Compression enum */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "DISABLED", NewStringType::kNormal).ToLocalChecked(), Integer::NewFromUnsigned(isolate, uWS::DISABLED)).ToChecked();

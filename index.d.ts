@@ -12,10 +12,17 @@
  * limitations under the License.
  */
 
-/** Native type representing a raw uSockets struct us_listen_socket.
+/** Native type representing a raw uSockets struct us_listen_socket_t.
  * Careful with this one, it is entirely unchecked and native so invalid usage will blow up.
  */
 export interface us_listen_socket {
+
+}
+
+/** Native type representing a raw uSockets struct us_socket_t.
+ * Careful with this one, it is entirely unchecked and native so invalid usage will blow up.
+ */
+export interface us_socket {
 
 }
 
@@ -311,6 +318,9 @@ export function SSLApp(options: AppOptions): TemplatedApp;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;
+
+/** Gets local port of socket (or listenSocket) or -1. */
+export function us_socket_local_port(socket: us_socket): number;
 
 export interface MultipartField {
     data: ArrayBuffer;

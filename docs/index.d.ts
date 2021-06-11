@@ -306,6 +306,12 @@ export interface TemplatedApp {
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */
     numSubscribers(topic: RecognizedString) : number;
+    /** Adds a server name. */
+    addServerName(hostname: string, options: AppOptions): TemplatedApp;
+    /** Removes a server name. */
+    removeServerName(hostname: string): TemplatedApp;
+    /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
+    missingServerName(cb: (hostname: string) => void): TemplatedApp;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.

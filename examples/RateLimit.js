@@ -26,7 +26,8 @@ const app = uWS./*SSL*/App({
         // rateLimit(ws) returns true if over limit
         if (rateLimit(ws)) {
             /*
-                Do as you wish, personally, I prefer to inform the client, do Log, and close the connection if over limit happened.
+                Do as you wish, personally, I prefer to inform the client, do Log,
+                 and close the connection if over limit happened.
                 or you can just ignore its message and just return. 
             */
             const dataToSendToClient = {

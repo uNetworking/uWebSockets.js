@@ -1,6 +1,6 @@
 {
   "name": "@trufflesuite/uws-js-unofficial",
-  "version": "18.14.0-unofficial.3",
+  "version": "18.14.0-unofficial.7",
   "description": "Simple, secure, & standards compliant web server for the most demanding of applications.",
   "main": "src/uws.js",
   "types": "docs/index.d.ts",
@@ -11,7 +11,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node-gyp rebuild"
+    "build": "node-gyp rebuild && yarn tsc",
+    "tsc": "tsc",
+    "prepare": "yarn build"
   },
   "repository": {
     "type": "git",
@@ -23,14 +25,22 @@
     "url": "https://github.com/trufflesuite/uws-js-unofficial/issues"
   },
   "homepage": "https://github.com/trufflesuite/uws-js-unofficial#readme",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "binaries",
+    "dist",
+    "docs",
+    "src/fallback",
+    "src/uws.js"
+  ],
   "devDependencies": {
+    "@types/ws": "^7.4.1",
     "electron-rebuild": "^2.3.5",
-    "node-gyp": "^7.1.2"
+    "node-gyp": "^7.1.2",
+    "typescript": "^4.2.4"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "esm": "^3.2.25",
-    "express": "^4.17.1",
     "ws": "^7.4.4"
   }
 }

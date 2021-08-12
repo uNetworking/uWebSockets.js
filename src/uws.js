@@ -22,7 +22,7 @@ module.exports = (() => {
 		process.env.UWS_USE_FALLBACK === "TRUE" ||
 		process.env.UWS_USE_FALLBACK === "1"
 	) {
-		console.log("Using uWS fallback implementation due to UWS_USE_FALLBACK environment flag being enabled; performance may be degraded.\n\n");
+		console.log("Using µWS fallback implementation due to UWS_USE_FALLBACK environment flag being enabled; performance may be degraded.\n\n");
 		const fallback = require("../dist/index");
 		return fallback;
 	}
@@ -39,7 +39,7 @@ module.exports = (() => {
 		return uWS;
 	} catch (e) {
 		console.warn('This version of µWS is not compatible with your Node.js build:\n\n' + e.toString());
-		console.warn("Falling back to an NodeJS implementation; performance may be degraded.\n\n");
+		console.warn("Falling back to a NodeJS implementation; performance may be degraded.\n\n");
 		const fallback = require("../dist/index");
 		return fallback;
 	}

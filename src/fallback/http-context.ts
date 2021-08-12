@@ -122,20 +122,30 @@ export class HttpContext {
 
   private sockets = new Set<Socket>();
   listen(host: RecognizedString | undefined, port: number, callback: ListenCallback) {
-    this.http = http.createServer(this.handleRequest.bind(this));
-    this.http.on("connection", socket => {
-      this.http!.once("close", () => {
+    const server = this.http = http.createServer(this.handleRequest.bind(this));
+    server.on("connection", socket => {
+      server.once("close", () => {
         this.sockets.delete(socket);
       });
     });
-    this.http.on("upgrade", this.handleHttpUpgrade.bind(this));
+    server.on("upgrade", this.handleHttpUpgrade.bind(this));
+
+    const handleError = (err: Error & {code: string, syscall: string}) => {
+      if (err.syscall === "listen") {
+        server.removeListener("error", handleError);
+        callback(false);
+      }
+      else throw err;
+    }
+    server.on("error", handleError);
+    server.on("listening", () => server.removeListener("error", handleError));
 
     const options: ListenOptions = { port, exclusive: true };
     if (host) {
       options.host = host.toString();
     }
 
-    this.http.listen({ port, exclusive: true }, () => {
+    server.listen({ port, exclusive: true }, () => {
       this.closed = false;
       callback(this);
     });

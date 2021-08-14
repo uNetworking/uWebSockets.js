@@ -42,5 +42,9 @@
   },
   "dependencies": {
     "ws": "^7.4.4"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.0.3",
+    "utf-8-validate": "5.0.5"
   }
 }

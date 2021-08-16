@@ -1,0 +1,11 @@
+{
+	"files": [ "index.d.ts" ],
+	"typedocOptions": {
+		"name":"uWebSockets.js v19.3.0 documentation",
+		"entryPoints": [ "index.d.ts" ],
+		"out":"generated",
+		"excludeExternals":true,
+		"readme":"none",
+		"gitRevision": "master"
+	}
+}

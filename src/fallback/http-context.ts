@@ -7,6 +7,8 @@ import { HttpRouter } from "./http-router";
 import { HttpHandler, ListenCallback, Method } from "./types";
 import { WebSocket } from "./websocket";
 
+const UWS_DEFAULT_MAX_PAYLOAD_LENGTH = 16 * 1024;
+
 export class HttpContext {
   router: HttpRouter;
   http: http.Server | null;
@@ -75,9 +77,16 @@ export class HttpContext {
     // We only need to create the WebSocket Server once, but we shouldn't
     // create it if the user never calls `TemplatedApp.ws(...)`
     if (!this.wsServer) {
-      // `noServer: true` is necessary for us to be able to call `handleUpgrade`
-      // called in `TemplatedApp.upgradeHandler`
-      this.wsServer = new InternalWebSocket.Server({ noServer: true });
+      const maxPayloadLength =
+        behavior && "maxPayloadLength" in behavior
+          ? behavior.maxPayloadLength
+          : UWS_DEFAULT_MAX_PAYLOAD_LENGTH;
+      this.wsServer = new InternalWebSocket.Server({
+        // `noServer: true` is necessary for us to be able to call `handleUpgrade`
+        // called in `TemplatedApp.upgradeHandler`
+        noServer: true,
+        maxPayload: maxPayloadLength,
+      });
     }
 
     this.wsBehaviors.set(pattern, behavior);

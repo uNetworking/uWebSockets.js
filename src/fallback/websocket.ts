@@ -19,7 +19,19 @@ export class WebSocket implements uWsWebSocket {
       behavior.open(this);
     }
 
-    this.internalWs.on("message", message => {
+    this.internalWs.on("error", (error) => {
+      // if max payload size is exceed we want to match uWS error handling.
+      // It propagates the error with code `1006` and message "Received too big
+      // message".
+      if (error.message === "Max payload size exceeded") {
+        (this.internalWs as any)._closeCode = 1006;
+        (this.internalWs as any)._closeMessage = "Received too big message";
+      } else {
+        throw error;
+      }
+    });
+
+    this.internalWs.on("message", (message) => {
       if (typeof behavior.message === "function") {
         if (typeof message === "string") {
           const buf = new ArrayBuffer(message.length);

@@ -35,13 +35,13 @@
     "src/uws.js"
   ],
   "devDependencies": {
-    "@types/ws": "^7.4.1",
+    "@types/ws": "^7.4.7",
     "electron-rebuild": "^2.3.5",
     "node-gyp": "^7.1.2",
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "ws": "^7.4.4"
+    "ws": "^8.2.0"
   },
   "optionalDependencies": {
     "bufferutil": "4.0.3",

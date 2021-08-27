@@ -1,22 +1,66 @@
 import {
   RecognizedString,
   WebSocket as uWsWebSocket,
-  WebSocketBehavior
+  WebSocketBehavior,
 } from "../../docs/index";
+import type { IncomingMessage } from "http";
+import type Socket from "stream";
 import InternalWebSocket from "ws";
+
+const TOO_BIG_MESSAGE = Buffer.from("Received too big message", "utf8");
+
+/**
+ * Converts a buffer to an `ArrayBuffer`.
+ *
+ * @param {Buffer} buf The buffer to convert
+ * @return {ArrayBuffer} Converted buffer
+ * @public
+ */
+function toArrayBuffer(buf: Buffer) {
+  if (buf.byteLength === buf.buffer.byteLength) {
+    return buf.buffer;
+  }
+
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+const NODE_VERSION = parseInt(process.versions.node, 10);
 
 export class WebSocket implements uWsWebSocket {
   private internalWs: InternalWebSocket;
 
   constructor(internalWs: InternalWebSocket) {
     this.internalWs = internalWs;
+    // `nodebuffer` is already the default, but I just wanted to be explicit
+    // here because when `nodebuffer` is the binaryType the `message` event's
+    // data type is guaranteed to be a `Buffer`. We don't need to check for
+    // different types of data.
+    // I mention all this because if `arraybuffer` or `fragment` is used for the
+    // binaryType the `"message"` event's `data` may end up being
+    // `ArrayBuffer | Buffer`, or `Buffer[] | Buffer`, respectively.
+    internalWs.binaryType = "nodebuffer";
   }
 
-  initialize(behavior: WebSocketBehavior) {
+  initialize(
+    behavior: WebSocketBehavior,
+    socket: Socket,
+    incomingMessage: IncomingMessage
+  ) {
     this.internalWs.removeAllListeners();
 
     if (typeof behavior.open === "function") {
       behavior.open(this);
+    }
+
+    if (NODE_VERSION < 14) {
+      // node 14 and up automatically destroy the socket after an error occurs
+      // but versions before that they don't. We need to do our own cleanup here
+      // otherwise errors (like "Max payload size exceeded") won't immediately
+      // close the websocket connection.
+      socket.on("finish", () => {
+        if (incomingMessage.destroyed) return;
+        incomingMessage.destroy();
+      });
     }
 
     this.internalWs.on("error", (error) => {
@@ -25,42 +69,24 @@ export class WebSocket implements uWsWebSocket {
       // message".
       if (error.message === "Max payload size exceeded") {
         (this.internalWs as any)._closeCode = 1006;
-        (this.internalWs as any)._closeMessage = "Received too big message";
+        (this.internalWs as any)._closeMessage = TOO_BIG_MESSAGE;
       } else {
         throw error;
       }
     });
 
-    this.internalWs.on("message", (message) => {
+    this.internalWs.on("message", (message: Buffer, isBinary: boolean) => {
       if (typeof behavior.message === "function") {
-        if (typeof message === "string") {
-          const buf = new ArrayBuffer(message.length);
-          const bufView = new Uint8Array(buf);
-          for (let i = 0; i < message.length; i++) {
-            bufView[i] = message.charCodeAt(i);
-          }
-          behavior.message(this, buf, false);
-        } else if (Buffer.isBuffer(message)) {
-          const buf = (new Uint8Array(message)).buffer;
-          behavior.message(this, buf, true);
-        } else if (Array.isArray(message)) {
-          // array of buffers. do nothing?
-        } else {
-          behavior.message(this, message, true);
-        }
+        behavior.message(this, toArrayBuffer(message), isBinary);
       }
     });
 
     // TODO: there is no "drain" event for `ws`
     // this currently isn't used by ganache so moving along
 
-    this.internalWs.on("close", (code, reason) => {
+    this.internalWs.on("close", (code, reason: Buffer) => {
       if (typeof behavior.close === "function") {
-        const buf = new ArrayBuffer(reason.length);
-        const bufView = new Uint8Array(buf);
-        for (let i = 0; i < reason.length; i++) {
-          bufView[i] = reason.charCodeAt(i);
-        }
+        const buf = reason ? toArrayBuffer(reason) : new ArrayBuffer(0);
         behavior.close(this, code, buf);
       }
 

@@ -3,8 +3,6 @@ import {
   WebSocket as uWsWebSocket,
   WebSocketBehavior,
 } from "../../docs/index";
-import type { IncomingMessage } from "http";
-import type Socket from "stream";
 import InternalWebSocket from "ws";
 
 const TOO_BIG_MESSAGE = Buffer.from("Received too big message", "utf8");
@@ -41,26 +39,11 @@ export class WebSocket implements uWsWebSocket {
     internalWs.binaryType = "nodebuffer";
   }
 
-  initialize(
-    behavior: WebSocketBehavior,
-    socket: Socket,
-    incomingMessage: IncomingMessage
-  ) {
+  initialize(behavior: WebSocketBehavior) {
     this.internalWs.removeAllListeners();
 
     if (typeof behavior.open === "function") {
       behavior.open(this);
-    }
-
-    if (NODE_VERSION < 14) {
-      // node 14 and up automatically destroy the socket after an error occurs
-      // but versions before that they don't. We need to do our own cleanup here
-      // otherwise errors (like "Max payload size exceeded") won't immediately
-      // close the websocket connection.
-      socket.on("finish", () => {
-        if (incomingMessage.destroyed) return;
-        incomingMessage.destroy();
-      });
     }
 
     this.internalWs.on("error", (error) => {
@@ -70,6 +53,16 @@ export class WebSocket implements uWsWebSocket {
       if (error.message === "Max payload size exceeded") {
         (this.internalWs as any)._closeCode = 1006;
         (this.internalWs as any)._closeMessage = TOO_BIG_MESSAGE;
+
+        // node 14 and up automatically destroy the socket after an error occurs
+        // but versions before that they don't. We need to do our own cleanup
+        // here, otherwise errors (like "Max payload size exceeded") won't
+        // immediately close the websocket connection.
+        // See https://github.com/websockets/ws/issues/1940#issuecomment-907432872
+        // for more information
+        if (NODE_VERSION < 14) {
+          this.internalWs.terminate();
+        }
       } else {
         throw error;
       }

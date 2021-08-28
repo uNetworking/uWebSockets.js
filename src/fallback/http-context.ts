@@ -114,16 +114,11 @@ export class HttpContext {
             // yet in Ganache, so this isn't implemented currently
             throw new Error("not implemented");
           } else {
-            this.wsServer.handleUpgrade(
-              request,
-              socket,
-              head,
-              (internalWs, incomingMessage) => {
-                const ws = new WebSocket(internalWs);
-                ws.initialize(behavior, socket, incomingMessage);
-                this.wsServer!.emit("connection", internalWs, request);
-              }
-            );
+            this.wsServer.handleUpgrade(request, socket, head, (internalWs) => {
+              const ws = new WebSocket(internalWs);
+              ws.initialize(behavior);
+              this.wsServer!.emit("connection", internalWs, request);
+            });
           }
 
           break;

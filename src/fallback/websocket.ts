@@ -22,8 +22,6 @@ function toArrayBuffer(buf: Buffer) {
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 }
 
-const NODE_VERSION = parseInt(process.versions.node, 10);
-
 export class WebSocket implements uWsWebSocket {
   private internalWs: InternalWebSocket;
 
@@ -53,16 +51,6 @@ export class WebSocket implements uWsWebSocket {
       if (error.message === "Max payload size exceeded") {
         (this.internalWs as any)._closeCode = 1006;
         (this.internalWs as any)._closeMessage = TOO_BIG_MESSAGE;
-
-        // node 14 and up automatically destroy the socket after an error occurs
-        // but versions before that they don't. We need to do our own cleanup
-        // here, otherwise errors (like "Max payload size exceeded") won't
-        // immediately close the websocket connection.
-        // See https://github.com/websockets/ws/issues/1940#issuecomment-907432872
-        // for more information
-        if (NODE_VERSION < 14) {
-          this.internalWs.terminate();
-        }
       } else {
         throw error;
       }
@@ -86,13 +74,13 @@ export class WebSocket implements uWsWebSocket {
       this.internalWs.removeAllListeners(); // may be redundant
     });
 
-    this.internalWs.on("ping", data => {
+    this.internalWs.on("ping", (data) => {
       if (typeof behavior.ping === "function") {
         behavior.ping(this);
       }
     });
 
-    this.internalWs.on("pong", data => {
+    this.internalWs.on("pong", (data) => {
       if (typeof behavior.pong === "function") {
         behavior.pong(this);
       }
@@ -147,7 +135,12 @@ export class WebSocket implements uWsWebSocket {
 
   // TODO this isn't currently necessary
   // so we're not implementing it yet
-  publish(topic: RecognizedString, message: RecognizedString, isBinary: boolean, compress: boolean) {
+  publish(
+    topic: RecognizedString,
+    message: RecognizedString,
+    isBinary: boolean,
+    compress: boolean
+  ) {
     return this;
   }
 

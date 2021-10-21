@@ -169,7 +169,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         behavior.message = [messagePf = std::move(messagePf), isolate](auto *ws, std::string_view message, uWS::OpCode opCode) {
             HandleScope hs(isolate);
 
-            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer_New(isolate, (void *) message.data(), message.length());
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
             Local<Value> argv[3] = {Local<Object>::New(isolate, perSocketData->socketPf),
@@ -221,7 +221,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     behavior.close = [closePf = std::move(closePf), isolate](auto *ws, int code, std::string_view message) {
         HandleScope hs(isolate);
 
-        Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer::New(isolate, (void *) message.data(), message.length());
+        Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer_New(isolate, (void *) message.data(), message.length());
         PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
         Local<Object> wsObject = Local<Object>::New(isolate, perSocketData->socketPf);
 

@@ -29,6 +29,11 @@ MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Va
     return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
 }
 
+Local<v8::ArrayBuffer> ArrayBuffer_New(Isolate *isolate, void *data, size_t length) {
+    std::unique_ptr<BackingStore> backingStore = ArrayBuffer::NewBackingStore(data, length, [](void* data, size_t length, void* deleter_data) {}, nullptr);
+    return ArrayBuffer::New(isolate, std::shared_ptr<BackingStore>(backingStore.release()));
+}
+
 struct PerSocketData {
     UniquePersistent<Object> socketPf;
 };
@@ -103,19 +108,19 @@ public:
             length = utf8Value->length();
         } else if (value->IsTypedArray()) {
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
-            ArrayBuffer::Contents contents = arrayBufferView->Buffer()->GetContents();
+            auto contents = arrayBufferView->Buffer()->GetBackingStore();
             length = arrayBufferView->ByteLength();
-            data = (char *) contents.Data() + arrayBufferView->ByteOffset();
+            data = (char *) contents->Data() + arrayBufferView->ByteOffset();
         } else if (value->IsArrayBuffer()) {
             Local<ArrayBuffer> arrayBuffer = Local<ArrayBuffer>::Cast(value);
-            ArrayBuffer::Contents contents = arrayBuffer->GetContents();
-            length = contents.ByteLength();
-            data = (char *) contents.Data();
+            auto contents = arrayBuffer->GetBackingStore();
+            length = contents->ByteLength();
+            data = (char *) contents->Data();
         } else if (value->IsSharedArrayBuffer()) {
             Local<SharedArrayBuffer> arrayBuffer = Local<SharedArrayBuffer>::Cast(value);
-            SharedArrayBuffer::Contents contents = arrayBuffer->GetContents();
-            length = contents.ByteLength();
-            data = (char *) contents.Data();
+            auto contents = arrayBuffer->GetBackingStore();
+            length = contents->ByteLength();
+            data = (char *) contents->Data();
         } else {
             invalid = true;
         }

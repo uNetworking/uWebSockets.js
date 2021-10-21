@@ -61,7 +61,7 @@ struct HttpResponseWrapper {
             res->onData([p = std::move(p), isolate](std::string_view data, bool last) {
                 HandleScope hs(isolate);
 
-                Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(isolate, (void *) data.data(), data.length());
+                Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer_New(isolate, (void *) data.data(), data.length());
 
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
                 CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
@@ -107,7 +107,7 @@ struct HttpResponseWrapper {
             std::string_view ip = res->getRemoteAddress();
 
             /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
         }
     }
 
@@ -120,7 +120,7 @@ struct HttpResponseWrapper {
             std::string_view ip = res->getRemoteAddressAsText();
 
             /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
         }
     }
 
@@ -133,7 +133,7 @@ struct HttpResponseWrapper {
             std::string_view ip = res->getProxiedRemoteAddress();
 
             /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
         }
     }
 
@@ -146,7 +146,7 @@ struct HttpResponseWrapper {
             std::string_view ip = res->getProxiedRemoteAddressAsText();
 
             /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer::New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
         }
     }
 

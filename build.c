@@ -77,7 +77,7 @@ void copy_files() {
 void build_windows(char *arch) {
     /* For all versions */
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        run("cl /W3 /D \"UWS_WITH_PROXY\" /D \"LIBUS_USE_LIBUV\" /D \"LIBUS_USE_OPENSSL\" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/crypto/sni_tree.cpp "
+        run("cl /W3 /DOPENSSL_CONFIGURED_API=0x10100000L /DOPENSSL_API_COMPAT=0x10100000L /D \"UWS_WITH_PROXY\" /D \"LIBUS_USE_LIBUV\" /D \"LIBUS_USE_OPENSSL\" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/crypto/sni_tree.cpp "
             "uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c /I targets/node-%s/include/node /I uWebSockets/src /EHsc "
             "/Ox /LD /Fedist/uws_win32_%s_%s.node src/addon.cpp targets/node-%s/node.lib",
             versions[i].name, arch, versions[i].abi, versions[i].name);

@@ -9,6 +9,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: ilammy/msvc-dev-cmd@v1
+      - uses: ilammy/setup-nasm@v1.2.1
       - name: Update binaries
         run: |
           $ErrorActionPreference = 'SilentlyContinue'

@@ -34,6 +34,12 @@ Local<v8::ArrayBuffer> ArrayBuffer_New(Isolate *isolate, void *data, size_t leng
     return ArrayBuffer::New(isolate, std::shared_ptr<BackingStore>(backingStore.release()));
 }
 
+Local<v8::ArrayBuffer> ArrayBuffer_NewCopy(Isolate *isolate, void *data, size_t length) {
+    Local<ArrayBuffer> ab = ArrayBuffer::New(isolate, length);
+    memcpy(ab->GetBackingStore()->Data(), data, length);
+    return ab;
+}
+
 struct PerSocketData {
     UniquePersistent<Object> socketPf;
 };

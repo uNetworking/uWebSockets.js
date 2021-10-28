@@ -136,8 +136,7 @@ struct WebSocketWrapper {
         if (ws) {
             std::string_view ip = ws->getRemoteAddress();
 
-            /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) ip.data(), ip.length()));
         }
     }
 
@@ -149,8 +148,7 @@ struct WebSocketWrapper {
         if (ws) {
             std::string_view ip = ws->getRemoteAddressAsText();
 
-            /* Todo: we need to pass a copy here */
-            args.GetReturnValue().Set(ArrayBuffer_New(isolate, (void *) ip.data(), ip.length()/*, ArrayBufferCreationMode::kInternalized*/));
+            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) ip.data(), ip.length()));
         }
     }
 
@@ -248,7 +246,6 @@ struct WebSocketWrapper {
                 topicsArray->Set(isolate->GetCurrentContext(), topicsArray->Length(), topicString).IsNothing();
             });
 
-            /* Todo: we need to pass a copy here */
             args.GetReturnValue().Set(topicsArray);
         }
     }

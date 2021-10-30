@@ -63,7 +63,7 @@ Low latencies are key to customer satisfaction and your competitive edge. Run lo
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">2</a></sup>. µWebSockets powers many of the biggest crypto exchanges in the world, handling trade volumes of multiple billions of USD every day. If you trade crypto, chances are you do so via µWebSockets.
 
 ### :package: Easily installed
-We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.1.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
+We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.3.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
 Being an open source project, you are of course perfectly free to choose other ways of installation as you might prefer.
 
@@ -77,7 +77,7 @@ Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub 
 <img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
 
 ### :gear: Gear up
-µWebSockets.js is the **Node.js integration** of [µWebSockets](https://github.com/uNetworking/uWebSockets); a **standalone C++ project**. If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using µWebSockets directly. It works exactly the same way, and will offer unbeatable performance for those highly demanding applications. Either way - the two projects both follow the same security testing, compliance testing and receive the same bug fixes and features.
+If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using [µWebSockets](https://github.com/uNetworking/uWebSockets) directly. It works exactly the same way, and will offer the best performance for those highly demanding applications where scripting won't do.
 
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.

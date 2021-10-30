@@ -165,6 +165,57 @@ struct WebSocketWrapper {
 
     /* Takes message, isBinary, compressed. Returns true on success, false otherwise */
     template <bool SSL>
+    static void uWS_WebSocket_sendFirstFragment(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString message(args.GetIsolate(), args[0]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
+            bool ok = ws->sendFirstFragment(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
+    /* Takes message, compressed. Returns true on success, false otherwise */
+    template <bool SSL>
+    static void uWS_WebSocket_sendFragment(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString message(args.GetIsolate(), args[0]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
+            bool ok = ws->sendFragment(message.getString(), args[1]->BooleanValue(isolate));
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
+    /* Takes message, compressed. Returns true on success, false otherwise */
+    template <bool SSL>
+    static void uWS_WebSocket_sendLastFragment(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            NativeString message(args.GetIsolate(), args[0]);
+            if (message.isInvalid(args)) {
+                return;
+            }
+
+            bool ok = ws->sendLastFragment(message.getString(), args[1]->BooleanValue(isolate));
+
+            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        }
+    }
+
+    /* Takes message, isBinary, compressed. Returns true on success, false otherwise */
+    template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
@@ -261,6 +312,10 @@ struct WebSocketWrapper {
         wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
         /* Register our functions */
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendFirstFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendFirstFragment<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendFragment<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendLastFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendLastFragment<SSL>));
+        
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));

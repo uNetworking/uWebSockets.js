@@ -55,6 +55,10 @@ export interface WebSocket {
      */
     send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
+    sendFirstFragment(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
+    sendFragment(message: RecognizedString, compress?: boolean) : boolean;
+    sendLastFragment(message: RecognizedString, compress?: boolean) : boolean;
+
     /** Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
      * Check backpressure example.
      */
@@ -321,6 +325,8 @@ export function App(options?: AppOptions): TemplatedApp;
 
 /** Constructs an SSL app. See App. */
 export function SSLApp(options: AppOptions): TemplatedApp;
+
+export function _cfg(args: RecognizedString): void;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;

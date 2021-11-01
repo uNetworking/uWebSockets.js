@@ -1,0 +1,195 @@
+import {
+  RecognizedString,
+  WebSocket as uWsWebSocket,
+  WebSocketBehavior,
+} from "../../docs/index";
+import InternalWebSocket from "ws";
+
+const TOO_BIG_MESSAGE = Buffer.from("Received too big message", "utf8");
+
+/**
+ * Converts a buffer to an `ArrayBuffer`.
+ *
+ * @param buf The buffer to convert
+ * @return Converted buffer
+ * @public
+ */
+function toArrayBuffer(buf: Buffer): ArrayBuffer {
+  if (buf.byteLength === buf.buffer.byteLength) {
+    return buf.buffer;
+  }
+
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+export class WebSocket implements uWsWebSocket {
+  private internalWs: InternalWebSocket;
+
+  constructor(internalWs: InternalWebSocket) {
+    this.internalWs = internalWs;
+    // `nodebuffer` is already the default, but I just wanted to be explicit
+    // here because when `nodebuffer` is the binaryType the `message` event's
+    // data type is guaranteed to be a `Buffer`. We don't need to check for
+    // different types of data.
+    // I mention all this because if `arraybuffer` or `fragment` is used for the
+    // binaryType the `"message"` event's `data` may end up being
+    // `ArrayBuffer | Buffer`, or `Buffer[] | Buffer`, respectively.
+    internalWs.binaryType = "nodebuffer";
+  }
+
+  initialize(behavior: WebSocketBehavior) {
+    this.internalWs.removeAllListeners();
+
+    if (typeof behavior.open === "function") {
+      behavior.open(this);
+    }
+
+    this.internalWs.on("error", (error) => {
+      // if max payload size is exceed we want to match uWS error handling.
+      // It propagates the error with code `1006` and message "Received too big
+      // message".
+      if (error.message === "Max payload size exceeded") {
+        (this.internalWs as any)._closeCode = 1006;
+        (this.internalWs as any)._closeMessage = TOO_BIG_MESSAGE;
+      } else {
+        throw error;
+      }
+    });
+
+    this.internalWs.on("message", (message: Buffer, isBinary: boolean) => {
+      if (typeof behavior.message === "function") {
+        behavior.message(this, toArrayBuffer(message), isBinary);
+      }
+    });
+
+    // TODO: there is no "drain" event for `ws`
+    // this currently isn't used by ganache so moving along
+
+    this.internalWs.on("close", (code, reason: Buffer) => {
+      if (typeof behavior.close === "function") {
+        const buf = reason ? toArrayBuffer(reason) : new ArrayBuffer(0);
+        behavior.close(this, code, buf);
+      }
+
+      this.internalWs.removeAllListeners(); // may be redundant
+    });
+
+    this.internalWs.on("ping", (data) => {
+      if (typeof behavior.ping === "function") {
+        behavior.ping(this, data);
+      }
+    });
+
+    this.internalWs.on("pong", (data) => {
+      if (typeof behavior.pong === "function") {
+        behavior.pong(this, data);
+      }
+    });
+  }
+
+  send(message: RecognizedString, isBinary: boolean, compress: false) {
+    this.internalWs.send(message, {
+      binary: isBinary,
+      compress,
+    });
+    return true;
+  }
+
+  private _fragBinState: boolean = false;
+  sendFirstFragment(message: RecognizedString, isBinary: boolean, compress: false = false){
+    this._fragBinState = isBinary;
+    this.internalWs.send(message, {fin: false, binary: isBinary, compress});
+    return true;
+  }
+
+  sendFragment(message: RecognizedString, compress: false = false){
+    this.internalWs.send(message, {fin: false, binary: this._fragBinState, compress});
+    return true;
+  }
+  
+  sendLastFragment(message: RecognizedString, compress: false = false){
+    this.internalWs.send(message, {fin: true, binary: this._fragBinState, compress});
+    return true;
+  }
+
+  getBufferedAmount() {
+    return this.internalWs.bufferedAmount;
+  }
+
+  end(code: number, shortMessage: RecognizedString) {
+    this.internalWs.close(code, shortMessage.toString());
+    return this;
+  }
+
+  close() {
+    this.internalWs.terminate();
+    this.internalWs.removeAllListeners(); // may be redundant
+    return this;
+  }
+
+  ping(message: RecognizedString) {
+    this.internalWs.ping(message);
+    return true;
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  subscribe(topic: RecognizedString) {
+    return false;
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  isSubscribed(){
+    return false;
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  getTopics() : string[]{
+    return []
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  unsubscribe(topic: RecognizedString) {
+    return false;
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  unsubscribeAll() {
+    return;
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  publish(
+    topic: RecognizedString,
+    message: RecognizedString,
+    isBinary?: boolean | undefined,
+    compress?: boolean | undefined
+  ) {
+    return false;
+  }
+
+  cork(cb: () => void) {
+    cb();
+  }
+
+  // TODO this isn't currently necessary
+  // so we're not implementing it yet
+  getRemoteAddress() {
+    return new ArrayBuffer(0);
+  }
+
+  getRemoteAddressAsText() {
+    const url = this.internalWs.url;
+    const buf = new ArrayBuffer(url.length);
+    const bufView = new Uint8Array(buf);
+    for (let i = 0; i < url.length; i++) {
+      bufView[i] = url.charCodeAt(i);
+    }
+    return buf;
+  }
+}

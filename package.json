@@ -1,0 +1,48 @@
+{
+  "name": "@trufflesuite/uws-js-unofficial",
+  "version": "20.4.0-unofficial.1",
+  "description": "Simple, secure, & standards compliant web server for the most demanding of applications.",
+  "main": "src/uws.js",
+  "types": "docs/index.d.ts",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "make yarn tsc",
+    "tsc": "tsc",
+    "prepare": "yarn build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trufflesuite/uws-js-unofficial.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/trufflesuite/uws-js-unofficial/issues"
+  },
+  "homepage": "https://github.com/trufflesuite/uws-js-unofficial#readme",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "binaries",
+    "dist",
+    "docs",
+    "src/fallback",
+    "src/uws.js"
+  ],
+  "devDependencies": {
+    "@types/ws": "^8.2.0",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "ws": "8.2.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.0.5",
+    "utf-8-validate": "5.0.7"
+  }
+}

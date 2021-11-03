@@ -20,7 +20,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'SilentlyContinue'
           nmake
-          xcopy /Y dist\*.node binaries\
+          xcopy /Y /I dist\*.node binaries\
 
       - name: Upload prebuild-assets
         uses: actions/upload-artifact@v2
@@ -46,6 +46,7 @@ jobs:
           sudo apt update || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           make
+          rm -rf binaries
           mkdir binaries
           cp dist/*.node binaries
           ls

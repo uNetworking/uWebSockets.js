@@ -88,7 +88,7 @@ export interface WebSocket {
     /** Publish a message under topic. Backpressure is managed according to maxBackpressure, closeOnBackpressureLimit settings.
      * Order is guaranteed since v20.
     */
-    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : void;
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
     cork(cb: () => void) : WebSocket;

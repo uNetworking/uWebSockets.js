@@ -63,12 +63,12 @@ export interface WebSocket {
     /** Gracefully closes this WebSocket. Immediately calls the close handler.
      * A WebSocket close message is sent with code and shortMessage.
      */
-    end(code?: number, shortMessage?: RecognizedString) : WebSocket;
+    end(code?: number, shortMessage?: RecognizedString) : void;
 
     /** Forcefully closes this WebSocket. Immediately calls the close handler.
      * No WebSocket close message is sent.
      */
-    close() : WebSocket;
+    close() : void;
 
     /** Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
     ping(message?: RecognizedString) : boolean;
@@ -88,10 +88,10 @@ export interface WebSocket {
     /** Publish a message under topic. Backpressure is managed according to maxBackpressure, closeOnBackpressureLimit settings.
      * Order is guaranteed since v20.
     */
-    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
+    publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : void;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
-    cork(cb: () => void) : void;
+    cork(cb: () => void) : WebSocket;
 
     /** Returns the remote IP address. Note that the returned IP is binary, not text.
      *
@@ -183,7 +183,7 @@ export interface HttpResponse {
      *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
      * });
      */
-    cork(cb: () => void) : void;
+    cork(cb: () => void) : HttpResponse;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
     upgrade<T>(userData : T, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;

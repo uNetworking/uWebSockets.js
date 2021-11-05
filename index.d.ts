@@ -298,11 +298,11 @@ export interface TemplatedApp<Data> {
     /** Returns number of subscribers for this topic. */
     numSubscribers(topic: RecognizedString) : number;
     /** Adds a server name. */
-    addServerName(hostname: string, options: AppOptions): TemplatedApp;
+    addServerName(hostname: string, options: AppOptions): TemplatedApp<Data>;
     /** Removes a server name. */
-    removeServerName(hostname: string): TemplatedApp;
+    removeServerName(hostname: string): TemplatedApp<Data>;
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
-    missingServerName(cb: (hostname: string) => void): TemplatedApp;
+    missingServerName(cb: (hostname: string) => void): TemplatedApp<Data>;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.

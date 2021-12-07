@@ -151,7 +151,7 @@ export interface HttpResponse {
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler
-     * without attaching (by calling onAborted) an abort handler is ill-use and will termiante.
+     * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
      * When this event emits, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
 

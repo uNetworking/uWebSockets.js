@@ -63,7 +63,7 @@ Low latencies are key to customer satisfaction and your competitive edge. Run lo
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">2</a></sup>. µWebSockets powers many of the biggest crypto exchanges in the world, handling trade volumes of multiple billions of USD every day. If you trade crypto, chances are you do so via µWebSockets.
 
 ### :package: Easily installed
-We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.3.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
+We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.5.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
 Being an open source project, you are of course perfectly free to choose other ways of installation as you might prefer.
 

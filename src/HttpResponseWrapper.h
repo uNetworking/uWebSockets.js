@@ -38,6 +38,26 @@ struct HttpResponseWrapper {
         args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
+    /* Takes nothing, returns this */
+    template <bool SSL>
+    static void res_pause(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            res->pause();
+            args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
+    /* Takes nothing, returns this */
+    template <bool SSL>
+    static void res_resume(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            res->resume();
+            args.GetReturnValue().Set(args.Holder());
+        }
+    }
+
     /* Takes nothing, kills the connection */
     template <bool SSL>
     static void res_close(const FunctionCallbackInfo<Value> &args) {
@@ -377,6 +397,9 @@ struct HttpResponseWrapper {
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddressAsText<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddress<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddressAsText<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "pause", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_pause<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "resume", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_resume<SSL>));
+
 
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

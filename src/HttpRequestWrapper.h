@@ -86,7 +86,8 @@ struct HttpRequestWrapper {
 
             std::string_view header = req->getHeader(data.getString());
 
-            args.GetReturnValue().Set(String::NewFromUtf8(isolate, header.data(), NewStringType::kNormal, header.length()).ToLocalChecked());
+            /* We want latin1 here */
+            args.GetReturnValue().Set(String::NewFromOneByte(isolate, (const uint8_t *)header.data(), NewStringType::kNormal, header.length()).ToLocalChecked());
         }
     }
 

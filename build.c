@@ -16,6 +16,10 @@
 #define OS "darwin"
 #define IS_MACOS
 #endif
+#ifdef __FreeBSD__
+#define OS "freebsd"
+#define IS_FREEBSD
+#endif
 
 const char *ARM64 = "arm64";
 const char *X64 = "x64";
@@ -59,6 +63,9 @@ void prepare() {
 /* Build boringssl */
 void build_boringssl(const char *arch) {
 
+#ifdef IS_FREEBSD
+	run("cd uWebSockets/uSockets/boringssl && mkdir -p %s && cd %s && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release .. && gmake crypto ssl", arch, arch);
+#endif
 #ifdef IS_MACOS
     /* Build for x64 (the host) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14 .. && make crypto ssl");

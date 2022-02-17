@@ -48,12 +48,11 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export interface WebSocket {
-    /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
-     * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
+    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount(). 
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
      */
-    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
+    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : number;
 
     /** Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
      * Check backpressure example.
@@ -70,8 +69,8 @@ export interface WebSocket {
      */
     close() : void;
 
-    /** Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
-    ping(message?: RecognizedString) : boolean;
+    /** Sends a ping control message. Returns sendStatus similar to WebSocket.send (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
+    ping(message?: RecognizedString) : number;
 
     /** Subscribe to a topic. */
     subscribe(topic: RecognizedString) : boolean;

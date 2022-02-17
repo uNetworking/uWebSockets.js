@@ -154,7 +154,7 @@ export class HttpContext {
       options.host = host.toString();
     }
 
-    server.listen({ port, exclusive: true }, () => {
+    server.listen(options, () => {
       this.closed = false;
       callback(this);
     });

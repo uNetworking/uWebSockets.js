@@ -49,3 +49,39 @@ jobs:
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://alexhultman:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+
+  build-arm:
+    runs-on: ubuntu-latest
+    name: Build on arm64
+    steps:
+      - name: Clone
+        run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+      - uses: uraimo/run-on-arch-action@v2.1.1
+        name: Compile binaries
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          # Not required, but speeds up builds by storing container images in
+          # a GitHub package registry.
+          githubToken: ${{ github.token }}
+          dockerRunArgs: |
+            --volume "${PWD}/uWebSockets.js:/repository"
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y make clang g++-aarch64-linux-gnu curl cmake golang
+          run: |
+            cd /repository
+            make
+      - name: Update binaries
+        run: |
+          cd uWebSockets.js
+          git fetch origin binaries:binaries
+          git checkout binaries
+          cp dist/*.node .
+          git status
+          git rev-parse master > source_commit
+          git checkout master docs/index.d.ts && mv docs/index.d.ts .
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          git commit -a -m "[GitHub Actions] Updated linux-arm64 binaries" || true
+          git push "https://alexhultman:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

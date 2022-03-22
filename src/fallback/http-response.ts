@@ -90,6 +90,9 @@ export class HttpResponse implements uWsHttpResponse {
   }
 
   close() {
+    if (this.response.socket) {
+      this.response.socket.destroy();
+    }
     return this;
   }
 
@@ -108,7 +111,17 @@ export class HttpResponse implements uWsHttpResponse {
   }
 
   end(data: RecognizedString = "", closeConnection: boolean = false) {
+    if (closeConnection) {
+      // Signal that the connection will be closed after completion of the request.
+      this.response.setHeader("Connection", "close");
+    }
+
     this.response.end(data);
+
+    if (closeConnection) {
+      // also explicitly close the connection to ensure no more data is received from the client on this connection
+      this.close();
+    }
     return this;
   }
 }

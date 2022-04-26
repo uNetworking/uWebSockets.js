@@ -388,7 +388,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
     Isolate *isolate = args.GetIsolate();
     /* Read the options object if any */
     uWS::SocketContextOptions options = {};
-    thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
+    thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName, sslCiphers;
     if (args.Length() > index) {
 
         Local<Object> optionsObject = Local<Object>::Cast(args[index]);
@@ -445,6 +445,16 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* ssl_prefer_low_memory_usage */
         options.ssl_prefer_low_memory_usage = optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()->BooleanValue(isolate);
+
+        /* ssl_ciphers */
+        NativeString sslCiphersValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_ciphers", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (sslCiphersValue.isInvalid(args)) {
+            return {};
+        }
+        if (sslCiphersValue.getString().length()) {
+            sslCiphers = sslCiphersValue.getString();
+            options.ssl_ciphers = sslCiphers.c_str();
+        }
     }
 
     return {options, true};

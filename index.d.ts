@@ -249,7 +249,6 @@ export interface WebSocketBehavior {
 export interface AppOptions {
     key_file_name?: RecognizedString;
     cert_file_name?: RecognizedString;
-    ca_file_name?: RecognizedString;
     passphrase?: RecognizedString;
     dh_params_file_name?: RecognizedString;
     /** This translates to SSL_MODE_RELEASE_BUFFERS */

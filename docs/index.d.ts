@@ -225,7 +225,7 @@ export interface WebSocketBehavior {
     /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 1024 * 1024. */
     maxBackpressure?: number;
     /** Whether or not we should automatically send pings to uphold a stable connection given whatever idleTimeout. */
-    sendPingsAutomatically?: number;
+    sendPingsAutomatically?: boolean;
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
      * See UpgradeAsync and UpgradeSync example files.
      */

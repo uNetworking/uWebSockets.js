@@ -48,11 +48,12 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export interface WebSocket {
-    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount(). 
+    /** Sends a message. Make sure to check getBufferedAmount() before sending. Returns true for success, false for built up backpressure that will drain when time is given.
+     * Returning false does not mean nothing was sent, it only means backpressure was built up. This you can check by calling getBufferedAmount() afterwards.
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
      */
-    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : number;
+    send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
      * Check backpressure example.
@@ -69,8 +70,8 @@ export interface WebSocket {
      */
     close() : void;
 
-    /** Sends a ping control message. Returns sendStatus similar to WebSocket.send (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
-    ping(message?: RecognizedString) : number;
+    /** Sends a ping control message. Returns true on success in similar ways as WebSocket.send does (regarding backpressure). This helper function correlates to WebSocket::send(message, uWS::OpCode::PING, ...) in C++. */
+    ping(message?: RecognizedString) : boolean;
 
     /** Subscribe to a topic. */
     subscribe(topic: RecognizedString) : boolean;
@@ -150,7 +151,7 @@ export interface HttpResponse {
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler
-     * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
+     * without attaching (by calling onAborted) an abort handler is ill-use and will termiante.
      * When this event emits, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
 
@@ -249,7 +250,6 @@ export interface WebSocketBehavior {
 export interface AppOptions {
     key_file_name?: RecognizedString;
     cert_file_name?: RecognizedString;
-    ca_file_name?: RecognizedString;
     passphrase?: RecognizedString;
     dh_params_file_name?: RecognizedString;
     /** This translates to SSL_MODE_RELEASE_BUFFERS */

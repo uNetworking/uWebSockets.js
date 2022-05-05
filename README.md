@@ -22,7 +22,7 @@ require('uWebSockets.js').SSLApp({
 }).ws('/*', {
 
   /* There are many common helper features */
-  idleTimeout: 30,
+  idleTimeout: 32,
   maxBackpressure: 1024,
   maxPayloadLength: 512,
   compression: DEDICATED_COMPRESSOR_3KB,

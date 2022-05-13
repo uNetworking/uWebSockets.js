@@ -48,7 +48,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export interface WebSocket {
-    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount(). 
+    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
      */
@@ -252,6 +252,7 @@ export interface AppOptions {
     ca_file_name?: RecognizedString;
     passphrase?: RecognizedString;
     dh_params_file_name?: RecognizedString;
+    ssl_ciphers?: RecognizedString;
     /** This translates to SSL_MODE_RELEASE_BUFFERS */
     ssl_prefer_low_memory_usage?: boolean;
 }

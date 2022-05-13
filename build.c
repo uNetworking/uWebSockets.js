@@ -55,6 +55,13 @@ void prepare() {
     }
 }
 
+void build_lsquic(const char *arch) {
+#ifdef IS_LINUX
+    /* Build for x64 or arm64 (depending on the host) */
+    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release . && make");
+#endif
+}
+
 /* Build boringssl */
 void build_boringssl(const char *arch) {
 
@@ -123,6 +130,8 @@ int main() {
     
     /* Build for x64 and/or arm64 */
     build_boringssl(arch);
+
+    build_lsquic(arch);
 
 #ifdef IS_WINDOWS
     /* We can use clang, but we currently do use cl.exe still */

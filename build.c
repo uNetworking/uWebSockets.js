@@ -94,7 +94,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a -std=c++17 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, cpp_linker, os, arch, versions[i].abi);
+        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a uWebSockets/uSockets/lsquic/src/liblsquic/liblsquic.a -std=c++17 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
 }
 

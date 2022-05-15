@@ -333,7 +333,7 @@ void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
 #include "Http3App.h"
 void uWS_startQuicServer(const FunctionCallbackInfo<Value> &args) {
     /* This falls out of scope but we don't care */
-	uWS::QuicApp({
+	uWS::H3App({
 	  .key_file_name = "../misc/key.pem",
 	  .cert_file_name = "../misc/cert.pem",
 	  .passphrase = "1234"

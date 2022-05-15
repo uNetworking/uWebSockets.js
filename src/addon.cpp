@@ -17,6 +17,7 @@
 
 /* We are only allowed to depend on µWS and V8 in this layer. */
 #include "App.h"
+#include "Http3App.h"
 
 #include <iostream>
 #include <vector>
@@ -330,22 +331,6 @@ void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
     kvMutex.unlock();
 }
 
-#include "Http3App.h"
-void uWS_startQuicServer(const FunctionCallbackInfo<Value> &args) {
-    /* This falls out of scope but we don't care */
-	uWS::H3App({
-	  .key_file_name = "../misc/key.pem",
-	  .cert_file_name = "../misc/cert.pem",
-	  .passphrase = "1234"
-	}).get("/*", [](auto *res, auto */*req*/) {
-	    res->end("Hello quic!");
-	}).listen(3000, [](auto *listen_socket) {
-	    if (listen_socket) {
-			std::cout << "Listening on port " << 3000 << std::endl;
-	    }
-	});
-}
-
 PerContextData *Main(Local<Object> exports) {
 
     /* We pass isolate everywhere */
@@ -357,6 +342,7 @@ PerContextData *Main(Local<Object> exports) {
     perContextData->reqTemplate.Reset(isolate, HttpRequestWrapper::init(isolate));
     perContextData->resTemplate[0].Reset(isolate, HttpResponseWrapper::init<0>(isolate));
     perContextData->resTemplate[1].Reset(isolate, HttpResponseWrapper::init<1>(isolate));
+    perContextData->resTemplate[2].Reset(isolate, HttpResponseWrapper::init<2>(isolate));
     perContextData->wsTemplate[0].Reset(isolate, WebSocketWrapper::init<0>(isolate));
     perContextData->wsTemplate[1].Reset(isolate, WebSocketWrapper::init<1>(isolate));
 
@@ -367,8 +353,8 @@ PerContextData *Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SSLApp", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
-    /* Experimental smoke test of quic server */
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "startQuicServer", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_startQuicServer)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    /* H3 experimental */
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "H3App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::H3App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Temporary KV store */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

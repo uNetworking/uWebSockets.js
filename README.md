@@ -75,7 +75,7 @@ Don't hesitate <a href="mailto:alexhultman@gmail.com">sending a mail</a> if you'
 
 Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub for allowing the project itself to thrive on GitHub since 2016 - this project would not be possible without these beautiful companies.
 
-<img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
+<img src="misc/2018.png" />
 
 ### :gear: Gear up
 If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using [µWebSockets](https://github.com/uNetworking/uWebSockets) directly. It works exactly the same way, and will offer the best performance for those highly demanding applications where scripting won't do.

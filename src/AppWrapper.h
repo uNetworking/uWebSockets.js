@@ -117,7 +117,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
             resObject->SetAlignedPointerInInternalField(0, res);
 
-            Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
+            Local<Object> reqObject = perContextData->reqTemplate[std::is_same<APP, uWS::H3App>::value].Get(isolate)->Clone();
             reqObject->SetAlignedPointerInInternalField(0, req);
 
             Local<Value> argv[3] = {resObject, reqObject, External::New(isolate, (void *) context)};
@@ -282,7 +282,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
         resObject->SetAlignedPointerInInternalField(0, res);
 
-        Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
+        Local<Object> reqObject = perContextData->reqTemplate[std::is_same<APP, uWS::H3App>::value].Get(isolate)->Clone();
         reqObject->SetAlignedPointerInInternalField(0, req);
 
         Local<Value> argv[] = {resObject, reqObject};
@@ -356,7 +356,7 @@ void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    app->domain(serverName.getString());
+    app->domain(std::string(serverName.getString()));
 
     args.GetReturnValue().Set(args.Holder());
 }

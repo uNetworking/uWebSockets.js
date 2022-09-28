@@ -339,7 +339,8 @@ PerContextData *Main(Local<Object> exports) {
     /* Init the template objects, SSL and non-SSL, store it in per context data */
     PerContextData *perContextData = new PerContextData;
     perContextData->isolate = isolate;
-    perContextData->reqTemplate.Reset(isolate, HttpRequestWrapper::init(isolate));
+    perContextData->reqTemplate[0].Reset(isolate, HttpRequestWrapper::init<false>(isolate));
+    perContextData->reqTemplate[1].Reset(isolate, HttpRequestWrapper::init<true>(isolate));
     perContextData->resTemplate[0].Reset(isolate, HttpResponseWrapper::init<0>(isolate));
     perContextData->resTemplate[1].Reset(isolate, HttpResponseWrapper::init<1>(isolate));
     perContextData->resTemplate[2].Reset(isolate, HttpResponseWrapper::init<2>(isolate));

@@ -23,14 +23,19 @@ using namespace v8;
 
 struct HttpResponseWrapper {
 
-    template <int SSL>
-    static inline uWS::HttpResponse<SSL != 0> *getHttpResponse(const FunctionCallbackInfo<Value> &args) {
+    template <int PROTOCOL>
+    static inline constexpr decltype(auto) getHttpResponse(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *res = (uWS::HttpResponse<SSL != 0> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        auto *res = (uWS::HttpResponse<PROTOCOL != 0> *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!res) {
             args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Invalid access of discarded (invalid, deleted) uWS.HttpResponse/SSLHttpResponse.", NewStringType::kNormal).ToLocalChecked())));
         }
-        return res;
+
+        if constexpr (PROTOCOL == 2) {
+            return (uWS::Http3Response *) res;
+        } else {
+            return res;
+        }
     }
 
     /* Marks this JS object invalid */
@@ -214,6 +219,7 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
+            
             res->writeStatus(data.getString());
 
             args.GetReturnValue().Set(args.Holder());
@@ -259,26 +265,17 @@ struct HttpResponseWrapper {
 
             invalidateResObject(args);
 
-            /* Override if HTTP3 */
-            if constexpr (PROTOCOL == 2) {
-                
-                uWS::Http3Response *http3Res = (uWS::Http3Response *) res;
-
-                http3Res->end(data.getString());
-
-            } else {
-                res->end(data.getString(), closeConnection);
-            }
+            res->end(data.getString(), closeConnection);
 
             args.GetReturnValue().Set(args.Holder());
         }
     }
 
     /* Takes data and optionally totalLength, returns true for success, false for backpressure */
-    template <int SSL>
+    template <int PROTOCOL>
     static void res_tryEnd(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *res = getHttpResponse<SSL>(args);
+        auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
@@ -307,10 +304,10 @@ struct HttpResponseWrapper {
     }
 
     /* Takes data, returns true for success, false for backpressure */
-    template <int SSL>
+    template <int PROTOCOL>
     static void res_write(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *res = getHttpResponse<SSL>(args);
+        auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
@@ -323,10 +320,10 @@ struct HttpResponseWrapper {
     }
 
     /* Takes key, value. Returns this */
-    template <int SSL>
+    template <int PROTOCOL>
     static void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *res = getHttpResponse<SSL>(args);
+        auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString header(args.GetIsolate(), args[0]);
             if (header.isInvalid(args)) {
@@ -416,19 +413,19 @@ struct HttpResponseWrapper {
         resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
         /* Register our functions */
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeStatus", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeStatus<SSL>));
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "endWithoutBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_endWithoutBody<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_close<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));
+        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
 
-        if (SSL != 2) {
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeStatus", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeStatus<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "endWithoutBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_endWithoutBody<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_close<SSL>));
+        if constexpr (SSL != 2) {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));

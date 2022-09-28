@@ -23,7 +23,7 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
-          git push "https://alexhultman:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
 
   build-unix:
     runs-on: ${{ matrix.os }}
@@ -48,4 +48,4 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          git push "https://alexhultman:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

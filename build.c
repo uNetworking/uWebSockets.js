@@ -115,7 +115,7 @@ void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *o
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("cl /MD /W3 /D WIN32_LEAN_AND_MEAN /D \"UWS_WITH_PROXY\" /D \"LIBUS_USE_LIBUV\" /D \"LIBUS_USE_QUIC\" /I uWebSockets/uSockets/lsquic/include /I uWebSockets/uSockets/lsquic/wincompat /I uWebSockets/uSockets/boringssl/include /D \"LIBUS_USE_OPENSSL\" /std:c++17 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/crypto/sni_tree.cpp "
             "uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c /I targets/node-%s/include/node /I uWebSockets/src /EHsc "
-            "/Ox /LD /Fedist/uws_win32_%s_%s.node src/addon.cpp advapi32.lib uWebSockets/uSockets/boringssl/x64/ssl/ssl.lib uWebSockets/uSockets/boringssl/x64/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/lsquic.lib targets/node-%s/node.lib",
+            "/Ox /LD /Fedist/uws_win32_%s_%s.node src/addon.cpp advapi32.lib uWebSockets/uSockets/boringssl/x64/ssl/ssl.lib uWebSockets/uSockets/boringssl/x64/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib",
             versions[i].name, arch, versions[i].abi, versions[i].name);
     }
 }

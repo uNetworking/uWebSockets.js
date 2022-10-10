@@ -56,7 +56,7 @@ void prepare() {
 }
 
 void build_lsquic(const char *arch) {
-#ifdef IS_LINUX
+#ifndef IS_WINDOWS
     /* Build for x64 or arm64 (depending on the host) */
     run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && make lsquic");
 #endif

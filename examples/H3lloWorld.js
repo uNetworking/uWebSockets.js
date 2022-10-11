@@ -3,6 +3,8 @@
 const uWS = require('../dist/uws.js');
 const port = 9001;
 
+/* ./quiche-client --no-verify https://localhost:9001 */
+
 /* The only difference here is that we use uWS.H3App rather than uWS.App or uWS.SSLApp.
  * And of course, there are no WebSockets in HTTP/3 only WebTransport (coming) */
 

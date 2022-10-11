@@ -16,6 +16,9 @@
  */
 
 module.exports = (() => {
+	if (process.versions.modules < 108) {
+		throw new Error("Your version of Node.js is blacklisted due to gigantic performance regressions. uWS.js will not load.");
+	}
 	try {
 		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
 	} catch (e) {

@@ -265,6 +265,13 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
+    /* If the handler is null */
+    if (args[1]->IsNull()) {
+        (app->*f)(std::string(pattern.getString()), nullptr);
+        args.GetReturnValue().Set(args.Holder());
+        return;
+    }
+
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[1]);
     if (checkedCallback.isInvalid(args)) {

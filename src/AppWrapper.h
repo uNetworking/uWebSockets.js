@@ -580,7 +580,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
         appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.H3App", NewStringType::kNormal).ToLocalChecked());
 
-        app = new APP();
+        app = new APP(options);
     }
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);

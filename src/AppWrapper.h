@@ -117,7 +117,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
             resObject->SetAlignedPointerInInternalField(0, res);
 
-            Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
+            Local<Object> reqObject = perContextData->reqTemplate[std::is_same<APP, uWS::H3App>::value].Get(isolate)->Clone();
             reqObject->SetAlignedPointerInInternalField(0, req);
 
             Local<Value> argv[3] = {resObject, reqObject, External::New(isolate, (void *) context)};
@@ -265,6 +265,13 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
+    /* If the handler is null */
+    if (args[1]->IsNull()) {
+        (app->*f)(std::string(pattern.getString()), nullptr);
+        args.GetReturnValue().Set(args.Holder());
+        return;
+    }
+
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[1]);
     if (checkedCallback.isInvalid(args)) {
@@ -282,7 +289,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
         resObject->SetAlignedPointerInInternalField(0, res);
 
-        Local<Object> reqObject = perContextData->reqTemplate.Get(isolate)->Clone();
+        Local<Object> reqObject = perContextData->reqTemplate[std::is_same<APP, uWS::H3App>::value].Get(isolate)->Clone();
         reqObject->SetAlignedPointerInInternalField(0, req);
 
         Local<Value> argv[] = {resObject, reqObject};
@@ -341,6 +348,27 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+
+    /* serverName */
+    if (missingArguments(1, args)) {
+        return;
+    }
+
+    NativeString serverName(isolate, args[0]);
+    if (serverName.isInvalid(args)) {
+        return;
+    }
+
+    app->domain(std::string(serverName.getString()));
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -388,7 +416,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
     Isolate *isolate = args.GetIsolate();
     /* Read the options object if any */
     uWS::SocketContextOptions options = {};
-    thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName;
+    thread_local std::string keyFileName, certFileName, passphrase, dhParamsFileName, caFileName, sslCiphers;
     if (args.Length() > index) {
 
         Local<Object> optionsObject = Local<Object>::Cast(args[index]);
@@ -445,6 +473,16 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* ssl_prefer_low_memory_usage */
         options.ssl_prefer_low_memory_usage = optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()->BooleanValue(isolate);
+
+        /* ssl_ciphers */
+        NativeString sslCiphersValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_ciphers", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        if (sslCiphersValue.isInvalid(args)) {
+            return {};
+        }
+        if (sslCiphersValue.getString().length()) {
+            sslCiphers = sslCiphersValue.getString();
+            options.ssl_ciphers = sslCiphers.c_str();
+        }
     }
 
     return {options, true};
@@ -524,14 +562,25 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    /* uSockets copies strings here */
-    APP *app = new APP(options);
+    APP *app;
 
-    /* Throw if we failed to construct the app */
-    if (app->constructorFailed()) {
-        delete app;
-        args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked())));
-        return;
+    if constexpr (!std::is_same<APP, uWS::H3App>::value) {
+
+        /* uSockets copies strings here */
+        app = new APP(options);
+
+        /* Throw if we failed to construct the app */
+        if (app->constructorFailed()) {
+            delete app;
+            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked())));
+            return;
+        }
+
+    } else {
+
+        appTemplate->SetClassName(String::NewFromUtf8(isolate, "uWS.H3App", NewStringType::kNormal).ToLocalChecked());
+
+        app = new APP(options);
     }
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
@@ -578,28 +627,41 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         uWS_App_get<APP>(&APP::any, args);
     }, args.Data()));
 
-    /* ws, listen */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen<APP>, args.Data()));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_publish<APP>, args.Data()));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "numSubscribers", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_numSubscribers<APP>, args.Data()));
 
-    /* SNI */
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addServerName<APP>, args.Data()));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeServerName<APP>, args.Data()));
-    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "missingServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_missingServerName<APP>, args.Data()));
+    if constexpr (!std::is_same<APP, uWS::H3App>::value) {
+
+        /* ws, listen */
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_publish<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "numSubscribers", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_numSubscribers<APP>, args.Data()));
+
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "domain", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_domain<APP>, args.Data()));
+
+        /* SNI */
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addServerName<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeServerName<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "missingServerName", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_missingServerName<APP>, args.Data()));
+
+    }
 
     Local<Object> localApp = appTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     localApp->SetAlignedPointerInInternalField(0, app);
 
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
 
-    /* Add this to our delete list */
-    if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
-        perContextData->sslApps.emplace_back(app);
-    } else {
-        perContextData->apps.emplace_back(app);
+
+    if constexpr (!std::is_same<APP, uWS::H3App>::value) {
+
+        /* Add this to our delete list */
+        if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
+            perContextData->sslApps.emplace_back(app);
+        } else {
+            perContextData->apps.emplace_back(app);
+        }
+
     }
 
     args.GetReturnValue().Set(localApp);
+
 }

@@ -17,6 +17,7 @@
 
 /* We are only allowed to depend on µWS and V8 in this layer. */
 #include "App.h"
+#include "Http3App.h"
 
 #include <iostream>
 #include <vector>
@@ -338,9 +339,11 @@ PerContextData *Main(Local<Object> exports) {
     /* Init the template objects, SSL and non-SSL, store it in per context data */
     PerContextData *perContextData = new PerContextData;
     perContextData->isolate = isolate;
-    perContextData->reqTemplate.Reset(isolate, HttpRequestWrapper::init(isolate));
+    perContextData->reqTemplate[0].Reset(isolate, HttpRequestWrapper::init<false>(isolate));
+    perContextData->reqTemplate[1].Reset(isolate, HttpRequestWrapper::init<true>(isolate));
     perContextData->resTemplate[0].Reset(isolate, HttpResponseWrapper::init<0>(isolate));
     perContextData->resTemplate[1].Reset(isolate, HttpResponseWrapper::init<1>(isolate));
+    perContextData->resTemplate[2].Reset(isolate, HttpResponseWrapper::init<2>(isolate));
     perContextData->wsTemplate[0].Reset(isolate, WebSocketWrapper::init<0>(isolate));
     perContextData->wsTemplate[1].Reset(isolate, WebSocketWrapper::init<1>(isolate));
 
@@ -350,6 +353,9 @@ PerContextData *Main(Local<Object> exports) {
     /* uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "SSLApp", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::SSLApp>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+
+    /* H3 experimental */
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "H3App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::H3App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Temporary KV store */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

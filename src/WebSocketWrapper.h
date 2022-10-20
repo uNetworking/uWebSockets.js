@@ -175,9 +175,9 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->sendFirstFragment(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
+            unsigned int sendStatus = ws->sendFirstFragment(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
     }
 
@@ -192,9 +192,9 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->sendFragment(message.getString(), args[1]->BooleanValue(isolate));
+            unsigned int sendStatus = ws->sendFragment(message.getString(), args[1]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
     }
 
@@ -209,9 +209,9 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->sendLastFragment(message.getString(), args[1]->BooleanValue(isolate));
+            unsigned int sendStatus = ws->sendLastFragment(message.getString(), args[1]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
     }
 
@@ -226,9 +226,9 @@ struct WebSocketWrapper {
                 return;
             }
 
-            bool ok = ws->send(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
+            unsigned int sendStatus = ws->send(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
     }
 
@@ -261,9 +261,9 @@ struct WebSocketWrapper {
             }
 
             /* This is a wrapper that does not exist in the C++ project */
-            bool ok = ws->send(message.getString(), uWS::OpCode::PING);
+            unsigned int sendStatus = ws->send(message.getString(), uWS::OpCode::PING);
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
     }
 

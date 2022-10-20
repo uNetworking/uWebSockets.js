@@ -65,7 +65,7 @@ jobs:
             --volume "${PWD}/uWebSockets.js:/repository"
           install: |
             apt-get update -q -y
-            apt-get install -q -y make clang g++-aarch64-linux-gnu curl cmake golang
+            apt-get install -q -y build-essential cmake libz-dev golang
           run: |
             cd /repository
             make

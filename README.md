@@ -5,7 +5,7 @@
 
 <a href="https://github.com/uNetworking/uWebSockets.js/releases"><img src="https://img.shields.io/github/v/release/uNetworking/uWebSockets.js"></a> <a href="https://lgtm.com/projects/g/uNetworking/uWebSockets.js/context:cpp"><img alt="Language grade: C/C++" src="https://img.shields.io/lgtm/grade/cpp/g/uNetworking/uWebSockets.js.svg?logo=lgtm&logoWidth=18"/></a> <a href="https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:uwebsockets"><img src="https://oss-fuzz-build-logs.storage.googleapis.com/badges/uwebsockets.svg" /></a> <img src="https://img.shields.io/badge/downloads-65%20million-pink" />
   
-<a href="https://medium.com/@alexhultman/beware-of-tin-foil-hattery-f738b620468c">In response to slander</a>
+<a href="https://unetworkingab.medium.com/a-shorter-take-on-the-npm-slander-38525dbe9484">In response to slander</a>
 </div>
 <br><br>
 

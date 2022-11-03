@@ -17,6 +17,7 @@
 #define IS_MACOS
 #endif
 
+const char *ARM = "arm";
 const char *ARM64 = "arm64";
 const char *X64 = "x64";
 
@@ -57,7 +58,7 @@ void prepare() {
 
 void build_lsquic(const char *arch) {
 #ifndef IS_WINDOWS
-    /* Build for x64 or arm64 (depending on the host) */
+    /* Build for x64 or arm/arm64 (depending on the host) */
     run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && make lsquic");
 #else
     run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
@@ -76,7 +77,7 @@ void build_boringssl(const char *arch) {
 #endif
     
 #ifdef IS_LINUX
-    /* Build for x64 or arm64 (depending on the host) */
+    /* Build for x64 or arm/arm64 (depending on the host) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p %s && cd %s && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release .. && make crypto ssl", arch, arch);
 #endif
     
@@ -126,11 +127,13 @@ int main() {
     printf("\n[Building]\n");
     
     const char *arch = X64;
+#ifdef __arm__
+    arch = ARM;
+#endif
 #ifdef __aarch64__
     arch = ARM64;
 #endif
-    
-    /* Build for x64 and/or arm64 */
+    /* Build for x64 and/or arm/arm64 */
     build_boringssl(arch);
 
     build_lsquic(arch);

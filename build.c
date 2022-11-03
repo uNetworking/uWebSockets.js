@@ -127,13 +127,12 @@ int main() {
     printf("\n[Building]\n");
     
     const char *arch = X64;
-#ifdef __aarch64__
-    arch = ARM64;
-#endif
 #ifdef __arm__
     arch = ARM;
 #endif
-    
+#ifdef __aarch64__
+    arch = ARM64;
+#endif
     /* Build for x64 and/or arm64 */
     build_boringssl(arch);
 

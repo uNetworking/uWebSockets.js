@@ -17,6 +17,7 @@
 #define IS_MACOS
 #endif
 
+const char *ARM = "arm";
 const char *ARM64 = "arm64";
 const char *X64 = "x64";
 
@@ -128,6 +129,9 @@ int main() {
     const char *arch = X64;
 #ifdef __aarch64__
     arch = ARM64;
+#endif
+#ifdef __arm__
+    arch = ARM
 #endif
     
     /* Build for x64 and/or arm64 */

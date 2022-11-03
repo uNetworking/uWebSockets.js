@@ -131,7 +131,7 @@ int main() {
     arch = ARM64;
 #endif
 #ifdef __arm__
-    arch = ARM
+    arch = ARM;
 #endif
     
     /* Build for x64 and/or arm64 */

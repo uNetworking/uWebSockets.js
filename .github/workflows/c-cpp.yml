@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ arm-32bit-support ]
+    branches: [ master ]
 
 jobs:
   build-windows:

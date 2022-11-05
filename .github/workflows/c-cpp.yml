@@ -24,7 +24,6 @@ jobs:
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
-
   build-unix:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -52,11 +51,18 @@ jobs:
 
   build-arm:
     runs-on: ubuntu-latest
-    name: Build on arm64
+    name: Build on ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            os: ubuntu20.04
+          - arch: armv7
+            os: bullseye
     steps:
       - name: Clone
         run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-      - uses: uraimo/run-on-arch-action@v2.1.1
+      - uses: uraimo/run-on-arch-action@v2.3.0
         name: Compile binaries
         with:
           arch: aarch64
@@ -65,7 +71,7 @@ jobs:
             --volume "${PWD}/uWebSockets.js:/repository"
           install: |
             apt-get update -q -y
-            apt-get install -q -y build-essential cmake libz-dev golang
+            apt-get install -q -y build-essential cmake libz-dev golang curl libunwind-dev
           run: |
             cd /repository
             make
@@ -75,10 +81,12 @@ jobs:
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
+          cp dist/*.js .
           git status
           git rev-parse master > source_commit
           git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
+          git add *.node *.js
           git commit -a -m "[GitHub Actions] Updated linux-arm64 binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

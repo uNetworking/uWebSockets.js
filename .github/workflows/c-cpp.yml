@@ -2,52 +2,52 @@ name: Build
 
 on:
   push:
-    branches: [ arm-32bit-support ]
+    branches: [ master ]
 
 jobs:
-  # build-windows:
-    # runs-on: windows-latest
-    # steps:
-      # - uses: ilammy/msvc-dev-cmd@v1
-      # - uses: ilammy/setup-nasm@v1.2.1
-      # - name: Update binaries
-        # run: |
-          # $ErrorActionPreference = 'SilentlyContinue'
-          # git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-          # cd uWebSockets.js
-          # nmake
-          # git fetch origin binaries:binaries
-          # git checkout binaries
-          # xcopy /Y dist\*.node .
-          # git status
-          # git config --global user.email "alexhultman@gmail.com"
-          # git config --global user.name "Alex Hultman"
-          # git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
-          # git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
-  # build-unix:
-    # runs-on: ${{ matrix.os }}
-    # strategy:
-      # matrix:
-        # os: [macos-11.0, ubuntu-latest]
-    # steps:
-      # - name: Update binaries
-        # run: |
-          # sudo xcode-select -switch /Applications/Xcode_12.2.app || true
-          # sudo apt update || true
-          # sudo apt install -y g++-aarch64-linux-gnu || true
-          # git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-          # cd uWebSockets.js
-          # make
-          # git fetch origin binaries:binaries
-          # git checkout binaries
-          # cp dist/*.node .
-          # git status
-          # git rev-parse master > source_commit
-          # git checkout master docs/index.d.ts && mv docs/index.d.ts .
-          # git config --global user.email "alexhultman@gmail.com"
-          # git config --global user.name "Alex Hultman"
-          # git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          # git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: ilammy/setup-nasm@v1.2.1
+      - name: Update binaries
+        run: |
+          $ErrorActionPreference = 'SilentlyContinue'
+          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+          cd uWebSockets.js
+          nmake
+          git fetch origin binaries:binaries
+          git checkout binaries
+          xcopy /Y dist\*.node .
+          git status
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+  build-unix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-11.0, ubuntu-latest]
+    steps:
+      - name: Update binaries
+        run: |
+          sudo xcode-select -switch /Applications/Xcode_12.2.app || true
+          sudo apt update || true
+          sudo apt install -y g++-aarch64-linux-gnu || true
+          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+          cd uWebSockets.js
+          make
+          git fetch origin binaries:binaries
+          git checkout binaries
+          cp dist/*.node .
+          git status
+          git rev-parse master > source_commit
+          git checkout master docs/index.d.ts && mv docs/index.d.ts .
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
 
   build-arm:
     runs-on: ubuntu-latest
@@ -89,4 +89,4 @@ jobs:
           git config --global user.name "Alex Hultman"
           git add *.node *.js
           git commit -a -m "[GitHub Actions] Updated linux-${{ matrix.arch }} binaries" || true
-          # git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

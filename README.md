@@ -64,7 +64,7 @@ Low latencies are key to customer satisfaction and your competitive edge. Run lo
 We've been fully standards compliant with a perfect Autobahn|Testsuite score since 2016<sup><a href="https://unetworking.github.io/uWebSockets.js/report.pdf">2</a></sup>. µWebSockets powers many of the biggest crypto exchanges in the world, handling trade volumes of multiple billions of USD every day. If you trade crypto, chances are you do so via µWebSockets.
 
 ### :package: Easily installed
-We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.10.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
+We *recommend, for simplicity* installing with `yarn add uWebSockets.js@uNetworking/uWebSockets.js#v20.15.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases).
 
 Being an open source project, you are of course perfectly free to choose [other ways of installation](https://docs.npmjs.com/cli/v6/commands/npm-install) as you might prefer.
 
@@ -74,8 +74,6 @@ Being an open source project, you are of course perfectly free to choose [other 
 Don't hesitate <a href="mailto:alexhultman@gmail.com">sending a mail</a> if you're building something large, in need of advice or having other business inquiries in mind. We'll figure out what's best for both parties and make sure you're not stepping into one of the many common pitfalls.
 
 Special thanks to BitMEX, Bitfinex, Google, Coinbase, Bitwyre and deepstreamHub for allowing the project itself to thrive on GitHub since 2016 - this project would not be possible without these beautiful companies.
-
-<img src="https://github.com/uNetworking/uWebSockets/raw/master/misc/2018.png" />
 
 ### :gear: Gear up
 If performance is of utter importance, you don't necessarily have to use JavaScript/Node.js but could write apps in C++ using [µWebSockets](https://github.com/uNetworking/uWebSockets) directly. It works exactly the same way, and will offer the best performance for those highly demanding applications where scripting won't do.

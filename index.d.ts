@@ -199,8 +199,10 @@ export interface HttpRequest {
     getParameter(index: number) : string;
     /** Returns the URL including initial /slash */
     getUrl() : string;
-    /** Returns the HTTP method, useful for "any" routes. */
+    /** Returns the lowercased HTTP method, useful for "any" routes. */
     getMethod() : string;
+    /** Returns the HTTP method as-is. */
+    getCaseSensitiveMethod() : string;
     /** Returns the raw querystring (the part of URL after ? sign) or empty string. */
     getQuery() : string;
     /** Returns a decoded query parameter value or empty string. */
@@ -221,7 +223,7 @@ export interface WebSocketBehavior {
     idleTimeout?: number;
     /** What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. Defaults to uWS.DISABLED. */
     compression?: CompressOptions;
-    /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 1024 * 1024. */
+    /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 64 * 1024. */
     maxBackpressure?: number;
     /** Whether or not we should automatically send pings to uphold a stable connection given whatever idleTimeout. */
     sendPingsAutomatically?: boolean;

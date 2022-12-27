@@ -223,7 +223,7 @@ export interface WebSocketBehavior {
     idleTimeout?: number;
     /** What permessage-deflate compression to use. uWS.DISABLED, uWS.SHARED_COMPRESSOR or any of the uWS.DEDICATED_COMPRESSOR_xxxKB. Defaults to uWS.DISABLED. */
     compression?: CompressOptions;
-    /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 64 * 1024. */
+    /** Maximum length of allowed backpressure per socket when publishing or sending messages. Slow receivers with too high backpressure will be skipped until they catch up or timeout. Defaults to 1024 * 1024. */
     maxBackpressure?: number;
     /** Whether or not we should automatically send pings to uphold a stable connection given whatever idleTimeout. */
     sendPingsAutomatically?: boolean;

@@ -126,6 +126,18 @@ struct HttpRequestWrapper {
         }
     }
 
+    /* Takes nothing, returns string */
+    template <int QUIC>
+    static void req_getCaseSensitiveMethod(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *req = getHttpRequest<QUIC>(args);
+        if (req) {
+            std::string_view method = req->getCaseSensitiveMethod();
+
+            args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), NewStringType::kNormal, method.length()).ToLocalChecked());
+        }
+    }
+
     template <int QUIC>
     static void req_getQuery(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
@@ -164,6 +176,7 @@ struct HttpRequestWrapper {
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getParameter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getParameter<QUIC>));
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUrl", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getUrl<QUIC>));
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getMethod", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getMethod<QUIC>));
+            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getCaseSensitiveMethod", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getCaseSensitiveMethod<QUIC>));
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getQuery", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getQuery<QUIC>));
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forEach", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_forEach<QUIC>));
             reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "setYield", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_setYield<QUIC>));

@@ -199,8 +199,10 @@ export interface HttpRequest {
     getParameter(index: number) : string;
     /** Returns the URL including initial /slash */
     getUrl() : string;
-    /** Returns the HTTP method, useful for "any" routes. */
+    /** Returns the lowercased HTTP method, useful for "any" routes. */
     getMethod() : string;
+    /** Returns the HTTP method as-is. */
+    getCaseSensitiveMethod() : string;
     /** Returns the raw querystring (the part of URL after ? sign) or empty string. */
     getQuery() : string;
     /** Returns a decoded query parameter value or empty string. */

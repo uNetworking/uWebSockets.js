@@ -66,6 +66,12 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             behavior.idleTimeout = maybeIdleTimeout.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 
+        /* maxLifetime or default */
+        MaybeLocal<Value> maybeMaxLifetime = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxLifetime", NewStringType::kNormal).ToLocalChecked());
+        if (!maybeMaxLifetime.IsEmpty() && !maybeMaxLifetime.ToLocalChecked()->IsUndefined()) {
+            behavior.maxLifetime = maybeMaxLifetime.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+        }
+
         /* closeOnBackpressureLimit or default */
         MaybeLocal<Value> maybeCloseOnBackpressureLimit = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "closeOnBackpressureLimit", NewStringType::kNormal).ToLocalChecked());
         if (!maybeCloseOnBackpressureLimit.IsEmpty() && !maybeCloseOnBackpressureLimit.ToLocalChecked()->IsUndefined()) {

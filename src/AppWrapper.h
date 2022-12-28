@@ -397,7 +397,9 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    app->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
+    bool ok = app->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
+
+    args.GetReturnValue().Set(Boolean::New(isolate, ok);
 }
 
 template <typename APP>

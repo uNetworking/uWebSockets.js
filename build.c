@@ -83,7 +83,7 @@ void build_boringssl(const char *arch) {
     
 #ifdef IS_WINDOWS
     /* Build for x64 (the host) */
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_CXX_COMPILER_ID=Clang -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
+    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_CXX_FLAGS=-wd5264 -DCMAKE_C_FLAGS=-wd5264 -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
 #endif
 
 }

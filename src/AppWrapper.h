@@ -207,8 +207,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)};
-            CallJS(isolate, Local<Function>::New(isolate, pingPf), 1, argv);
+            Local<Value> argv[2] = {Local<Object>::New(isolate, perSocketData->socketPf), ArrayBuffer_New(isolate, (void *) message.data(), message.length())};
+            CallJS(isolate, Local<Function>::New(isolate, pingPf), 2, argv);
         };
     }
 
@@ -218,8 +218,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             HandleScope hs(isolate);
 
             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-            Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)};
-            CallJS(isolate, Local<Function>::New(isolate, pongPf), 1, argv);
+            Local<Value> argv[2] = {Local<Object>::New(isolate, perSocketData->socketPf), ArrayBuffer_New(isolate, (void *) message.data(), message.length())};
+            CallJS(isolate, Local<Function>::New(isolate, pongPf), 2, argv);
         };
     }
 

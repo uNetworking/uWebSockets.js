@@ -306,6 +306,14 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_close(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    app->close();
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -628,6 +636,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     }, args.Data()));
 
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen<APP>, args.Data()));
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
 
     if constexpr (!std::is_same<APP, uWS::H3App>::value) {
 

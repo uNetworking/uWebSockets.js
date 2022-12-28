@@ -124,13 +124,6 @@ export interface HttpResponse {
      * buffer, not in a hash table. You can read about this in
      * the user manual under "corking".
     */
-
-    /** Pause http body streaming (throttle) */
-    pause() : void;
-
-    /** Resume http body streaming (unthrottle) */
-    resume() : void;
-
     writeStatus(status: RecognizedString) : HttpResponse;
     /** Writes key and value to HTTP response.
      * See writeStatus and corking.
@@ -224,10 +217,6 @@ export interface HttpRequest {
 export interface WebSocketBehavior {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
-    /** Whether or not we should automatically close the socket when a message is dropped due to backpressure. Defaults to false. */
-    closeOnBackpressureLimit?: number;
-    /** Maximum number of minutes a WebSocket may be connected before being closed by the server. 0 disables the feature. */
-    maxLifetime?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
      * Disable by using 0. Defaults to 120.
      */

@@ -320,6 +320,40 @@ void uWS_App_close(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_listen_unix(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+
+    /* Require at least two arguments */
+    if (missingArguments(2, args)) {
+        return;
+    }
+
+    /* integer options is first (not implemented) */
+
+    /* Callback is first */
+    auto cb = [&args, isolate](auto *token) {
+        /* Return a false boolean if listen failed */
+        Local<Value> argv[] = {token ? Local<Value>::Cast(External::New(isolate, token)) : Local<Value>::Cast(Boolean::New(isolate, false))};
+        /* Immediate call cannot be CallJS */
+        Local<Function>::Cast(args[0])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
+    };
+
+    /* Path is last */
+    std::string path;
+    NativeString h(isolate, args[args.Length() - 1]);
+    if (h.isInvalid(args)) {
+        return;
+    }
+    path = h.getString();
+
+    app->listen(std::move(cb), path);
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -643,6 +677,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         uWS_App_get<APP>(&APP::any, args);
     }, args.Data()));
 
+    appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen_unix", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen_unix<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen<APP>, args.Data()));
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
 

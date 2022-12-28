@@ -1,7 +1,7 @@
 {
 	"files": [ "index.d.ts" ],
 	"typedocOptions": {
-		"name":"uWebSockets.js v20.4.0 documentation",
+		"name":"uWebSockets.js v20.16.0 documentation",
 		"entryPoints": [ "index.d.ts" ],
 		"out":"generated",
 		"excludeExternals":true,

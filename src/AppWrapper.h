@@ -49,6 +49,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     UniquePersistent<Function> closePf;
     UniquePersistent<Function> pingPf;
     UniquePersistent<Function> pongPf;
+    UniquePersistent<Function> subscriptionPf;
 
     /* Get the behavior object */
     if (args.Length() == 2) {
@@ -204,6 +205,17 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
             Local<Value> argv[1] = {Local<Object>::New(isolate, perSocketData->socketPf)
                                     };
             CallJS(isolate, Local<Function>::New(isolate, drainPf), 1, argv);
+        };
+    }
+
+    /* Subscription handler is always optional */
+    if (subscriptionPf != Undefined(isolate)) {
+        behavior.subscription = [subscriptionPf = std::move(subscriptionPf), isolate](auto *ws, std::string_view topic, int newCount, int oldCount) {
+            HandleScope hs(isolate);
+
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            Local<Value> argv[4] = {Local<Object>::New(isolate, perSocketData->socketPf), ArrayBuffer_New(isolate, (void *) topic.data(), topic.length()), Integer::New(isolate, newCount), Integer::New(isolate, oldCount)};
+            CallJS(isolate, Local<Function>::New(isolate, subscriptionPf), 4, argv);
         };
     }
 

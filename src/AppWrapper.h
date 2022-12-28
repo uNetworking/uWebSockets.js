@@ -111,6 +111,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         pingPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Pong */
         pongPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "pong", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
+    	/* Subscription */
+        subscriptionPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "subscription", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
 
     }
 

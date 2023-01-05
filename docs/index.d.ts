@@ -47,7 +47,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export type WebSocket<UserData> = {
+export type WebSocket<T> = {
     /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
@@ -90,7 +90,7 @@ export type WebSocket<UserData> = {
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
-    cork(cb: () => void) : WebSocket<UserData>;
+    cork(cb: () => void) : WebSocket<T>;
 
     /** Returns the remote IP address. Note that the returned IP is binary, not text.
      *
@@ -104,10 +104,10 @@ export type WebSocket<UserData> = {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-} & UserData
+} & T
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
-export interface HttpResponse<UserData> {
+export interface HttpResponse<T = {}> {
     /** Writes the HTTP status message such as "200 OK".
      * This has to be called first in any response, otherwise
      * it will be called automatically with "200 OK".
@@ -129,20 +129,20 @@ export interface HttpResponse<UserData> {
     /** Resume http body streaming (unthrottle) */
     resume() : void;
 
-    writeStatus(status: RecognizedString) : HttpResponse<UserData>;
+    writeStatus(status: RecognizedString) : HttpResponse<T>;
     /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */
-    writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse<UserData>;
+    writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse<T>;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
     /** Ends this response by copying the contents of body. */
-    end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse<UserData>;
+    end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse<T>;
     /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
 
     /** Immediately force closes the connection. Any onAborted callback will run. */
-    close() : HttpResponse<UserData>;
+    close() : HttpResponse<T>;
 
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
@@ -151,16 +151,16 @@ export interface HttpResponse<UserData> {
      * You MUST return true for success, false for failure.
      * Writing nothing is always success, so by default you must return true.
      */
-    onWritable(handler: (offset: number) => boolean) : HttpResponse<UserData>;
+    onWritable(handler: (offset: number) => boolean) : HttpResponse<T>;
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler
      * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
      * When this event emits, the response has been aborted and may not be used. */
-    onAborted(handler: () => void) : HttpResponse<UserData>;
+    onAborted(handler: () => void) : HttpResponse<T>;
 
     /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
-    onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse<UserData>;
+    onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse<T>;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;
@@ -187,12 +187,12 @@ export interface HttpResponse<UserData> {
      *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
      * });
      */
-    cork(cb: () => void) : HttpResponse<UserData>;
+    cork(cb: () => void) : HttpResponse<T>;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files.
      * Arbitrary user data may be provided to this function. The data will then be available directly on the websocket instance.
      */
-    upgrade(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
+    upgrade(userData : T, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
@@ -221,7 +221,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior<UserData> {
+export interface WebSocketBehavior<T> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Whether or not we should automatically close the socket when a message is dropped due to backpressure. Defaults to false. */
@@ -241,19 +241,19 @@ export interface WebSocketBehavior<UserData> {
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
      * See UpgradeAsync and UpgradeSync example files.
      */
-    upgrade?: (res: HttpResponse<UserData>, req: HttpRequest, context: us_socket_context_t) => void;
+    upgrade?: (res: HttpResponse<T>, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket<UserData>) => void;
+    open?: (ws: WebSocket<T>) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<T>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket<UserData>) => void;
+    drain?: (ws: WebSocket<T>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<T>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
+    ping?: (ws: WebSocket<T>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
+    pong?: (ws: WebSocket<T>, message: ArrayBuffer) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -275,63 +275,68 @@ export enum ListenOptions {
   LIBUS_LISTEN_EXCLUSIVE_PORT = 1
 }
 
+/** Internal type used to restrict what the user is allowed to provide as userdata in the res.upgrade function.
+ * We only allow a plain js object where all properties are primitive js types (or a nested object)
+ * @internal
+ */
+type AllowedUserData<T> = {
+    [K in keyof T]: PrimitiveTypes | AllowedUserData<T[K]>
+}
+
+/** A union of all js primitive types
+ *  @internal */
+type PrimitiveTypes = string | number | bigint | boolean | undefined | symbol | null
 /** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
-export interface TemplatedApp<UserData> {
+
+export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
-    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp<UserData>;
+    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp;
     /** Listens to port. Callback hands either false or a listen socket. */
-    listen(port: number, cb: (listenSocket: any) => void): TemplatedApp<UserData>;
+    listen(port: number, cb: (listenSocket: any) => void): TemplatedApp;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
-    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp<UserData>;
+    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp;
     /** Registers an HTTP GET handler matching specified URL pattern. */
-    get(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP POST handler matching specified URL pattern. */
-    post(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    post(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP OPTIONS handler matching specified URL pattern. */
-    options(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    options(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP DELETE handler matching specified URL pattern. */
-    del(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    del(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP PATCH handler matching specified URL pattern. */
-    patch(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    patch(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP PUT handler matching specified URL pattern. */
-    put(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    put(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP HEAD handler matching specified URL pattern. */
-    head(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    head(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP CONNECT handler matching specified URL pattern. */
-    connect(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    connect(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP TRACE handler matching specified URL pattern. */
-    trace(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    trace(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
-    any(pattern: RecognizedString, handler: (res: HttpResponse<UserData>, req: HttpRequest) => void) : TemplatedApp<UserData>;
+    any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp<UserData>;
+    ws<T extends AllowedUserData<T> = {[k:string]: any}>(pattern: RecognizedString, behavior: WebSocketBehavior<T>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */
     numSubscribers(topic: RecognizedString) : number;
     /** Adds a server name. */
-    addServerName(hostname: string, options: AppOptions): TemplatedApp<UserData>;
+    addServerName(hostname: string, options: AppOptions): TemplatedApp;
     /** Removes a server name. */
-    removeServerName(hostname: string): TemplatedApp<UserData>;
+    removeServerName(hostname: string): TemplatedApp;
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
-    missingServerName(cb: (hostname: string) => void): TemplatedApp<UserData>;
+    missingServerName(cb: (hostname: string) => void): TemplatedApp;
 }
 
-/** Internal type used to restrict what the user is allowed to provide as userdata in the res.upgrade function.
- * We only allow a plain js object where all properties are primitive js types (or a nested object)
- */
-type AllowedUserData<T> = {
-    [K in keyof T]: PrimitiveTypes | AllowedUserData<T[K]>
-}
-type PrimitiveTypes = string | number | bigint | boolean | undefined | symbol | null
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.
  * This is also where you listen and run your app, set any SSL options (in case of SSLApp) and the like.
  * You can optionally provide a typescript interface or type alias as a type parameter to specify the shape of the userdata provided to res.upgrade
  */
-export function App<UserData extends AllowedUserData<UserData> = AllowedUserData<{[k:string]: any}>>(options?: AppOptions): TemplatedApp<UserData>;
+export function App(options?: AppOptions): TemplatedApp;
 
 /** Constructs an SSL app. See App. */
-export function SSLApp<UserData extends AllowedUserData<UserData> = AllowedUserData<{[k:string]: any}>>(options: AppOptions): TemplatedApp<UserData>;
+export function SSLApp(options: AppOptions): TemplatedApp;
 
 /** Closes a uSockets listen socket. */
 export function us_listen_socket_close(listenSocket: us_listen_socket): void;

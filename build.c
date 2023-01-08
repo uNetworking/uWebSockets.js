@@ -142,7 +142,7 @@ int main() {
     /* We can use clang, but we currently do use cl.exe still */
     build("clang",
           "clang++",
-          "-static-libstdc++ -s",
+          "advapi32.lib -I uWebSockets/uSockets/lsquic/wincompat -static-libstdc++ -s",
           OS,
           X64);
 #else

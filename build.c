@@ -140,9 +140,9 @@ int main() {
 
 #ifdef IS_WINDOWS
     /* We can use clang, but we currently do use cl.exe still */
-    build("clang",
+    build_windows("clang",
           "clang++",
-          "advapi32.lib -I uWebSockets/uSockets/lsquic/wincompat -static-libstdc++ -s",
+          "",
           OS,
           X64);
 #else

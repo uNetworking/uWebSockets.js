@@ -47,7 +47,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export interface WebSocket {
+export interface WebSocket<UserData> {
     /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
@@ -90,7 +90,7 @@ export interface WebSocket {
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
-    cork(cb: () => void) : WebSocket;
+    cork(cb: () => void) : WebSocket<UserData>;
 
     /** Returns the remote IP address. Note that the returned IP is binary, not text.
      *
@@ -104,8 +104,8 @@ export interface WebSocket {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-    /** Arbitrary user data may be attached to this object. In C++ this is done by using getUserData(). */
-    [key: string]: any;
+    /** Returns the UserData object. */
+    getUserData() : UserData;
 }
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
@@ -192,7 +192,7 @@ export interface HttpResponse {
     cork(cb: () => void) : HttpResponse;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
-    upgrade<T>(userData : T, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
+    upgrade<UserData>(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
@@ -221,7 +221,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior {
+export interface WebSocketBehavior<UserData> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Whether or not we should automatically close the socket when a message is dropped due to backpressure. Defaults to false. */
@@ -243,17 +243,19 @@ export interface WebSocketBehavior {
      */
     upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket) => void;
+    open?: (ws: WebSocket<UserData>) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket) => void;
+    drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket, message: ArrayBuffer) => void;
+    ping?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket, message: ArrayBuffer) => void;
+    pong?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
+    /** Handler for subscription changes. */
+    subscription?: (ws: WebSocket<UserData>, topic: ArrayBuffer, newCount: number, oldCount: number) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -304,7 +306,7 @@ export interface TemplatedApp {
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws(pattern: RecognizedString, behavior: WebSocketBehavior) : TemplatedApp;
+    ws<UserData>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */

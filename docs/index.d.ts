@@ -47,7 +47,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export type WebSocket<UserData> = {
+export interface WebSocket<UserData> {
     /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
@@ -104,7 +104,9 @@ export type WebSocket<UserData> = {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-} & UserData
+    /** Returns the UserData object. */
+    getUserData() : UserData;
+}
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {
@@ -189,10 +191,8 @@ export interface HttpResponse {
      */
     cork(cb: () => void) : HttpResponse;
 
-    /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files.
-     * Arbitrary user data may be provided to this function. The data will then be available directly on the websocket instance.
-     */
-    upgrade<UserData extends AllowedUserData<UserData>>(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
+    /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
+    upgrade<UserData>(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
@@ -254,6 +254,8 @@ export interface WebSocketBehavior<UserData> {
     ping?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
     pong?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
+    /** Handler for subscription changes. */
+    subscription?: (ws: WebSocket<UserData>, topic: ArrayBuffer, newCount: number, oldCount: number) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -316,7 +318,7 @@ export interface TemplatedApp {
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws<UserData extends AllowedUserData<UserData> = {[k:string]: any}>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
+    ws<UserData>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */

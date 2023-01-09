@@ -14,10 +14,15 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">uWebSockets.js v20.16.0 documentation</a></li>
 <li><a href="WebSocketBehavior.html">WebSocketBehavior</a></li></ul>
-<h1>Interface WebSocketBehavior</h1></div>
+<h1>Interface WebSocketBehavior&lt;UserData&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>A structure holding settings and handlers for a WebSocket URL route handler.</p>
-</div></section>
+</div></section> 
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameters">
+<li>
+<h4>UserData</h4></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
@@ -44,19 +49,20 @@
 <a href="WebSocketBehavior.html#ping" class="tsd-index-link tsd-kind-property tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>ping?</span></a>
 <a href="WebSocketBehavior.html#pong" class="tsd-index-link tsd-kind-property tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>pong?</span></a>
 <a href="WebSocketBehavior.html#sendPingsAutomatically" class="tsd-index-link tsd-kind-property tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>send<wbr/>Pings<wbr/>Automatically?</span></a>
+<a href="WebSocketBehavior.html#subscription" class="tsd-index-link tsd-kind-property tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>subscription?</span></a>
 <a href="WebSocketBehavior.html#upgrade" class="tsd-index-link tsd-kind-property tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>upgrade?</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="close" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
-<div class="tsd-signature">close<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">close<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type.__type-1"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type.__type-1"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed.</p>
 </div>
@@ -64,7 +70,7 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>code: <span class="tsd-signature-type">number</span></h5></li>
 <li>
@@ -88,13 +94,13 @@
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L236">index.d.ts:236</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="drain" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>drain</span><a href="#drain" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">drain<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">drain<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-2.__type-3"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-2.__type-3"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling.</p>
 </div>
@@ -102,7 +108,7 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li></ul></div>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L250">index.d.ts:250</a></li></ul></aside></section>
@@ -137,13 +143,13 @@ Disable by using 0. Defaults to 120.</p>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L226">index.d.ts:226</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="message" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>message</span><a href="#message" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">message<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isBinary<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">message<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isBinary<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-4.__type-5"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isBinary<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-4.__type-5"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, isBinary<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered.</p>
 </div>
@@ -151,7 +157,7 @@ Disable by using 0. Defaults to 120.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>message: <span class="tsd-signature-type">ArrayBuffer</span></h5></li>
 <li>
@@ -161,13 +167,13 @@ Disable by using 0. Defaults to 120.</p>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L248">index.d.ts:248</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="open" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>open</span><a href="#open" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">open<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">open<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-6.__type-7"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-6.__type-7"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for new WebSocket connection. WebSocket is valid from open to close, no errors.</p>
 </div>
@@ -175,19 +181,19 @@ Disable by using 0. Defaults to 120.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li></ul></div>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L246">index.d.ts:246</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="ping" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>ping</span><a href="#ping" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">ping<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">ping<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-8.__type-9"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-8.__type-9"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard.</p>
 </div>
@@ -195,7 +201,7 @@ Disable by using 0. Defaults to 120.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>message: <span class="tsd-signature-type">ArrayBuffer</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
@@ -203,13 +209,13 @@ Disable by using 0. Defaults to 120.</p>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L254">index.d.ts:254</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="pong" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>pong</span><a href="#pong" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">pong<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">pong<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-10.__type-11"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-10.__type-11"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Handler for received pong control message.</p>
 </div>
@@ -217,7 +223,7 @@ Disable by using 0. Defaults to 120.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h5></li>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5>message: <span class="tsd-signature-type">ArrayBuffer</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
@@ -230,6 +236,32 @@ Disable by using 0. Defaults to 120.</p>
 </div><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L240">index.d.ts:240</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="subscription" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>subscription</span><a href="#subscription" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">subscription<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, topic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, newCount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, oldCount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-type-declaration">
+<h4>Type declaration</h4>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
+<li class="tsd-signature" id="__type-12.__type-13"><span class="tsd-signature-symbol">(</span>ws<span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span>, topic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArrayBuffer</span>, newCount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, oldCount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Handler for subscription changes.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>ws: <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<li>
+<h5>topic: <span class="tsd-signature-type">ArrayBuffer</span></h5></li>
+<li>
+<h5>newCount: <span class="tsd-signature-type">number</span></h5></li>
+<li>
+<h5>oldCount: <span class="tsd-signature-type">number</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L258">index.d.ts:258</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="upgrade" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>upgrade</span><a href="#upgrade" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">upgrade<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>res<span class="tsd-signature-symbol">: </span><a href="HttpResponse.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpResponse</a>, req<span class="tsd-signature-symbol">: </span><a href="HttpRequest.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpRequest</a>, context<span class="tsd-signature-symbol">: </span><a href="us_socket_context_t.html" class="tsd-signature-type" data-tsd-kind="Interface">us_socket_context_t</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
@@ -238,7 +270,7 @@ Disable by using 0. Defaults to 120.</p>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-interface">
-<li class="tsd-signature" id="__type-12.__type-13"><span class="tsd-signature-symbol">(</span>res<span class="tsd-signature-symbol">: </span><a href="HttpResponse.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpResponse</a>, req<span class="tsd-signature-symbol">: </span><a href="HttpRequest.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpRequest</a>, context<span class="tsd-signature-symbol">: </span><a href="us_socket_context_t.html" class="tsd-signature-type" data-tsd-kind="Interface">us_socket_context_t</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-signature" id="__type-14.__type-15"><span class="tsd-signature-symbol">(</span>res<span class="tsd-signature-symbol">: </span><a href="HttpResponse.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpResponse</a>, req<span class="tsd-signature-symbol">: </span><a href="HttpRequest.html" class="tsd-signature-type" data-tsd-kind="Interface">HttpRequest</a>, context<span class="tsd-signature-symbol">: </span><a href="us_socket_context_t.html" class="tsd-signature-type" data-tsd-kind="Interface">us_socket_context_t</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
 See UpgradeAsync and UpgradeSync example files.</p>
@@ -292,6 +324,7 @@ See UpgradeAsync and UpgradeSync example files.</p>
 <li class="tsd-kind-property tsd-parent-kind-interface"><a href="WebSocketBehavior.html#ping" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>ping?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-interface"><a href="WebSocketBehavior.html#pong" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>pong?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-interface"><a href="WebSocketBehavior.html#sendPingsAutomatically" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>send<wbr/>Pings<wbr/>Automatically?</a></li>
+<li class="tsd-kind-property tsd-parent-kind-interface"><a href="WebSocketBehavior.html#subscription" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>subscription?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-interface"><a href="WebSocketBehavior.html#upgrade" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>upgrade?</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>

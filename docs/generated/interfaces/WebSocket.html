@@ -14,18 +14,20 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">uWebSockets.js v20.16.0 documentation</a></li>
 <li><a href="WebSocket.html">WebSocket</a></li></ul>
-<h1>Interface WebSocket</h1></div>
+<h1>Interface WebSocket&lt;UserData&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>A WebSocket connection that is valid from open to close event.
 Read more about this in the user manual.</p>
-</div></section>
+</div></section> 
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameters">
+<li>
+<h4>UserData</h4></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="target">WebSocket</span></li></ul></section>
-<section class="tsd-panel tsd-kind-interface">
-<h4 class="tsd-before-signature">Indexable</h4>
-<div class="tsd-signature"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div></section><aside class="tsd-sources">
+<li><span class="target">WebSocket</span></li></ul></section><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L50">index.d.ts:50</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
@@ -42,6 +44,7 @@ Read more about this in the user manual.</p>
 <a href="WebSocket.html#getRemoteAddress" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Remote<wbr/>Address</span></a>
 <a href="WebSocket.html#getRemoteAddressAsText" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Remote<wbr/>Address<wbr/>As<wbr/>Text</span></a>
 <a href="WebSocket.html#getTopics" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Topics</span></a>
+<a href="WebSocket.html#getUserData" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>User<wbr/>Data</span></a>
 <a href="WebSocket.html#isSubscribed" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>is<wbr/>Subscribed</span></a>
 <a href="WebSocket.html#ping" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>ping</span></a>
 <a href="WebSocket.html#publish" class="tsd-index-link tsd-kind-method tsd-parent-kind-interface"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>publish</span></a>
@@ -65,7 +68,7 @@ No WebSocket close message is sent.</p>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="cork" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>cork</span><a href="#cork" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-<li class="tsd-signature tsd-anchor-link" id="cork.cork-1">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><a href="#cork.cork-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="cork.cork-1">cork<span class="tsd-signature-symbol">(</span>cb<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span><a href="#cork.cork-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block)</p>
 </div>
@@ -80,7 +83,7 @@ No WebSocket close message is sent.</p>
 <li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="WebSocket.html" class="tsd-signature-type" data-tsd-kind="Interface">WebSocket</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L93">index.d.ts:93</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="end" class="tsd-anchor"></a>
@@ -145,6 +148,16 @@ IPv6 is 16 byte long and can be converted to text in similar ways, but you typic
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
 <li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L85">index.d.ts:85</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="getUserData" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>User<wbr/>Data</span><a href="#getUserData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+<li class="tsd-signature tsd-anchor-link" id="getUserData.getUserData-1">get<wbr/>User<wbr/>Data<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span><a href="#getUserData.getUserData-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the UserData object.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type" data-tsd-kind="Type parameter">UserData</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/uNetworking/uWebSockets.js/blob/master/docs/index.d.ts#L108">index.d.ts:108</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="isSubscribed" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Subscribed</span><a href="#isSubscribed" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -278,6 +291,7 @@ Order is guaranteed since v20.</p>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#getRemoteAddress" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Remote<wbr/>Address</a></li>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#getRemoteAddressAsText" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Remote<wbr/>Address<wbr/>As<wbr/>Text</a></li>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#getTopics" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Topics</a></li>
+<li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#getUserData" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>User<wbr/>Data</a></li>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#isSubscribed" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>is<wbr/>Subscribed</a></li>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#ping" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>ping</a></li>
 <li class="tsd-kind-method tsd-parent-kind-interface"><a href="WebSocket.html#publish" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>publish</a></li>

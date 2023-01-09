@@ -47,7 +47,7 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
 /** A WebSocket connection that is valid from open to close event.
  * Read more about this in the user manual.
  */
-export type WebSocket<T> = {
+export type WebSocket<UserData> = {
     /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
@@ -90,7 +90,7 @@ export type WebSocket<T> = {
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
 
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
-    cork(cb: () => void) : WebSocket<T>;
+    cork(cb: () => void) : WebSocket<UserData>;
 
     /** Returns the remote IP address. Note that the returned IP is binary, not text.
      *
@@ -104,10 +104,10 @@ export type WebSocket<T> = {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
-} & T
+} & UserData
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
-export interface HttpResponse<T = {}> {
+export interface HttpResponse {
     /** Writes the HTTP status message such as "200 OK".
      * This has to be called first in any response, otherwise
      * it will be called automatically with "200 OK".
@@ -129,20 +129,20 @@ export interface HttpResponse<T = {}> {
     /** Resume http body streaming (unthrottle) */
     resume() : void;
 
-    writeStatus(status: RecognizedString) : HttpResponse<T>;
+    writeStatus(status: RecognizedString) : HttpResponse;
     /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */
-    writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse<T>;
+    writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
     /** Ends this response by copying the contents of body. */
-    end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse<T>;
+    end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse;
     /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
 
     /** Immediately force closes the connection. Any onAborted callback will run. */
-    close() : HttpResponse<T>;
+    close() : HttpResponse;
 
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
@@ -151,16 +151,16 @@ export interface HttpResponse<T = {}> {
      * You MUST return true for success, false for failure.
      * Writing nothing is always success, so by default you must return true.
      */
-    onWritable(handler: (offset: number) => boolean) : HttpResponse<T>;
+    onWritable(handler: (offset: number) => boolean) : HttpResponse;
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler
      * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
      * When this event emits, the response has been aborted and may not be used. */
-    onAborted(handler: () => void) : HttpResponse<T>;
+    onAborted(handler: () => void) : HttpResponse;
 
     /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
-    onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse<T>;
+    onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;
@@ -187,12 +187,12 @@ export interface HttpResponse<T = {}> {
      *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
      * });
      */
-    cork(cb: () => void) : HttpResponse<T>;
+    cork(cb: () => void) : HttpResponse;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files.
      * Arbitrary user data may be provided to this function. The data will then be available directly on the websocket instance.
      */
-    upgrade(userData : T, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
+    upgrade<UserData extends AllowedUserData<UserData>>(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;
 
     /** Arbitrary user data may be attached to this object */
     [key: string]: any;
@@ -221,7 +221,7 @@ export interface HttpRequest {
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
-export interface WebSocketBehavior<T> {
+export interface WebSocketBehavior<UserData> {
     /** Maximum length of received message. If a client tries to send you a message larger than this, the connection is immediately closed. Defaults to 16 * 1024. */
     maxPayloadLength?: number;
     /** Whether or not we should automatically close the socket when a message is dropped due to backpressure. Defaults to false. */
@@ -241,19 +241,19 @@ export interface WebSocketBehavior<T> {
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
      * See UpgradeAsync and UpgradeSync example files.
      */
-    upgrade?: (res: HttpResponse<T>, req: HttpRequest, context: us_socket_context_t) => void;
+    upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket<T>) => void;
+    open?: (ws: WebSocket<UserData>) => void;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket<T>, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
-    drain?: (ws: WebSocket<T>) => void;
+    drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
-    close?: (ws: WebSocket<T>, code: number, message: ArrayBuffer) => void;
+    close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
     /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
-    ping?: (ws: WebSocket<T>, message: ArrayBuffer) => void;
+    ping?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
-    pong?: (ws: WebSocket<T>, message: ArrayBuffer) => void;
+    pong?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
 }
 
 /** Options used when constructing an app. Especially for SSLApp.
@@ -286,8 +286,8 @@ type AllowedUserData<T> = {
 /** A union of all js primitive types
  *  @internal */
 type PrimitiveTypes = string | number | bigint | boolean | undefined | symbol | null
-/** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
 
+/** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
 export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
     listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp;
@@ -316,7 +316,7 @@ export interface TemplatedApp {
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
     any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
-    ws<T extends AllowedUserData<T> = {[k:string]: any}>(pattern: RecognizedString, behavior: WebSocketBehavior<T>) : TemplatedApp;
+    ws<UserData extends AllowedUserData<UserData> = {[k:string]: any}>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
     publish(topic: RecognizedString, message: RecognizedString, isBinary?: boolean, compress?: boolean) : boolean;
     /** Returns number of subscribers for this topic. */

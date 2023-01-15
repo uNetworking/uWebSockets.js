@@ -18,7 +18,7 @@ const app = uWS./*SSL*/App({
 
     /* This immediately calls open handler, you must not use res after this call */
     res.upgrade({
-        url: req.getUrl()
+        myData: req.getUrl() /* First argument is UserData (see WebSocket.getUserData()) */
       },
       /* Spell these correctly */
       req.getHeader('sec-websocket-key'),
@@ -28,7 +28,7 @@ const app = uWS./*SSL*/App({
 
   },
   open: (ws) => {
-    console.log('A WebSocket connected with URL: ' + ws.url);
+    console.log('A WebSocket connected with URL: ' + ws.myData);
   },
   message: (ws, message, isBinary) => {
     /* Ok is false if backpressure was built up, wait for drain */

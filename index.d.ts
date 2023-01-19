@@ -140,6 +140,8 @@ export interface HttpResponse {
     write(chunk: RecognizedString) : boolean;
     /** Ends this response by copying the contents of body. */
     end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse;
+    /** Ends this response without a body. */
+    endWithoutBody(reportedContentLength?: number, closeConnection?: boolean) : HttpResponse;
     /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
 

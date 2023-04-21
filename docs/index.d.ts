@@ -315,6 +315,8 @@ export interface TemplatedApp {
     numSubscribers(topic: RecognizedString) : number;
     /** Adds a server name. */
     addServerName(hostname: string, options: AppOptions): TemplatedApp;
+    /** Attach SNI domain to routes */
+    domain(domain: string): TemplatedApp;
     /** Removes a server name. */
     removeServerName(hostname: string): TemplatedApp;
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */

@@ -187,9 +187,11 @@ export interface HttpResponse {
      *
      * Example usage:
      *
+     * ```
      * res.cork(() => {
      *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
      * });
+     * ```
      */
     cork(cb: () => void) : HttpResponse;
 
@@ -219,7 +221,7 @@ export interface HttpRequest {
     /** Loops over all headers. */
     forEach(cb: (key: string, value: string) => void) : void;
     /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */
-    setYield(yield: boolean) : HttpRequest;
+    setYield(_yield: boolean) : HttpRequest;
 }
 
 /** A structure holding settings and handlers for a WebSocket URL route handler. */
@@ -243,11 +245,11 @@ export interface WebSocketBehavior<UserData> {
     /** Upgrade handler used to intercept HTTP upgrade requests and potentially upgrade to WebSocket.
      * See UpgradeAsync and UpgradeSync example files.
      */
-    upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void;
+    upgrade?: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => void | Promise<void>;
     /** Handler for new WebSocket connection. WebSocket is valid from open to close, no errors. */
-    open?: (ws: WebSocket<UserData>) => void;
+    open?: (ws: WebSocket<UserData>) => void | Promise<void>;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
-    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void;
+    message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void | Promise<void>;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
     drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
@@ -282,31 +284,31 @@ export enum ListenOptions {
 /** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
 export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
-    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void): TemplatedApp;
+    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void | Promise<void>) : TemplatedApp;
     /** Listens to port. Callback hands either false or a listen socket. */
-    listen(port: number, cb: (listenSocket: any) => void): TemplatedApp;
+    listen(port: number, cb: (listenSocket: any) => void | Promise<void>) : TemplatedApp;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
-    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void): TemplatedApp;
+    listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP GET handler matching specified URL pattern. */
-    get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP POST handler matching specified URL pattern. */
-    post(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    post(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP OPTIONS handler matching specified URL pattern. */
-    options(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    options(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP DELETE handler matching specified URL pattern. */
-    del(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    del(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP PATCH handler matching specified URL pattern. */
-    patch(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    patch(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP PUT handler matching specified URL pattern. */
-    put(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    put(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP HEAD handler matching specified URL pattern. */
-    head(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    head(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP CONNECT handler matching specified URL pattern. */
-    connect(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    connect(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP TRACE handler matching specified URL pattern. */
-    trace(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    trace(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP handler matching specified URL pattern on any HTTP method. */
-    any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void) : TemplatedApp;
+    any(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers a handler matching specified URL pattern where WebSocket upgrade requests are caught. */
     ws<UserData>(pattern: RecognizedString, behavior: WebSocketBehavior<UserData>) : TemplatedApp;
     /** Publishes a message under topic, for all WebSockets under this app. See WebSocket.publish. */
@@ -316,26 +318,26 @@ export interface TemplatedApp {
     /** Adds a server name. */
     addServerName(hostname: string, options: AppOptions): TemplatedApp;
     /** Attach SNI domain to routes */
-    domain(domain: string): TemplatedApp;
+    domain(domain: string) : TemplatedApp;
     /** Removes a server name. */
-    removeServerName(hostname: string): TemplatedApp;
+    removeServerName(hostname: string) : TemplatedApp;
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
-    missingServerName(cb: (hostname: string) => void): TemplatedApp;
+    missingServerName(cb: (hostname: string) => void) : TemplatedApp;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.
  * This is also where you listen and run your app, set any SSL options (in case of SSLApp) and the like.
  */
-export function App(options?: AppOptions): TemplatedApp;
+export function App(options?: AppOptions) : TemplatedApp;
 
 /** Constructs an SSL app. See App. */
-export function SSLApp(options: AppOptions): TemplatedApp;
+export function SSLApp(options: AppOptions) : TemplatedApp;
 
 /** Closes a uSockets listen socket. */
-export function us_listen_socket_close(listenSocket: us_listen_socket): void;
+export function us_listen_socket_close(listenSocket: us_listen_socket) : void;
 
 /** Gets local port of socket (or listenSocket) or -1. */
-export function us_socket_local_port(socket: us_socket): number;
+export function us_socket_local_port(socket: us_socket) : number;
 
 export interface MultipartField {
     data: ArrayBuffer;
@@ -345,7 +347,7 @@ export interface MultipartField {
 }
 
 /** Takes a POSTed body and contentType, and returns an array of parts if the request is a multipart request */
-export function getParts(body: RecognizedString, contentType: RecognizedString): MultipartField[] | undefined;
+export function getParts(body: RecognizedString, contentType: RecognizedString) : MultipartField[] | undefined;
 
 /** WebSocket compression options. Combine any compressor with any decompressor using bitwise OR. */
 export type CompressOptions = number;

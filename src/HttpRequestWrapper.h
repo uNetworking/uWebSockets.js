@@ -156,6 +156,11 @@ struct HttpRequestWrapper {
             } else {
                 query = req->getQuery();
             }
+            
+            /* If we have nullptr as data, it's not simply an empty string */
+            if (query.data() == nullptr) {
+                return;
+            }
 
             args.GetReturnValue().Set(String::NewFromUtf8(isolate, query.data(), NewStringType::kNormal, query.length()).ToLocalChecked());
         }

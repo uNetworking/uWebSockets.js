@@ -316,8 +316,8 @@ export interface TemplatedApp {
     /** Returns number of subscribers for this topic. */
     numSubscribers(topic: RecognizedString) : number;
     /** Adds a server name. */
-    addServerName(hostname: string, options: AppOptions): TemplatedApp;
-    /** Attach SNI domain to routes */
+    addServerName(hostname: string, options: AppOptions) : TemplatedApp;
+    /** Browse to SNI domain. Used together with .get, .post and similar to attach routes under SNI domains. */
     domain(domain: string) : TemplatedApp;
     /** Removes a server name. */
     removeServerName(hostname: string) : TemplatedApp;

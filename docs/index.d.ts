@@ -48,6 +48,12 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export interface WebSocket<UserData> {
+    /** Query string of the WebSocket request */
+    query: string;
+    
+    /** URL segments of the WebSocket request */
+    url: string;
+    
     /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
      *
      * Make sure you properly understand the concept of backpressure. Check the backpressure example file.

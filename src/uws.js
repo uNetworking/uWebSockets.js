@@ -15,9 +15,25 @@
  * limitations under the License.
  */
 
+let process = require('node:process');
+let guWS = undefined;
+
+function pump() {
+	guWS.pump();
+	setImmediate(pump);
+}
+
+function setup(uWS) {
+	if (process.env.ALIEN_UWS) {
+		guWS = uWS;
+		setImmediate(pump);
+	}
+	return uWS;
+}
+
 module.exports = (() => {
 	try {
-		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
+		return setup(require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node'));
 	} catch (e) {
 		throw new Error('This version of uWS.js supports only Node.js LTS versions 16, 18 and 20 on (glibc) Linux, macOS and Windows, on Tier 1 platforms (https://github.com/nodejs/node/blob/master/BUILDING.md#platform-list).\n\n' + e.toString());
 	}

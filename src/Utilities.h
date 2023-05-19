@@ -25,8 +25,16 @@ using namespace v8;
 #include <node.h>
 
 MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Value> *argv) {
-    /* Slow path */
-    return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+    extern struct us_loop_t *us_loop;
+    extern int calledIntoJS;
+    if (us_loop) {
+        calledIntoJS = 1;
+        /* Fast path */
+        return f->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), argc, argv);
+    } else {
+        /* Slow path */
+        return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+    }
 }
 
 Local<v8::ArrayBuffer> ArrayBuffer_New(Isolate *isolate, void *data, size_t length) {

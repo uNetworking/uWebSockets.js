@@ -298,6 +298,7 @@ struct HttpResponseWrapper {
                 totalSize = (size_t) args[1]->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
 
+            assumeCorked();
             auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);
 
             /* Invalidate this object if we responded completely */
@@ -324,6 +325,7 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
+            assumeCorked();
             bool ok = res->write(data.getString());
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));

@@ -12,6 +12,9 @@ const app = uWS./*SSL*/App({
 
   res.write('<h2>Hello, your headers are:</h2><ul>');
 
+	console.log("yolo!");
+process.nextTick(() => {console.log("second tolo!")});
+
   req.forEach((k, v) => {
     res.write('<li>');
     res.write(k);

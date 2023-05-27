@@ -1,7 +1,15 @@
 /* SSL/non-SSL example with async/await functions */
 
+function delay(t, val) {
+  return new Promise(function(resolve) {
+      setTimeout(function() {
+          resolve(val);
+      }, t);
+  });
+}
+
 async function someAsyncTask() {
-  return 'Hey wait for me!';
+  return delay(500, 'Hey wait for me!');
 }
 
 const uWS = require('../dist/uws.js');
@@ -22,7 +30,9 @@ const app = uWS./*SSL*/App({
 
   /* If we were aborted, you cannot respond */
   if (!res.aborted) {
-    res.end(r);
+    res.cork(() => {
+      res.end(r);
+    });
   }
 }).listen(port, (token) => {
   if (token) {

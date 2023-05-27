@@ -27,13 +27,20 @@ using namespace v8;
 MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Value> *argv) {
     extern struct us_loop_t *us_loop;
     extern int calledIntoJS;
+    extern thread_local int insideCorkCallback;
+    /* All calls we do into JS are properly corked, except for res.cork, where we increase the counter explicitly */
+    insideCorkCallback++;
     if (us_loop) {
         calledIntoJS = 1;
         /* Fast path */
-        return f->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), argc, argv);
+        auto ret = f->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), argc, argv);
+        insideCorkCallback--;
+        return ret;
     } else {
         /* Slow path */
-        return node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+        auto ret = node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+        insideCorkCallback--;
+        return ret;
     }
 }
 

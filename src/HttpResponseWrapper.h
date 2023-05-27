@@ -21,7 +21,15 @@
 #include <v8.h>
 using namespace v8;
 
+thread_local int insideCorkCallback = 0;
+
 struct HttpResponseWrapper {
+
+    static void assumeCorked() {
+        if (!insideCorkCallback) {
+            std::cerr << "Critical warning: Calling uWS.HttpResponse [.writeStatus, .writeHeader, .end, .write, .tryEnd, .upgrade, .endWithoutBody, or similar] outside of uWS.HttpResponse.cork callback is highly discouraged due to major performance loss! Read the user manual and make the fix." << std::endl;
+        }
+    }
 
     template <int PROTOCOL>
     static inline constexpr decltype(auto) getHttpResponse(const FunctionCallbackInfo<Value> &args) {
@@ -219,7 +227,8 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
-            
+
+            assumeCorked();
             res->writeStatus(data.getString());
 
             args.GetReturnValue().Set(args.Holder());
@@ -242,6 +251,7 @@ struct HttpResponseWrapper {
             }
 
             invalidateResObject(args);
+            assumeCorked();
             res->endWithoutBody(reportedContentLength, closeConnection);
 
             args.GetReturnValue().Set(args.Holder());
@@ -265,6 +275,7 @@ struct HttpResponseWrapper {
 
             invalidateResObject(args);
 
+            assumeCorked();
             res->end(data.getString(), closeConnection);
 
             args.GetReturnValue().Set(args.Holder());
@@ -287,6 +298,7 @@ struct HttpResponseWrapper {
                 totalSize = (size_t) args[1]->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
 
+            assumeCorked();
             auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);
 
             /* Invalidate this object if we responded completely */
@@ -313,6 +325,7 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
+            assumeCorked();
             bool ok = res->write(data.getString());
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
@@ -333,6 +346,7 @@ struct HttpResponseWrapper {
             if (value.isInvalid(args)) {
                 return;
             }
+            assumeCorked();
             res->writeHeader(header.getString(), value.getString());
 
             args.GetReturnValue().Set(args.Holder());
@@ -347,8 +361,10 @@ struct HttpResponseWrapper {
         if (res) {
 
             res->cork([cb = Local<Function>::Cast(args[0]), isolate]() {
+                insideCorkCallback++;
                 /* This one is called from JS so we don't need CallJS */
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
+                insideCorkCallback--;
             });
 
             args.GetReturnValue().Set(args.Holder());
@@ -390,6 +406,7 @@ struct HttpResponseWrapper {
             userData.Reset(isolate, Local<Object>::Cast(args[0]));
 
             /* Immediately calls open handler */
+            assumeCorked();
             res->template upgrade<PerSocketData>({
                 std::move(userData)
             }, secWebSocketKey.getString(), secWebSocketProtocol.getString(),

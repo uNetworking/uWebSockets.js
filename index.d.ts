@@ -284,9 +284,9 @@ export enum ListenOptions {
 /** TemplatedApp is either an SSL or non-SSL app. See App for more info, read user manual. */
 export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
-    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
+    listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket) => void | Promise<void>) : TemplatedApp;
     /** Listens to port. Callback hands either false or a listen socket. */
-    listen(port: number, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
+    listen(port: number, cb: (listenSocket: any) => void | Promise<void>) : TemplatedApp;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
     listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP GET handler matching specified URL pattern. */

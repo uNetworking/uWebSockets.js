@@ -27,7 +27,7 @@ struct HttpResponseWrapper {
 
     static void assumeCorked() {
         if (!insideCorkCallback) {
-            std::cerr << "Critical warning: Calling uWS.HttpResponse [.writeStatus, .writeHeader, .end, .upgrade, .endWithoutBody] outside of a collecting uWS.HttpResponse.cork callback is highly discouraged due to inefficient sending." << std::endl;
+            std::cerr << "Warning: uWS.HttpResponse writes must be made from within a corked callback. See documentation for uWS.HttpResponse.cork and consult the user manual." << std::endl;
         }
     }
 

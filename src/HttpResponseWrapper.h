@@ -27,7 +27,7 @@ struct HttpResponseWrapper {
 
     static void assumeCorked() {
         if (!insideCorkCallback) {
-            std::cerr << "Critical warning: Calling uWS.HttpResponse [.writeStatus, .writeHeader, .end, .write, .tryEnd, .upgrade, .endWithoutBody, or similar] outside of uWS.HttpResponse.cork callback is highly discouraged due to major performance loss! Read the user manual and make the fix." << std::endl;
+            std::cerr << "Critical warning: Calling uWS.HttpResponse [.writeStatus, .writeHeader, .end, .upgrade, .endWithoutBody] outside of a collecting uWS.HttpResponse.cork callback is highly discouraged due to inefficient sending." << std::endl;
         }
     }
 
@@ -298,7 +298,6 @@ struct HttpResponseWrapper {
                 totalSize = (size_t) args[1]->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
 
-            assumeCorked();
             auto [ok, hasResponded] = res->tryEnd(data.getString(), totalSize);
 
             /* Invalidate this object if we responded completely */
@@ -325,7 +324,6 @@ struct HttpResponseWrapper {
             if (data.isInvalid(args)) {
                 return;
             }
-            assumeCorked();
             bool ok = res->write(data.getString());
 
             args.GetReturnValue().Set(Boolean::New(isolate, ok));

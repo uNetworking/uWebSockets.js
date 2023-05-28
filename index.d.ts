@@ -289,6 +289,8 @@ export interface TemplatedApp {
     listen(port: number, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */
     listen(port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
+    /** Listens to unix socket. Callback hands either false or a listen socket. */
+    listen_unix(cb: (listenSocket: us_listen_socket) => void | Promise<void>, path: RecognizedString) : TemplatedApp;
     /** Registers an HTTP GET handler matching specified URL pattern. */
     get(pattern: RecognizedString, handler: (res: HttpResponse, req: HttpRequest) => void | Promise<void>) : TemplatedApp;
     /** Registers an HTTP POST handler matching specified URL pattern. */

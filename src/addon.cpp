@@ -331,24 +331,6 @@ void uWS_unlock(const FunctionCallbackInfo<Value> &args) {
     kvMutex.unlock();
 }
 
-struct us_loop_t *us_loop;
-int calledIntoJS = 0;
-extern "C" void us_loop_pump(struct us_loop_t *loop);
-void uWS_pump(const FunctionCallbackInfo<Value> &args) {
-    static int timesNotCalledIntoJS;
-    calledIntoJS = 0;
-    us_loop_pump(us_loop);
-    if (!calledIntoJS) {
-        if (timesNotCalledIntoJS == 50) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        } else {
-            timesNotCalledIntoJS++;
-        }
-    } else {
-        timesNotCalledIntoJS = 0;
-    }
-}
-
 PerContextData *Main(Local<Object> exports) {
 
     /* We pass isolate everywhere */
@@ -374,8 +356,6 @@ PerContextData *Main(Local<Object> exports) {
 
     /* H3 experimental */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "H3App", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App<uWS::H3App>, externalPerContextData)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
-
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "pump", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_pump)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     /* Temporary KV store */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getString", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getString)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
@@ -434,12 +414,7 @@ PerContextData *Main(Local<Object> exports) {
 extern "C" NODE_MODULE_EXPORT void
 NODE_MODULE_INITIALIZER(Local<Object> exports, Local<Value> module, Local<Context> context) {
     /* Integrate uSockets with existing libuv loop */
-    if (getenv("ALIEN_UWS")) {
-        us_loop = (struct us_loop_t *) uWS::Loop::get(nullptr);
-        us_loop_integrate(us_loop);
-    } else {
-        uWS::Loop::get(node::GetCurrentEventLoop(context->GetIsolate()));
-    }
+    uWS::Loop::get(node::GetCurrentEventLoop(context->GetIsolate()));
     /* Register vanilla V8 addon */
     PerContextData *perContextData = Main(exports);
 

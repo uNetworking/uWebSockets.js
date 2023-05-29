@@ -31,7 +31,7 @@ struct HttpRequestWrapper {
         /* Thow on deleted request */
         auto *req = (uWS::HttpRequest *) args.Holder()->GetAlignedPointerFromInternalField(0);
         if (!req) {
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Using uWS.HttpRequest / uWS.Http3Request past its request handler return is forbidden (it is stack allocated).", NewStringType::kNormal).ToLocalChecked())));
+            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "You as user aren't allowed to access uWS.HttpRequest after await or return. Do not report this error message.", NewStringType::kNormal).ToLocalChecked())));
         }
 
         if constexpr (QUIC) {

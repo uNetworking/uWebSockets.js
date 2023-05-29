@@ -206,8 +206,9 @@ struct HttpResponseWrapper {
                 /* We should check if this is really here! */
                 MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
                 if (maybeBoolean.IsEmpty()) {
-                    std::cerr << "ERROR! onWritable must return a boolean value according to documentation!" << std::endl;
-                    exit(-1);
+                    std::cerr << "Warning: uWS.HttpResponse.onWritable callback should return Boolean. See documentation for uWS.HttpResponse.onWritable and consult the user manual." << std::endl;
+                    /* The default should be true, as it only adds a potential extra send, rather than erroneously avoid it */
+                    return true;
                 }
 
                 return maybeBoolean.ToLocalChecked()->BooleanValue(isolate);

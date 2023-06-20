@@ -35,15 +35,19 @@ const app = uWS./*SSL*/App({
         return;
       }
 
-      /* This immediately calls open handler, you must not use res after this call */
-      res.upgrade({
-        url: url
-      },
-      /* Use our copies here */
-      secWebSocketKey,
-      secWebSocketProtocol,
-      secWebSocketExtensions,
-      context);
+      /* Cork any async response including upgrade */
+      res.cork(() => {
+        /* This immediately calls open handler, you must not use res after this call */
+        res.upgrade(
+          { url: url },
+          /* Use our copies here */
+          secWebSocketKey,
+          secWebSocketProtocol,
+          secWebSocketExtensions,
+          context
+        );
+      });
+      
     }, 1000);
 
     /* You MUST register an abort handler to know if the upgrade was aborted by peer */

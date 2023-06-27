@@ -14,11 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const { existsSync } = require('node:fs');
+const { arch, platform, versions: { modules } } = require('node:rocess');
 
-module.exports = (() => {
-	try {
-		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
-	} catch (e) {
-		throw new Error('This version of uWS.js supports only Node.js LTS versions 16, 18 and 20 on (glibc) Linux, macOS and Windows, on Tier 1 platforms (https://github.com/nodejs/node/blob/master/BUILDING.md#platform-list).\n\n' + e.toString());
-	}
-})();
+try {
+	if (modules == '93' || modules == '108' || modules == '115')
+		if (platform == 'win32')
+			if (arch == 'x64')
+				module
+					.exports = require(`./uws_win32_x64_${modules}.node`);
+			else
+				throw new Error('This version of uWebSockets.js only supports x64 architecture on Windows.');
+		else if (platform == 'linux')
+			if (arch == 'x64' || arch == 'arm' || arch == 'arm64')
+				module
+					.exports = require(`./uws_linux_${arch}_${modules}.node`);
+			else
+				throw new Error('This version of uWebSockets.js only supports x64, arm or arm64 architecture on Linux.');
+		else if (platform == 'darwin')
+			if (arch == 'x64' || arch == 'arm64')
+				module
+					.exports = require(`./uws_darwin_${arch}_${modules}.node`);
+			else
+				throw new Error('This version of uWebSockets.js only supports x64 or arm64 architecture on macOS.');
+		else
+			throw new Error('This version of uWebSockets.js only supports (glibc) Linux, macOS and Windows systems.');
+	else
+		throw new Error('This version of uWebSockets.js only supports Node.js LTS versions 16, 18 and 20.');
+} catch {
+	if (existsSync(`./uws_${platform}_${arch}_${modules}.node`))
+		throw new Error('You are missing some required files for uWebSockets.js. Please try installing it again.');
+	else
+		throw new Error('You are missing some dependencies for uWebSockets.js. Please try installing Node.js or Visual Studio build tools.');
+};

@@ -216,8 +216,8 @@ export interface HttpRequest {
     getCaseSensitiveMethod() : string;
     /** Returns the raw querystring (the part of URL after ? sign) or empty string. */
     getQuery() : string;
-    /** Returns a decoded query parameter value or empty string. */
-    getQuery(key: string) : string;
+    /** Returns a decoded query parameter value or undefined. */
+    getQuery(key: string) : string | undefined;
     /** Loops over all headers. */
     forEach(cb: (key: string, value: string) => void) : void;
     /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */

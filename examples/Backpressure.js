@@ -4,12 +4,14 @@
  * Data doesn't just, poof, immediately jump from your server to the receiver - the receiver has to actually... receive it.
  * That happens with ACKs, controlling the transmission window.
  *
- * This applies to _EVERYTHING_ computer science (not just uWS); files, sockets, queues, and so on. If you're building
- * web services without taking backpressure into account you're not developing proper solutions - you're fucking around.
+ * See https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/bufferedAmount
  *
- * Any slow receiver can wreck your whole server if you're not taking backpressure into account.
+ * Backpressure applies to all streams, files, sockets, queues, and so on. If you're building
+ * web services without taking backpressure into account you're not developing proper solutions - you're dicking around.
  *
- * The following is a (preposterous) example of how data can be pushed according to backpressure.
+ * Any slow receiver can DOS your whole server if you're not taking backpressure into account.
+ *
+ * The following is a (ridiculous) example of how data can be pushed according to backpressure.
  * Do not take this as a way to actually write code, this is horrible, but it shows the concept clearly.
  *
  */

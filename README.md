@@ -10,7 +10,7 @@
 ### :zap: Simple performance
 µWebSockets.js is a web server bypass for Node.js that reimplements eventing, networking, encryption, web protocols, routing and pub/sub in highly optimized C++. As such, µWebSockets.js delivers web serving for Node.js, **[8.5x that of Fastify](https://alexhultman.medium.com/serving-100k-requests-second-from-a-fanless-raspberry-pi-4-over-ethernet-fdd2c2e05a1e)** and at least **[10x that of Socket.IO](https://medium.com/swlh/100k-secure-websockets-with-raspberry-pi-4-1ba5d2127a23)**. It is also the built-in **[web server of Bun](https://bun.sh/)**.
 
-* We *recommend, for simplicity* installing with `bun install uNetworking/uWebSockets.js#v20.31.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). Use [official builds](https://nodejs.org/en/download) of Node.js LTS.
+* We *recommend, for simplicity* installing with `bun install uNetworking/uWebSockets.js#v20.33.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). Use [official builds](https://nodejs.org/en/download) of Node.js LTS.
 
 * Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 

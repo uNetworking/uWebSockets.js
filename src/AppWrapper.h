@@ -47,6 +47,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     UniquePersistent<Function> messagePf;
     UniquePersistent<Function> drainPf;
     UniquePersistent<Function> closePf;
+    UniquePersistent<Function> droppedPf;
     UniquePersistent<Function> pingPf;
     UniquePersistent<Function> pongPf;
     UniquePersistent<Function> subscriptionPf;
@@ -107,6 +108,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         drainPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "drain", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Close */
         closePf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
+        /* Dropped */
+        droppedPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dropped", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Ping */
         pingPf.Reset(args.GetIsolate(), Local<Function>::Cast(behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()));
         /* Pong */
@@ -192,6 +195,25 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
                                     Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
 
             CallJS(isolate, Local<Function>::New(isolate, messagePf), 3, argv);
+
+            /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
+            messageArrayBuffer->Detach();
+        };
+    }
+
+    /* Dropped handler is always optional (similar to message) */
+    if (droppedPf != Undefined(isolate)) {
+        behavior.dropped = [droppedPf = std::move(droppedPf), isolate](auto *ws, std::string_view message, uWS::OpCode opCode) {
+            HandleScope hs(isolate);
+
+            Local<ArrayBuffer> messageArrayBuffer = ArrayBuffer_New(isolate, (void *) message.data(), message.length());
+
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            Local<Value> argv[3] = {Local<Object>::New(isolate, perSocketData->socketPf),
+                                    messageArrayBuffer,
+                                    Boolean::New(isolate, opCode == uWS::OpCode::BINARY)};
+
+            CallJS(isolate, Local<Function>::New(isolate, droppedPf), 3, argv);
 
             /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
             messageArrayBuffer->Detach();

@@ -109,6 +109,34 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
     /* We'll return undefined on error */
 }
 
+/* Faster setTimeout, clearTimeout */
+
+#include "FastTimers.h"
+
+UniquePersistent<Function> timerCallbacksJS[1000];
+
+void uWS_setTimeout(const FunctionCallbackInfo<Value> &args) {
+
+    /* Function, integer */
+
+    unsigned int timer = setTimeout_(nullptr, 1000);
+
+    timerCallbacksJS[timer].Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
+
+    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), timer));
+}
+
+void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
+
+    /* Integer */
+
+    uint32_t timer = Local<Integer>::Cast(args[0])->Value();
+
+    clearTimeout_(timer);
+
+    timerCallbacksJS[timer].Reset();
+}
+
 /* Pass various undocumented configs */
 void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
@@ -371,6 +399,9 @@ PerContextData *Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteInteger", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteInteger)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteStringCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteStringCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "deleteIntegerCollection", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_deleteIntegerCollection)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "setTimeout", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_setTimeout)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "clearTimeout", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_clearTimeout)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getParts", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getParts)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

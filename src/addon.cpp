@@ -115,6 +115,16 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
 UniquePersistent<Function> timerCallbacksJS[1000];
 
+void uWS_arm(const FunctionCallbackInfo<Value> &args) {
+
+    /* integer */
+
+    uint32_t ms = Local<Integer>::Cast(args[0])->Value();
+
+
+    //unsigned int timer = setTimeout_(nullptr, 1000);
+}
+
 void uWS_setTimeout(const FunctionCallbackInfo<Value> &args) {
 
     /* Function, integer */
@@ -402,6 +412,7 @@ PerContextData *Main(Local<Object> exports) {
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "setTimeout", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_setTimeout)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "clearTimeout", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_clearTimeout)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "arm", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_arm)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getParts", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getParts)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

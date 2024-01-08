@@ -111,9 +111,9 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
 /* Faster setTimeout, clearTimeout */
 
-#include "FastTimers.h"
+//#include "FastTimers.h"
 
-UniquePersistent<Function> timerCallbacksJS[1000];
+//UniquePersistent<Function> timerCallbacksJS[1000];
 
 void uWS_arm(const FunctionCallbackInfo<Value> &args) {
 
@@ -129,11 +129,11 @@ void uWS_setTimeout(const FunctionCallbackInfo<Value> &args) {
 
     /* Function, integer */
 
-    unsigned int timer = setTimeout_(nullptr, 1000);
+    //unsigned int timer = setTimeout_(nullptr, 1000);
 
-    timerCallbacksJS[timer].Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
+    //timerCallbacksJS[timer].Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
 
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), timer));
+    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), timer));
 }
 
 void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
@@ -142,9 +142,9 @@ void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t timer = Local<Integer>::Cast(args[0])->Value();
 
-    clearTimeout_(timer);
+    //clearTimeout_(timer);
 
-    timerCallbacksJS[timer].Reset();
+    //timerCallbacksJS[timer].Reset();
 }
 
 /* Pass various undocumented configs */

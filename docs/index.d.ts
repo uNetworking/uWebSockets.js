@@ -325,6 +325,8 @@ export interface TemplatedApp {
     removeServerName(hostname: string) : TemplatedApp;
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
     missingServerName(cb: (hostname: string) => void) : TemplatedApp;
+    /** Attaches a "filter" function to track socket connections / disconnections */
+    filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
 }

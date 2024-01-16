@@ -432,6 +432,34 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    /* Handler */
+    Callback checkedCallback(args.GetIsolate(), args[0]);
+    if (checkedCallback.isInvalid(args)) {
+        return;
+    }
+    UniquePersistent<Function> cb = checkedCallback.getFunction();
+
+    /* This function requires perContextData */
+    PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
+
+    app->filter([cb = std::move(cb), perContextData](auto *res, int count) {
+        Isolate *isolate = perContextData->isolate;
+        HandleScope hs(isolate);
+
+        Local<Object> resObject = perContextData->resTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
+        resObject->SetAlignedPointerInInternalField(0, res);
+
+        Local<Value> argv[] = {resObject, Local<Value>::Cast(Integer::New(isolate, count))};
+        CallJS(isolate, cb.Get(isolate), 2, argv);
+    });
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -719,6 +747,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen_unix", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen_unix<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "filter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_filter<APP>, args.Data()));
 
         /* ws, listen */
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>, args.Data()));

@@ -66,7 +66,7 @@ void build_lsquic(const char *arch) {
     run("curl -OL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz");
     run("tar xzf zlib-1.3.1.tar.gz");
     
-    run("cd uWebSockets/uSockets/lsquic && cmake -DZLIB_ROOT=./zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+    run("cd uWebSockets/uSockets/lsquic && cmake -DZLIB_INCLUDE_DIR=./zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
 }
 

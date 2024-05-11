@@ -42,11 +42,12 @@ using namespace v8;
 #include "v8-fast-api-calls.h" // go with nodejs 20 for now
 
 void SlowByteLengthUtf8(const FunctionCallbackInfo<Value>& args) {
-  std::terminate();
+  printf("calling slow\n");
 }
 
 uint32_t FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
 
+    printf("calling fast\n");
 
     fwrite(source.data, 1, source.length, stdout);
   

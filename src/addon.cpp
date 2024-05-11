@@ -47,7 +47,7 @@ void uWS_log(const FunctionCallbackInfo<Value> &args) {
     int len = Local<String>::Cast(args[0])->WriteUtf8(isolate, buf);
 
 
-    fwrite(stdout, buf, len);
+    fwrite(buf, 1, len, stdout);
 }
 
 /* This function is somewhat of a simplifying wrapper that does not follow the C++ library.

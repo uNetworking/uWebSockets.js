@@ -452,7 +452,7 @@ PerContextData *Main(Local<Object> exports) {
                           Local<v8::Signature>(),
                           v8::ConstructorBehavior::kThrow,
                           v8::SideEffectType::kHasNoSideEffect,
-                          &fast_byte_length_utf8)->GetFunction(context).ToLocalChecked()
+                          &fast_byte_length_utf8)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
     
     ).ToChecked();
 

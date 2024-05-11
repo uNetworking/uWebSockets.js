@@ -39,6 +39,14 @@ using namespace v8;
 
 #include "Multipart.h"
 
+#include "v8-fast-api-calls.h" // go with nodejs 20 for now
+
+uint32_t FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
+  return source.length;
+}
+
+v8::CFunction fast_byte_length_utf8(v8::CFunction::Make(FastByteLengthUtf8));
+
 void uWS_log(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();

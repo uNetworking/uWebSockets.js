@@ -41,6 +41,10 @@ using namespace v8;
 
 #include "v8-fast-api-calls.h" // go with nodejs 20 for now
 
+void SlowByteLengthUtf8(const FunctionCallbackInfo<Value>& args) {
+  std::terminate();
+}
+
 uint32_t FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
   return source.length;
 }
@@ -438,6 +442,22 @@ PerContextData *Main(Local<Object> exports) {
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
+
+  exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "loggarn", NewStringType::kNormal).ToLocalChecked(),
+    
+    //FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
+
+          NewFunctionTemplate(isolate,
+                          SlowByteLengthUtf8,
+                          Local<v8::Signature>(),
+                          v8::ConstructorBehavior::kThrow,
+                          v8::SideEffectType::kHasNoSideEffect,
+                          &fast_byte_length_utf8)->GetFunction(context).ToLocalChecked()
+    
+    ).ToChecked();
+
+
+  
     
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

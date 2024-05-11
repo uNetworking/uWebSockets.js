@@ -451,9 +451,14 @@ PerContextData *Main(Local<Object> exports) {
     
     //FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
 
+    //left indented are for nodejs 20, else is for 21
           FunctionTemplate::New(isolate,
                           SlowByteLengthUtf8,
+
+    Local<Value>(),
+    
                           Local<v8::Signature>(),
+    0,
                           v8::ConstructorBehavior::kThrow,
                           v8::SideEffectType::kHasNoSideEffect,
                           &fast_byte_length_utf8)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()

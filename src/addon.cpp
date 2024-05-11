@@ -43,7 +43,7 @@ void uWS_log(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
 
-    char buf[256];
+    static char buf[1024 * 16];
     int len = Local<String>::Cast(args[0])->WriteUtf8(isolate, buf);
 
 

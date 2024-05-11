@@ -451,7 +451,7 @@ PerContextData *Main(Local<Object> exports) {
     
     //FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
 
-          NewFunctionTemplate(isolate,
+          FunctionTemplate::New(isolate,
                           SlowByteLengthUtf8,
                           Local<v8::Signature>(),
                           v8::ConstructorBehavior::kThrow,

@@ -41,7 +41,11 @@ using namespace v8;
 
 #include "v8-fast-api-calls.h" // go with nodejs 20 for now
 
+Isolate *isolate;
+
 void SlowByteLengthUtf8(const FunctionCallbackInfo<Value>& args) {
+  isolate = args.GetIsolate();
+  
   printf("calling slow\n");
 }
 
@@ -52,6 +56,11 @@ void FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& sour
 
 void FastByteLengthUtf8(Local<Value> receiver, Local<Value> val) {
     //fwrite(source.data, 1, source.length, stdout);
+
+    static char buf[1024 * 16];
+    int len = Local<String>::Cast(val)->WriteUtf8(isolate, buf);
+
+    fwrite(buf, 1, len, stdout);
 }
 
 v8::CFunction fast_byte_length_utf8(v8::CFunction::Make(FastByteLengthUtf8));

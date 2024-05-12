@@ -50,7 +50,7 @@ void FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& sour
     fwrite(source.data, 1, source.length, stdout);
 }*/
 
-void FastByteLengthUtf8(Local<Value> receiver, Local<Value> &val) {
+void FastByteLengthUtf8(Local<Value> receiver, Local<Value> *val) {
     //fwrite(source.data, 1, source.length, stdout);
 }
 

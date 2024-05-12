@@ -45,13 +45,8 @@ void SlowByteLengthUtf8(const FunctionCallbackInfo<Value>& args) {
   printf("calling slow\n");
 }
 
-uint32_t FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
-
-    printf("calling fast\n");
-
+void FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
     fwrite(source.data, 1, source.length, stdout);
-  
-  return source.length;
 }
 
 v8::CFunction fast_byte_length_utf8(v8::CFunction::Make(FastByteLengthUtf8));

@@ -7,7 +7,7 @@ require('uWebSockets.js')
 	.get('/id/:id', (res, req) => {
 		res.writeHeader('content-type', 'text/plain')
 			.writeHeader('x-powered-by', 'benchmark')
-			.end(`${req.getParameter('id')} ${req.getQuery('name')}`)
+			.end(`${req.getParameter(0)} ${req.getQuery('name')}`)
 	})
 	.post('/json', (res, req) => {
 		readJson(

@@ -18,6 +18,8 @@
 #ifndef ADDON_UTILITIES_H
 #define ADDON_UTILITIES_H
 
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
 #include <v8.h>
 using namespace v8;
 
@@ -168,5 +170,46 @@ public:
         }
     }
 };
+
+// Utility function to extract certificate information
+Local<Object> extractCertificateInfo(Isolate* isolate, SSL* ssl) {
+    Local<Object> certInfo = Object::New(isolate);
+
+    if (!ssl) {
+        return certInfo;
+    }
+    // Get the peer certificate
+    X509* peerCertificate = SSL_get_peer_certificate(ssl);
+    if (!peerCertificate) {
+        // No peer certificate available
+        return certInfo;
+    }
+    
+    // Get the length of the DER encoded certificate data
+    int certLength = i2d_X509(peerCertificate, nullptr);
+    
+    // Allocate memory for the DER encoded certificate data
+    unsigned char* certData = new unsigned char[certLength];
+
+    if (certLength > 0 && certData) {
+        
+        // DER encode the certificate and store it in certData
+        unsigned char* p = certData;
+        i2d_X509(peerCertificate, &p);
+
+        // Create an ArrayBuffer with the peer certificate data
+        Local<v8::ArrayBuffer> arrayBuffer = ArrayBuffer_NewCopy(isolate, certData, certLength);
+        certInfo->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "raw").ToLocalChecked(), arrayBuffer).FromJust();
+
+    }
+
+
+    // Free allocated memory for the certificate
+    delete[] certData;
+    // Free the peer certificate
+    X509_free(peerCertificate);
+
+    return certInfo;
+}
 
 #endif

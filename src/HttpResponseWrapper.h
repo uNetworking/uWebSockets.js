@@ -179,6 +179,19 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes nothing, returns arraybuffer */
+    template <int PROTOCOL>
+    static void res_getPeerCertificate(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<PROTOCOL>(args);
+        if (res) {
+            void* sslHandle = res->getNativeHandle();
+            SSL* ssl = static_cast<SSL*>(sslHandle);
+            Local<Object> certInfo = extractCertificateInfo(isolate, ssl);
+            args.GetReturnValue().Set(certInfo);
+        }
+    }
+
     /* Returns the current write offset */
     template <int SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
@@ -455,6 +468,10 @@ struct HttpResponseWrapper {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "resume", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_resume<SSL>));
         }
 
+        if constexpr (SSL == 1) {
+            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getPeerCertificate", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getPeerCertificate<SSL>));
+        }
+        
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 

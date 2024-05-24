@@ -39,43 +39,6 @@ using namespace v8;
 
 #include "Multipart.h"
 
-#include "v8-fast-api-calls.h" // go with nodejs 20 for now
-
-Isolate *isolate;
-
-void SlowByteLengthUtf8(const FunctionCallbackInfo<Value>& args) {
-  isolate = args.GetIsolate();
-  
-  printf("calling slow\n");
-}
-
-/*
-void FastByteLengthUtf8(Local<Value> receiver, const v8::FastOneByteString& source) {
-    fwrite(source.data, 1, source.length, stdout);
-}*/
-
-void FastByteLengthUtf8(Local<Value> receiver, Local<Value> val) {
-    //fwrite(source.data, 1, source.length, stdout);
-
-    static char buf[1024 * 16];
-    int len = Local<String>::Cast(val)->WriteUtf8(isolate, buf);
-
-    fwrite(buf, 1, len, stdout);
-}
-
-v8::CFunction fast_byte_length_utf8(v8::CFunction::Make(FastByteLengthUtf8));
-
-void uWS_log(const FunctionCallbackInfo<Value> &args) {
-
-    Isolate *isolate = args.GetIsolate();
-
-    static char buf[1024 * 16];
-    int len = Local<String>::Cast(args[0])->WriteUtf8(isolate, buf);
-
-
-    fwrite(buf, 1, len, stdout);
-}
-
 /* This function is somewhat of a simplifying wrapper that does not follow the C++ library.
  * It takes a POST:ed body and contentType, and returns an array of parts if
  * the request is a multipart request */
@@ -453,30 +416,6 @@ PerContextData *Main(Local<Object> exports) {
 
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getParts", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getParts)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
-
-    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
-
-
-  exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "loggarn", NewStringType::kNormal).ToLocalChecked(),
-    
-    //FunctionTemplate::New(isolate, uWS_log)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
-
-    //left indented are for nodejs 20, else is for 21
-          FunctionTemplate::New(isolate,
-                          SlowByteLengthUtf8,
-
-    Local<Value>(),
-    
-                          Local<v8::Signature>(),
-    0,
-                          v8::ConstructorBehavior::kThrow,
-                          v8::SideEffectType::kHasNoSideEffect,
-                          &fast_byte_length_utf8)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()
-    
-    ).ToChecked();
-
-
-  
     
     /* Expose some µSockets functions directly under uWS namespace */
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "us_listen_socket_close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_us_listen_socket_close)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();

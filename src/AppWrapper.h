@@ -321,7 +321,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
             return;
         }
 
-        (app->*f)(std::string(pattern.getString()), [std::string response(constantString.data(), constantString.length())](auto *res, auto *req) {
+        (app->*f)(std::string(pattern.getString()), [response = std::string(constantString.data(), constantString.length())](auto *res, auto *req) {
             res->end({response.data(), response.length()});
         });
 

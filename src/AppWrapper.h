@@ -322,6 +322,24 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         }
 
         (app->*f)(std::string(pattern.getString()), [response = std::string(constantString.getString().data(), constantString.getString().length())](auto *res, auto *req) {
+            
+            /* Parse the DeclarativeResponse */
+            std::string_view remainingInstructions(response.data(), response.length());
+            while (remainingInstructions.length()) {
+                switch(remainingInstructions[0]) {
+                    case 0: {
+                        /* opCode END */
+                        uint16_t length;
+                        memcpy(&length, remainingInstructions.data(), 2);
+                        remainingInstructions.remove_prefix(2);
+
+                        res->end(remainingInstructions.data(), length);
+                        remainingInstructions.remove_prefix(length);
+                    }
+                    break;
+                }
+            }
+            
             res->end({response.data(), response.length()});
         });
 

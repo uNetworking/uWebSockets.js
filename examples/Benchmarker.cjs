@@ -1,14 +1,13 @@
 /* Non-SSL is simply App() */
-require('uWebSockets.js')
-	.App()
-	.get('/', (res, req) => {
-		res.writeHeader('content-type', 'text/plain').end('Hi')
-	})
-	.get('/id/:id', (res, req) => {
-		res.writeHeader('content-type', 'text/plain')
-			.writeHeader('x-powered-by', 'benchmark')
-			.end(`${req.getParameter('id')} ${req.getQuery('name')}`)
-	})
+const uWS = require('uWebSockets.js');
+	uWS.App()
+	.get('/', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain').end('Hi'))
+	.get('/id/:id', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain')
+					.writeHeader('x-powered-by', 'benchmark')
+					.writeParameterValue("id")
+					.write(" ")
+					.writeQueryValue("name")
+					.end())
 	.post('/json', (res, req) => {
 		readJson(
 			res,

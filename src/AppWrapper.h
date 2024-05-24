@@ -339,16 +339,16 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                     break;
                     case 1: {
                         /* opCode WRITE_HEADER */
-                        uint16_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        uint8_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
                         
                         std::string_view keyString(remainingInstructions.data(), keyLength);
                         remainingInstructions.remove_prefix(keyLength);
 
-                        uint16_t valueLength;
-                        memcpy(&valueLength, remainingInstructions.data(), 2);
-                        remainingInstructions.remove_prefix(2); // Skip value length bytes
+                        uint8_t valueLength;
+                        memcpy(&valueLength, remainingInstructions.data(), 1);
+                        remainingInstructions.remove_prefix(1); // Skip value length bytes
                         
                         std::string_view valueString(remainingInstructions.data(), valueLength);
                         remainingInstructions.remove_prefix(valueLength);
@@ -364,26 +364,26 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                     break;
                     case 3: {
                         /* opCode WRITE_QUERY_VALUE */
-                        uint16_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        uint8_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
                         
                         std::string_view keyString(remainingInstructions.data(), keyLength);
                         remainingInstructions.remove_prefix(keyLength);
 
-                        //res->writeQueryValue(keyString);
+                        res->write(req->getQuery(keyString));
                     }
                     break;
                     case 4: {
                         /* opCode WRITE_HEADER_VALUE */
-                        uint16_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        uint8_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
                         
                         std::string_view keyString(remainingInstructions.data(), keyLength);
                         remainingInstructions.remove_prefix(keyLength);
 
-                        //res->writeHeaderValue(keyString);
+                        res->write(req->getHeader(keyString));
                     }
                     break;
                     case 5: {
@@ -400,14 +400,14 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                     break;
                     case 6: {
                         /* opCode WRITE_PARAMETER_VALUE */
-                        uint16_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        uint8_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
                         
                         std::string_view keyString(remainingInstructions.data(), keyLength);
                         remainingInstructions.remove_prefix(keyLength);
 
-                        //res->writeParameterValue(keyString);
+                        res->write(req->getParameter(keyString));
                     }
                     break;
                 }

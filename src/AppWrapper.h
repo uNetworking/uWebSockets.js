@@ -315,7 +315,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     }
 
     /* If the handler is String */
-    if (args[1]->IsString()) {
+    if (args[1]->IsArrayBuffer()) {
         NativeString constantString(args.GetIsolate(), args[1]);
         if (constantString.isInvalid(args)) {
             return;
@@ -330,17 +330,90 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                     case 0: {
                         /* opCode END */
                         uint16_t length;
-                        memcpy(&length, remainingInstructions.data(), 2);
-                        remainingInstructions.remove_prefix(2);
-
-                        res->end(remainingInstructions.data(), length);
+                        memcpy(&length, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                        
+                        res->end(remainingInstructions.substr(0, length));
                         remainingInstructions.remove_prefix(length);
+                    }
+                    break;
+                    case 1: {
+                        /* opCode WRITE_HEADER */
+                        uint16_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        
+                        std::string_view keyString(remainingInstructions.data(), keyLength);
+                        remainingInstructions.remove_prefix(keyLength);
+
+                        uint16_t valueLength;
+                        memcpy(&valueLength, remainingInstructions.data(), 2);
+                        remainingInstructions.remove_prefix(2); // Skip value length bytes
+                        
+                        std::string_view valueString(remainingInstructions.data(), valueLength);
+                        remainingInstructions.remove_prefix(valueLength);
+
+                        res->writeHeader(keyString, valueString);
+                    }
+                    break;
+                    case 2: {
+                        /* opCode WRITE_BODY */
+                        remainingInstructions.remove_prefix(1); // Skip opCode
+                        //res->writeBody();
+                    }
+                    break;
+                    case 3: {
+                        /* opCode WRITE_QUERY_VALUE */
+                        uint16_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        
+                        std::string_view keyString(remainingInstructions.data(), keyLength);
+                        remainingInstructions.remove_prefix(keyLength);
+
+                        //res->writeQueryValue(keyString);
+                    }
+                    break;
+                    case 4: {
+                        /* opCode WRITE_HEADER_VALUE */
+                        uint16_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        
+                        std::string_view keyString(remainingInstructions.data(), keyLength);
+                        remainingInstructions.remove_prefix(keyLength);
+
+                        //res->writeHeaderValue(keyString);
+                    }
+                    break;
+                    case 5: {
+                        /* opCode WRITE */
+                        uint16_t length;
+                        memcpy(&length, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                        
+                        std::string_view valueString(remainingInstructions.data(), length);
+                        remainingInstructions.remove_prefix(length);
+
+                        res->write(valueString);
+                    }
+                    break;
+                    case 6: {
+                        /* opCode WRITE_PARAMETER_VALUE */
+                        uint16_t keyLength;
+                        memcpy(&keyLength, remainingInstructions.data() + 1, 2);
+                        remainingInstructions.remove_prefix(3); // Skip opCode and key length bytes
+                        
+                        std::string_view keyString(remainingInstructions.data(), keyLength);
+                        remainingInstructions.remove_prefix(keyLength);
+
+                        //res->writeParameterValue(keyString);
                     }
                     break;
                 }
             }
             
-            res->end({response.data(), response.length()});
+
         });
 
         args.GetReturnValue().Set(args.Holder());

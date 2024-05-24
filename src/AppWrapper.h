@@ -323,94 +323,99 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
         (app->*f)(std::string(pattern.getString()), [response = std::string(constantString.getString().data(), constantString.getString().length())](auto *res, auto *req) {
             
-            /* Parse the DeclarativeResponse */
-            std::string_view remainingInstructions(response.data(), response.length());
-            while (remainingInstructions.length()) {
-                switch(remainingInstructions[0]) {
-                    case 0: {
-                        /* opCode END */
-                        uint16_t length;
-                        memcpy(&length, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
-                        
-                        res->end(remainingInstructions.substr(0, length));
-                        remainingInstructions.remove_prefix(length);
-                    }
-                    break;
-                    case 1: {
-                        /* opCode WRITE_HEADER */
-                        uint8_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
-                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
-                        
-                        std::string_view keyString(remainingInstructions.data(), keyLength);
-                        remainingInstructions.remove_prefix(keyLength);
 
-                        uint8_t valueLength;
-                        memcpy(&valueLength, remainingInstructions.data(), 1);
-                        remainingInstructions.remove_prefix(1); // Skip value length bytes
-                        
-                        std::string_view valueString(remainingInstructions.data(), valueLength);
-                        remainingInstructions.remove_prefix(valueLength);
+            if constexpr (!std::is_same<APP, uWS::H3App>::value) {
 
-                        res->writeHeader(keyString, valueString);
-                    }
-                    break;
-                    case 2: {
-                        /* opCode WRITE_BODY */
-                        remainingInstructions.remove_prefix(1); // Skip opCode
-                        //res->writeBody();
-                    }
-                    break;
-                    case 3: {
-                        /* opCode WRITE_QUERY_VALUE */
-                        uint8_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
-                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
-                        
-                        std::string_view keyString(remainingInstructions.data(), keyLength);
-                        remainingInstructions.remove_prefix(keyLength);
+                /* Parse the DeclarativeResponse */
+                std::string_view remainingInstructions(response.data(), response.length());
+                while (remainingInstructions.length()) {
+                    switch(remainingInstructions[0]) {
+                        case 0: {
+                            /* opCode END */
+                            uint16_t length;
+                            memcpy(&length, remainingInstructions.data() + 1, 2);
+                            remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                            
+                            res->end(remainingInstructions.substr(0, length));
+                            remainingInstructions.remove_prefix(length);
+                        }
+                        break;
+                        case 1: {
+                            /* opCode WRITE_HEADER */
+                            uint8_t keyLength;
+                            memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
+                            
+                            std::string_view keyString(remainingInstructions.data(), keyLength);
+                            remainingInstructions.remove_prefix(keyLength);
 
-                        res->write(req->getQuery(keyString));
-                    }
-                    break;
-                    case 4: {
-                        /* opCode WRITE_HEADER_VALUE */
-                        uint8_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
-                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
-                        
-                        std::string_view keyString(remainingInstructions.data(), keyLength);
-                        remainingInstructions.remove_prefix(keyLength);
+                            uint8_t valueLength;
+                            memcpy(&valueLength, remainingInstructions.data(), 1);
+                            remainingInstructions.remove_prefix(1); // Skip value length bytes
+                            
+                            std::string_view valueString(remainingInstructions.data(), valueLength);
+                            remainingInstructions.remove_prefix(valueLength);
 
-                        res->write(req->getHeader(keyString));
-                    }
-                    break;
-                    case 5: {
-                        /* opCode WRITE */
-                        uint16_t length;
-                        memcpy(&length, remainingInstructions.data() + 1, 2);
-                        remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
-                        
-                        std::string_view valueString(remainingInstructions.data(), length);
-                        remainingInstructions.remove_prefix(length);
+                            res->writeHeader(keyString, valueString);
+                        }
+                        break;
+                        case 2: {
+                            /* opCode WRITE_BODY */
+                            remainingInstructions.remove_prefix(1); // Skip opCode
+                            //res->writeBody();
+                        }
+                        break;
+                        case 3: {
+                            /* opCode WRITE_QUERY_VALUE */
+                            uint8_t keyLength;
+                            memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
+                            
+                            std::string_view keyString(remainingInstructions.data(), keyLength);
+                            remainingInstructions.remove_prefix(keyLength);
 
-                        res->write(valueString);
-                    }
-                    break;
-                    case 6: {
-                        /* opCode WRITE_PARAMETER_VALUE */
-                        uint8_t keyLength;
-                        memcpy(&keyLength, remainingInstructions.data() + 1, 1);
-                        remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
-                        
-                        std::string_view keyString(remainingInstructions.data(), keyLength);
-                        remainingInstructions.remove_prefix(keyLength);
+                            res->write(req->getQuery(keyString));
+                        }
+                        break;
+                        case 4: {
+                            /* opCode WRITE_HEADER_VALUE */
+                            uint8_t keyLength;
+                            memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
+                            
+                            std::string_view keyString(remainingInstructions.data(), keyLength);
+                            remainingInstructions.remove_prefix(keyLength);
 
-                        res->write(req->getParameter(keyString));
+                            res->write(req->getHeader(keyString));
+                        }
+                        break;
+                        case 5: {
+                            /* opCode WRITE */
+                            uint16_t length;
+                            memcpy(&length, remainingInstructions.data() + 1, 2);
+                            remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                            
+                            std::string_view valueString(remainingInstructions.data(), length);
+                            remainingInstructions.remove_prefix(length);
+
+                            res->write(valueString);
+                        }
+                        break;
+                        case 6: {
+                            /* opCode WRITE_PARAMETER_VALUE */
+                            uint8_t keyLength;
+                            memcpy(&keyLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and key length bytes
+                            
+                            std::string_view keyString(remainingInstructions.data(), keyLength);
+                            remainingInstructions.remove_prefix(keyLength);
+
+                            res->write(req->getParameter(keyString));
+                        }
+                        break;
                     }
-                    break;
                 }
+
             }
             
 

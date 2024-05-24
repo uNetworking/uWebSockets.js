@@ -314,6 +314,21 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
+    /* If the handler is String */
+    if (args[1]->IsString()) {
+        NativeString constantString(args.GetIsolate(), args[1]);
+        if (constantString.isInvalid(args)) {
+            return;
+        }
+
+        (app->*f)(std::string(pattern.getString()), [std::string response(constantString.data(), constantString.length())](auto *res, auto *req) {
+            res->end({response.data(), response.length()});
+        });
+
+        args.GetReturnValue().Set(args.Holder());
+        return;
+    }
+
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[1]);
     if (checkedCallback.isInvalid(args)) {

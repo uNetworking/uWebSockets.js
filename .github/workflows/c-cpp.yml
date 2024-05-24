@@ -41,6 +41,7 @@ jobs:
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
+          cp dist/*.js .
           git status
           git rev-parse master > source_commit
           git checkout master docs/index.d.ts && mv docs/index.d.ts .

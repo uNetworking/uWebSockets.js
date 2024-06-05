@@ -188,12 +188,14 @@ std::string extractX509PemCertificate(SSL* ssl) {
 
     // Convert X509 certificate to PEM format
     BIO* bio = BIO_new(BIO_s_mem());
-    if (PEM_write_bio_X509(bio, peerCertificate)) {
-        char* buffer;
-        long length = BIO_get_mem_data(bio, &buffer);
-        pemCertificate.assign(buffer, length);
+    if(bio) {
+        if (PEM_write_bio_X509(bio, peerCertificate)) {
+            char* buffer;
+            long length = BIO_get_mem_data(bio, &buffer);
+            pemCertificate.assign(buffer, length);
+        }
+        BIO_free(bio);
     }
-    BIO_free(bio);
 
     // Free the peer certificate
     X509_free(peerCertificate);

@@ -29,13 +29,9 @@ const app = uWS.SSLApp({
   key_file_name: path.join(__dirname, "server.key"),
   ca_file_name: path.join(__dirname, "server.ca")
 }).get('/*', (res, req) => {
-  const certInfo = res.getPeerCertificate();
-  console.log(certInfo)
-  const certDataBuffer = Buffer.from(certInfo.raw).toString('base64');
-  const binaryDerCertificate = forge.util.decode64(certDataBuffer);
-  const cert = forge.pki.certificateFromAsn1(forge.asn1.fromDer(binaryDerCertificate));
-  const pemCertificate = forge.pki.certificateToPem(cert);
-  if (new crypto.X509Certificate(pemCertificate).verify(crypto.createPublicKey(caCertPem))) {
+  const clientCert = res.getX509Certificate();
+  const x509 = new crypto.X509Certificate(clientCert);
+  if (x509.verify(crypto.createPublicKey(caCertPem))) {
     res.end(`Hello World! your certificate is valid!`);
   }
   else

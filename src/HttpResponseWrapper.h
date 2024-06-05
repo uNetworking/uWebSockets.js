@@ -179,16 +179,15 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* Takes nothing, returns arraybuffer */
     template <int PROTOCOL>
-    static void res_getPeerCertificate(const FunctionCallbackInfo<Value> &args) {
+    static void res_getX509Certificate(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             void* sslHandle = res->getNativeHandle();
             SSL* ssl = static_cast<SSL*>(sslHandle);
-            Local<Object> certInfo = extractCertificateInfo(isolate, ssl);
-            args.GetReturnValue().Set(certInfo);
+            std::string x509cert = extractX509PemCertificate(ssl);
+            args.GetReturnValue().Set(String::NewFromUtf8(isolate, x509cert.c_str(), NewStringType::kNormal).ToLocalChecked());
         }
     }
 
@@ -469,7 +468,7 @@ struct HttpResponseWrapper {
         }
 
         if constexpr (SSL == 1) {
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getPeerCertificate", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getPeerCertificate<SSL>));
+            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getX509Certificate", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getX509Certificate<SSL>));
         }
         
         /* Create our template */

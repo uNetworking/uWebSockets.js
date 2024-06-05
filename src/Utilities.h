@@ -171,45 +171,33 @@ public:
     }
 };
 
-// Utility function to extract certificate information
-Local<Object> extractCertificateInfo(Isolate* isolate, SSL* ssl) {
-    Local<Object> certInfo = Object::New(isolate);
+// Utility function to extract raw certificate data
+std::string extractX509PemCertificate(SSL* ssl) {
+    std::string pemCertificate;
 
     if (!ssl) {
-        return certInfo;
+        return pemCertificate;
     }
+
     // Get the peer certificate
     X509* peerCertificate = SSL_get_peer_certificate(ssl);
     if (!peerCertificate) {
         // No peer certificate available
-        return certInfo;
-    }
-    
-    // Get the length of the DER encoded certificate data
-    int certLength = i2d_X509(peerCertificate, nullptr);
-    
-    // Allocate memory for the DER encoded certificate data
-    unsigned char* certData = new unsigned char[certLength];
-
-    if (certLength > 0 && certData) {
-        
-        // DER encode the certificate and store it in certData
-        unsigned char* p = certData;
-        i2d_X509(peerCertificate, &p);
-
-        // Create an ArrayBuffer with the peer certificate data
-        Local<v8::ArrayBuffer> arrayBuffer = ArrayBuffer_NewCopy(isolate, certData, certLength);
-        certInfo->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "raw").ToLocalChecked(), arrayBuffer).FromJust();
-
+        return pemCertificate;
     }
 
+    // Convert X509 certificate to PEM format
+    BIO* bio = BIO_new(BIO_s_mem());
+    if (PEM_write_bio_X509(bio, peerCertificate)) {
+        char* buffer;
+        long length = BIO_get_mem_data(bio, &buffer);
+        pemCertificate.assign(buffer, length);
+    }
+    BIO_free(bio);
 
-    // Free allocated memory for the certificate
-    delete[] certData;
     // Free the peer certificate
     X509_free(peerCertificate);
-
-    return certInfo;
+    return pemCertificate;
 }
 
 #endif

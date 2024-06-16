@@ -2,6 +2,7 @@
 const uWS = require('uWebSockets.js');
 	uWS.App()
 	.get('/', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain').end('Hi'))
+	.get('/favicon.ico',new uWS.DeclarativeResponse().writeHeader('content-type', 'image/x-icon').end(require('node:fs').readFileSync('./favicon.ico')))
 	.get('/id/:id', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain')
 					.writeHeader('x-powered-by', 'benchmark')
 					.writeParameterValue("id")

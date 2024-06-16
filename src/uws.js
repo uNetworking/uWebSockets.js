@@ -23,39 +23,120 @@ module.exports = (() => {
 	}
 })();
 
-module.exports.DeclarativeResponse = class DeclarativeResponse {
-  constructor() {
-    this.instructions = [];
-  }
+const TR = new TextEncoder();
 
-  // Utility method to encode text and append instruction
-  _appendInstruction(opcode, ...text) {
-    this.instructions.push(opcode);
-    text.forEach(str => {
-      const bytes = new TextEncoder().encode(str);
-      this.instructions.push(bytes.length, ...bytes);
-    });
-  }
+/**
+ * @param {string|Uint8Array|ArrayBuffer|undefined} data
+ * @returns {Uint8Array}
+ */
+function ensureUint8Array(data) {
+  if (typeof data === "string") return TR.encode(data);
+  return data && data instanceof Uint8Array ? data : new Uint8Array(data);
+}
 
-  // Utility method to append 2-byte length text in little-endian format
-  _appendInstructionWithLength(opcode, text) {
-    this.instructions.push(opcode);
-    const bytes = new TextEncoder().encode(text);
-    const length = bytes.length;
-    this.instructions.push(length & 0xff, (length >> 8) & 0xff, ...bytes);
-  }
-
-  writeHeader(key, value) { return this._appendInstruction(1, key, value), this; }
-  writeBody() { return this.instructions.push(2), this; }
-  writeQueryValue(key) { return this._appendInstruction(3, key), this; }
-  writeHeaderValue(key) { return this._appendInstruction(4, key), this; }
-  write(value) { return this._appendInstructionWithLength(5, value), this; }
-  writeParameterValue(key) { return this._appendInstruction(6, key), this; }
-
-  end(value) {
-    const bytes = new TextEncoder().encode(value);
-    const length = bytes.length;
-    this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
-    return new Uint8Array(this.instructions).buffer;
+/**
+ * @param {Uint8Array[]} chunks
+ * @param {number} chunksLength
+ * @returns {Uint8Array}
+ */
+function concatUint8Array(chunks, chunksLength) {
+  if (chunks.length === 1) {
+    return chunks[0];
+  } else {
+    const output = new Uint8Array(chunksLength);
+    let offset = 0;
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      output.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return output;
   }
 }
+
+const MAX_U8 = Math.pow(2, 8) - 1;
+const MAX_U16 = Math.pow(2, 16) - 1;
+const OPCODES = [0, 1, 2, 3, 4, 5, 6].map((opcode) =>
+  Uint8Array.from([opcode])
+);
+
+module.exports.DeclarativeResponse = class DeclarativeResponse {
+  /** @type {Uint8Array[]} */
+  #instructions = [];
+  #instructionsLength = 0;
+
+  /**
+   * @param {0|1|2|3|4|5|6} opcode
+   */
+  #appendOpCode(opcode) {
+    this.#instructions.push(OPCODES[opcode]);
+    this.#instructionsLength += 1;
+  }
+
+  #appendInstruction(data) {
+    const bytes = ensureUint8Array(data);
+    const length = bytes.byteLength;
+    if (length > MAX_U8)
+      throw new RangeError(`Text byte length ${length} greater than ${MAX_U8}`);
+    this.#instructions.push(Uint8Array.from([length]));
+    if (length) this.#instructions.push(bytes);
+    this.#instructionsLength += 1 + length;
+  }
+
+  #appendData(data) {
+    const bytes = ensureUint8Array(data);
+    const length = bytes.byteLength;
+    if (length > MAX_U16)
+      throw new RangeError(
+        `Data byte length ${length} greater than ${MAX_U16}`
+      );
+    this.#instructions.push(
+      Uint8Array.from([length & 0xff, (length >> 8) & 0xff])
+    );
+    if (length) this.#instructions.push(bytes);
+    this.#instructionsLength += 2 + length;
+  }
+
+  writeHeader(key, value) {
+    this.#appendOpCode(1);
+    this.#appendInstruction(key);
+    this.#appendInstruction(value);
+    return this;
+  }
+
+  writeBody() {
+    this.#appendOpCode(2);
+    return this;
+  }
+
+  writeQueryValue(key) {
+    this.#appendOpCode(3);
+    this.#appendInstruction(key);
+    return this;
+  }
+
+  writeHeaderValue(key) {
+    this.#appendOpCode(4);
+    this.#appendInstruction(key);
+    return this;
+  }
+
+  write(data) {
+    this.#appendOpCode(5);
+    this.#appendData(data);
+    return this;
+  }
+
+  writeParameterValue(key) {
+    this.#appendOpCode(6);
+    this.#appendInstruction(key);
+    return this;
+  }
+
+  end(data) {
+    this.#appendOpCode(0);
+    this.#appendData(data);
+    return concatUint8Array(this.#instructions, this.#instructionsLength)
+      .buffer;
+  }
+};

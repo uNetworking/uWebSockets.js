@@ -18,6 +18,8 @@
 #ifndef ADDON_UTILITIES_H
 #define ADDON_UTILITIES_H
 
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
 #include <v8.h>
 using namespace v8;
 
@@ -168,5 +170,36 @@ public:
         }
     }
 };
+
+// Utility function to extract raw certificate data
+std::string extractX509PemCertificate(SSL* ssl) {
+    std::string pemCertificate;
+
+    if (!ssl) {
+        return pemCertificate;
+    }
+
+    // Get the peer certificate
+    X509* peerCertificate = SSL_get_peer_certificate(ssl);
+    if (!peerCertificate) {
+        // No peer certificate available
+        return pemCertificate;
+    }
+
+    // Convert X509 certificate to PEM format
+    BIO* bio = BIO_new(BIO_s_mem());
+    if(bio) {
+        if (PEM_write_bio_X509(bio, peerCertificate)) {
+            char* buffer;
+            long length = BIO_get_mem_data(bio, &buffer);
+            pemCertificate.assign(buffer, length);
+        }
+        BIO_free(bio);
+    }
+
+    // Free the peer certificate
+    X509_free(peerCertificate);
+    return pemCertificate;
+}
 
 #endif

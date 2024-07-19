@@ -14,7 +14,7 @@ We aren't in the NPM registry but you can install it with the NPM client: `npm i
 
 ### :dash: In essence
 
-![Untitled](https://github.com/user-attachments/assets/a527ff1c-2e89-4c30-9918-990575f1d9d7)
+![Untitled](https://github.com/user-attachments/assets/76647341-1de9-4646-abde-54a8f6a8c1e2)
 
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.

@@ -8,51 +8,13 @@
 <br><br>
 
 ### :zap: Simple performance
-µWebSockets.js is a standards compliant & secure web server bypass for Node.js that reimplements eventing, networking, encryption, web protocols, routing and pub/sub from scratch in highly optimized native code. As such, µWebSockets.js delivers web serving for Node.js, **[8.5x that of Fastify](https://alexhultman.medium.com/serving-100k-requests-second-from-a-fanless-raspberry-pi-4-over-ethernet-fdd2c2e05a1e)** and at least **[10x that of Socket.IO](https://medium.com/swlh/100k-secure-websockets-with-raspberry-pi-4-1ba5d2127a23)**.
+µWebSockets.js is a standards compliant web server written in 10,000 lines of C++. It is exposed to Node.js as a native V8 addon and performs 10x that of Socket.IO, 8.5x that of Fastify. It makes up the core components of Bun and is the fastest standards compliant web server in the TechEmpower (not endorsed) benchmarks.
 
-* It scores indistinguishable from **[1st in TE](https://twitter.com/uNetworkingAB/status/1810617653754765475)** ([not endorsed](https://twitter.com/uNetworkingAB/status/1811425564764610926)) and makes up **[the core components of Bun](https://twitter.com/uNetworkingAB/status/1810380862556397887)** (not associated). It is also [1st in this test](https://github.com/SaltyAom/bun-http-framework-benchmark?tab=readme-ov-file#results) (endorsed).
+We aren't in the NPM registry but you can install it with the NPM client: `npm install uNetworking/uWebSockets.js#v20.44.0`
 
-* We *recommend, for simplicity* installing with `npm install uNetworking/uWebSockets.js#v20.44.0` or any such [release](https://github.com/uNetworking/uWebSockets.js/releases). Use [official builds](https://nodejs.org/en/download) of Node.js LTS or current. [Our take on the NPM registry](https://github.com/uNetworking/uWebSockets.js/blob/master/misc/npm.md).
+### :dash: In essence
 
-* Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/functions/App.html) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
-
-```javascript
-/* Non-SSL is simply App() */
-require('uWebSockets.js').SSLApp({
-
-  /* There are more SSL options, cut for brevity */
-  key_file_name: 'misc/key.pem',
-  cert_file_name: 'misc/cert.pem',
-  
-}).ws('/*', {
-
-  /* There are many common helper features */
-  idleTimeout: 32,
-  maxBackpressure: 1024,
-  maxPayloadLength: 512,
-  compression: DEDICATED_COMPRESSOR_3KB,
-
-  /* For brevity we skip the other events (upgrade, open, ping, pong, close) */
-  message: (ws, message, isBinary) => {
-    /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
-    
-    /* Here we echo the message back, using compression if available */
-    let ok = ws.send(message, isBinary, true);
-  }
-  
-}).get('/*', (res, req) => {
-
-  /* It does Http as well */
-  res.writeStatus('200 OK').writeHeader('IsExample', 'Yes').end('Hello there!');
-  
-}).listen(9001, (listenSocket) => {
-
-  if (listenSocket) {
-    console.log('Listening to port 9001');
-  }
-  
-});
-```
+![Untitled](https://github.com/user-attachments/assets/a527ff1c-2e89-4c30-9918-990575f1d9d7)
 
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.

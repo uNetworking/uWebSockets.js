@@ -16,7 +16,7 @@ We aren't in the NPM registry but you can easily install it with the NPM client:
 
 ### :dart: In essence
 
-![Untitled](https://github.com/user-attachments/assets/76647341-1de9-4646-abde-54a8f6a8c1e2)
+![Untitled](https://github.com/user-attachments/assets/c887f49f-5e7a-446e-970d-f66b4d03cf4a)
 
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.

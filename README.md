@@ -12,9 +12,9 @@
 
 We aren't in the NPM registry but you can easily install it with the NPM client:
 * `npm install uNetworking/uWebSockets.js#v20.44.0`
-* Browse the documentation and see the main repo. There are tons of examples but here's the gist of it all:
+* Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/functions/App.html) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 
-### :dash: In essence
+### :dart: In essence
 
 ![Untitled](https://github.com/user-attachments/assets/76647341-1de9-4646-abde-54a8f6a8c1e2)
 

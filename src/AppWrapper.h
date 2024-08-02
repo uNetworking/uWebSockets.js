@@ -810,9 +810,69 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
     appTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+
     /* All the http methods */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
-        uWS_App_get<APP>(&APP::get, args);
+        
+        /* Add non-cached variants */
+        if constexpr (std::is_same<APP, uWS::App>::value) {
+
+            if (args.Length() == 3) {
+                /* Use cached variant */
+                std::cout << "Registering cached get handler" << std::endl;
+
+
+                APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+                /* Pattern */
+                NativeString pattern(args.GetIsolate(), args[0]);
+                if (pattern.isInvalid(args)) {
+                    return;
+                }
+
+                /* Handler */
+                Callback checkedCallback(args.GetIsolate(), args[1]);
+                if (checkedCallback.isInvalid(args)) {
+                    return;
+                }
+                UniquePersistent<Function> cb = checkedCallback.getFunction();
+
+                /* This function requires perContextData */
+                PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
+
+                app->get(std::string(pattern.getString()), [cb = std::move(cb), perContextData](auto *res, auto *req) {
+                    Isolate *isolate = perContextData->isolate;
+                    HandleScope hs(isolate);
+
+
+                    // this needs to be cachedresponse wrapper (for both cached tcp and cached SSL?)
+                    Local<Object> resObject = perContextData->resTemplate[/*getAppTypeIndex<APP>()*/3].Get(isolate)->Clone();
+                    resObject->SetAlignedPointerInInternalField(0, res);
+
+                    Local<Object> reqObject = perContextData->reqTemplate[std::is_same<APP, uWS::H3App>::value].Get(isolate)->Clone();
+                    reqObject->SetAlignedPointerInInternalField(0, req);
+
+                    Local<Value> argv[] = {resObject, reqObject};
+                    CallJS(isolate, cb.Get(isolate), 2, argv);
+
+                    /* Properly invalidate req */
+                    reqObject->SetAlignedPointerInInternalField(0, nullptr);
+
+                    /* µWS itself will terminate if not responded and not attached
+                    * onAborted handler, so we can assume it's done */
+                }, 13);
+
+                args.GetReturnValue().Set(args.Holder());
+
+
+            } else {
+                uWS_App_get<APP>(&uWS::TemplatedApp<false, uWS::CachingApp<false>>::get, args);
+            }
+
+        } else if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
+            uWS_App_get<APP>(&uWS::TemplatedApp<true, uWS::CachingApp<true>>::get, args);
+        }
+       
     }, args.Data()));
 
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "post", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {

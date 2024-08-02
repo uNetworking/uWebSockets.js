@@ -53,7 +53,7 @@ struct PerSocketData {
 struct PerContextData {
     Isolate *isolate;
     UniquePersistent<Object> reqTemplate[2]; // 0 = non-SSL/SSL, 1 = Http3
-    UniquePersistent<Object> resTemplate[3]; // 0 = non-SSL, 1 = SSL, 2 = Http3
+    UniquePersistent<Object> resTemplate[4]; // 0 = non-SSL, 1 = SSL, 2 = Http3
     UniquePersistent<Object> wsTemplate[2];
 
     /* We hold all apps until free */

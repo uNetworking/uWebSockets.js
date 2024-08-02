@@ -382,6 +382,7 @@ PerContextData *Main(Local<Object> exports) {
     perContextData->resTemplate[0].Reset(isolate, HttpResponseWrapper::init<0>(isolate));
     perContextData->resTemplate[1].Reset(isolate, HttpResponseWrapper::init<1>(isolate));
     perContextData->resTemplate[2].Reset(isolate, HttpResponseWrapper::init<2>(isolate));
+    perContextData->resTemplate[3].Reset(isolate, HttpResponseWrapper::init<3>(isolate));
     perContextData->wsTemplate[0].Reset(isolate, WebSocketWrapper::init<0>(isolate));
     perContextData->wsTemplate[1].Reset(isolate, WebSocketWrapper::init<1>(isolate));
 

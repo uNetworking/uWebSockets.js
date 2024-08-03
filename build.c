@@ -75,7 +75,7 @@ void build_boringssl(const char *arch) {
 
 #ifdef IS_MACOS
     /* Build for x64 (the host) */
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14 .. && make crypto ssl");
+    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 .. && make crypto ssl");
     
     /* Build for arm64 (cross compile) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 .. && make crypto ssl");
@@ -154,8 +154,8 @@ int main() {
 #ifdef IS_MACOS
 
     /* Apple special case */
-    build("clang -mmacosx-version-min=10.14",
-          "clang++ -stdlib=libc++ -mmacosx-version-min=10.14",
+    build("clang -mmacosx-version-min=12.0",
+          "clang++ -stdlib=libc++ -mmacosx-version-min=12.0",
           "-undefined dynamic_lookup",
           OS,
           X64);

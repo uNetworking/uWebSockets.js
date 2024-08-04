@@ -75,7 +75,7 @@ void build_boringssl(const char *arch) {
 
 #ifdef IS_MACOS
     /* Build for x64 (the host) */
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 .. && make crypto ssl");
+    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 .. && make crypto ssl");
     
     /* Build for arm64 (cross compile) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 .. && make crypto ssl");
@@ -154,15 +154,15 @@ int main() {
 #ifdef IS_MACOS
 
     /* Apple special case */
-    build("clang -mmacosx-version-min=11.0",
-          "clang++ -stdlib=libc++ -mmacosx-version-min=11.0",
+    build("clang -mmacosx-version-min=12.0",
+          "clang++ -stdlib=libc++ -mmacosx-version-min=12.0",
           "-undefined dynamic_lookup",
           OS,
           X64);
 
-    /* Try and build for arm64 macOS 11 */
-    build("clang -target arm64-apple-macos11",
-          "clang++ -stdlib=libc++ -target arm64-apple-macos11",
+    /* Try and build for arm64 macOS 12 */
+    build("clang -target arm64-apple-macos12",
+          "clang++ -stdlib=libc++ -target arm64-apple-macos12",
           "-undefined dynamic_lookup",
           OS,
           ARM64);

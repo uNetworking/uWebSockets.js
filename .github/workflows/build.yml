@@ -32,7 +32,6 @@ jobs:
     steps:
       - name: Update binaries
         run: |
-          sudo xcode-select -switch /Applications/Xcode_13.1.app || true
           sudo apt update || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

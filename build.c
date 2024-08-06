@@ -69,7 +69,7 @@ void build_lsquic(const char *arch) {
     }
 #else
     /* Linux */
-
+    run("cd uWebSockets/uSockets/lsquic && mkdir -p %s && cd %s && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off .. && make lsquic", arch, arch);
 
 #endif
     

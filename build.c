@@ -59,17 +59,33 @@ void prepare() {
 
 void build_lsquic(const char *arch) {
 #ifndef IS_WINDOWS
-    /* Build for x64 or arm/arm64 (depending on the host) */
-    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && make lsquic");
+    /* Build for arm64 and x64 for macOS */
+
+#ifdef IS_MACOS
+    if (arch == X64) {
+        run("cd uWebSockets/uSockets/lsquic && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=arm64 -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off .. && make lsquic");
+    } else if (arch == ARM64) {
+        run("cd uWebSockets/uSockets/lsquic && mkdir -p x64 && cd x64 && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=x86_64 -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off .. && make lsquic");
+    }
 #else
+    /* Linux */
+
+
+#endif
+    
+    
+    
+#else
+    /* Windows */
+
     /* Download zlib */
     run("curl -OL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz");
     run("tar xzf zlib-1.3.1.tar.gz");
 
     // can this work for arm64
-    run("cd uWebSockets/uSockets/lsquic && mkdir -p arm64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=arm64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+    run("cd uWebSockets/uSockets/lsquic && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=arm64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 
-    run("cd uWebSockets/uSockets/lsquic && mkdir -p x64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=x64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+    run("cd uWebSockets/uSockets/lsquic && mkdir -p x64 && cd x64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=x64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
 }
 
@@ -77,11 +93,12 @@ void build_lsquic(const char *arch) {
 void build_boringssl(const char *arch) {
 
 #ifdef IS_MACOS
-    /* Build for x64 (the host) */
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 .. && make crypto ssl");
-    
-    /* Build for arm64 (cross compile) */
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 .. && make crypto ssl");
+    /* Only macOS uses cross-compilation */
+    if (arch == X64) {
+        run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 .. && make crypto ssl");
+    } else if (arch == ARM64) {
+        run("cd uWebSockets/uSockets/boringssl && mkdir -p arm64 && cd arm64 && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 .. && make crypto ssl");
+    }
 #endif
     
 #ifdef IS_LINUX
@@ -141,10 +158,19 @@ int main() {
 #ifdef __aarch64__
     arch = ARM64;
 #endif
-    /* Build for x64 and/or arm/arm64 */
-    build_boringssl(arch);
 
+#ifdef IS_MACOS
+    /* If we are macOS, build both arm64 and x64 */
+    build_boringssl(X64);
+    build_boringssl(ARM64);
+    build_lsquic(X64);
+    build_lsquic(ARM64);
+#else
+    /* For other platforms we simply compile the host */
+    build_boringssl(arch);
     build_lsquic(arch);
+#endif
+
 
 #ifdef IS_WINDOWS
     /* We can use clang, but we currently do use cl.exe still */

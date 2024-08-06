@@ -25,6 +25,7 @@ jobs:
           git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
+          npm install ws
           node tests/smoke.js
   build-unix:
     runs-on: ${{ matrix.os }}
@@ -52,6 +53,7 @@ jobs:
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
+          npm install ws
           node tests/smoke.js
   build-arm:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-const uWS = require('uWebSockets.js');
+const uWS = require('../uws.js');
 const WebSocket = require('ws');
 
 const expectedCloseReasons = {

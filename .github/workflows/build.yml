@@ -49,6 +49,7 @@ jobs:
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          node tests/smoke.js
 
   build-arm:
     runs-on: ubuntu-latest

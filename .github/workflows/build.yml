@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-12-large, ubuntu-20.04]
+        os: [macos-12, ubuntu-20.04]
     steps:
       - name: Update binaries
         run: |

@@ -67,7 +67,9 @@ void build_lsquic(const char *arch) {
     run("tar xzf zlib-1.3.1.tar.gz");
 
     // can this work for arm64
-    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=arm64 -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+    run("cd uWebSockets/uSockets/lsquic && mkdir -p arm64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=arm64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+
+    run("cd uWebSockets/uSockets/lsquic && mkdir -p x64 && cmake -DCMAKE_C_FLAGS=\"/DWIN32 /I..\\..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_OSX_ARCHITECTURES=x64 -DBORINGSSL_DIR=../../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
 }
 
@@ -103,7 +105,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a uWebSockets/uSockets/lsquic/src/liblsquic/liblsquic.a -std=c++17 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, cpp_linker, os, arch, versions[i].abi);
+        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++17 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
 }
 

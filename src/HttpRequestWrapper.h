@@ -58,14 +58,25 @@ struct HttpRequestWrapper {
         }
     }
 
-    /* Takes int, returns string (must be in bounds) */
+    /* Takes int or string, returns string (must be in bounds) */
     template <int QUIC>
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
-            int index = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            std::string_view parameter = req->getParameter(index);
+
+            /* Either an integer index or string name */
+            std::string_view parameter;
+            if (args[0]->IsNumber()) {
+                int index = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                parameter = req->getParameter(index);
+            } else {
+                NativeString data(args.GetIsolate(), args[0]);
+                if (data.isInvalid(args)) {
+                    return;
+                }
+                parameter = req->getParameter(data.getString());
+            }
 
             args.GetReturnValue().Set(String::NewFromUtf8(isolate, parameter.data(), NewStringType::kNormal, parameter.length()).ToLocalChecked());
         }

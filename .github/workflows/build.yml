@@ -32,6 +32,7 @@ jobs:
     steps:
       - name: Update binaries
         run: |
+          uname -a
           sudo apt update || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

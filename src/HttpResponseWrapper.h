@@ -183,6 +183,18 @@ struct HttpResponseWrapper {
         }
     }
 
+    template <int PROTOCOL>
+    static void res_getX509Certificate(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<PROTOCOL>(args);
+        if (res) {
+            void* sslHandle = res->getNativeHandle();
+            SSL* ssl = static_cast<SSL*>(sslHandle);
+            std::string x509cert = extractX509PemCertificate(ssl);
+            args.GetReturnValue().Set(String::NewFromUtf8(isolate, x509cert.c_str(), NewStringType::kNormal).ToLocalChecked());
+        }
+    }
+
     /* Returns the current write offset */
     template <int SSL>
     static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
@@ -466,6 +478,10 @@ struct HttpResponseWrapper {
             }
         }
 
+        if constexpr (SSL == 1) {
+            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getX509Certificate", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getX509Certificate<SSL>));
+        }
+        
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 

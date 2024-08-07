@@ -1,5 +1,5 @@
 /*
- * Authored by Alex Hultman, 2018-2022.
+ * Authored by Alex Hultman, 2018-2024.
  * Intellectual property of third-party.
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ module.exports = (() => {
 	try {
 		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
 	} catch (e) {
-		throw new Error('This version of uWS.js supports only Node.js LTS versions 16, 18 and 20 on (glibc) Linux, macOS and Windows, on Tier 1 platforms (https://github.com/nodejs/node/blob/master/BUILDING.md#platform-list).\n\n' + e.toString());
+		throw new Error('This version of uWS.js supports only Node.js versions 18, 20, 21 and 22 on (glibc) Linux, macOS and Windows, on Tier 1 platforms (https://github.com/nodejs/node/blob/master/BUILDING.md#platform-list).\n\n' + e.toString());
 	}
 })();
 

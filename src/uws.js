@@ -32,7 +32,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   _appendInstruction(opcode, ...text) {
     this.instructions.push(opcode);
     text.forEach(str => {
-      const bytes = new TextEncoder().encode(str);
+      const bytes = (typeof data === 'string') ? new TextEncoder().encode(str) : str;
       this.instructions.push(bytes.length, ...bytes);
     });
   }

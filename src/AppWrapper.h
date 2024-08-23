@@ -714,6 +714,54 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 }
 
 template <typename APP>
+void uWS_App_addChildApp(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+
+    double descriptor = args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked();
+
+
+    APP *receivingApp;// = (APP *) args[0]->ToObject(isolate->GetCurrentContext()).ToLocalChecked()->GetAlignedPointerFromInternalField(0);
+
+    memcpy(&receivingApp, &descriptor, sizeof(receivingApp));
+
+    /* Todo: check the class type of args[0] must match class type of args.Holder() */
+    //if (args[0])
+
+    //std::cout << "addChildApp: " << receivingApp << std::endl;
+
+    app->addChildApp(receivingApp);
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
+void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+
+    static_assert(sizeof(double) >= sizeof(app));
+
+    //static thread_local std::unordered_set<UniquePersistent<Object>> persistentApps;
+
+    UniquePersistent<Object> *persistentApp = new UniquePersistent<Object>;
+    persistentApp->Reset(args.GetIsolate(), args.Holder());
+
+    //persistentApps.emplace(persistentApp);
+
+    double descriptor = 0;
+    memcpy(&descriptor, &app, sizeof(app));
+
+    //std::cout << "getDescriptor: " << app << std::endl;
+
+    //std::cout << "Loop: " << app->getLoop() << std::endl;
+
+    args.GetReturnValue().Set(Number::New(isolate, descriptor));
+}
+
+template <typename APP>
 void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -919,6 +967,11 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen_unix", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen_unix<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "filter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_filter<APP>, args.Data()));
+
+        /* load balancing */
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addChildAppDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addChildApp<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_getDescriptor<APP>, args.Data()));
+
 
         /* ws, listen */
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ws", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_ws<APP>, args.Data()));

@@ -727,6 +727,22 @@ void uWS_App_adoptSocket(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_removeChildApp(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+
+    Isolate *isolate = args.GetIsolate();
+
+    double descriptor = args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked();
+
+    APP *receivingApp;
+    memcpy(&receivingApp, &descriptor, sizeof(receivingApp));
+
+    app->removeChildApp(receivingApp);
+
+    args.GetReturnValue().Set(args.Holder());
+}
+
+template <typename APP>
 void uWS_App_addChildApp(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
 
@@ -982,6 +998,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "filter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_filter<APP>, args.Data()));
 
         /* load balancing */
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeChildAppDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeChildApp<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "addChildAppDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_addChildApp<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_getDescriptor<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "adoptSocket", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_adoptSocket<APP>, args.Data()));

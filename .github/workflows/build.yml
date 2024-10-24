@@ -64,7 +64,7 @@ jobs:
           - arch: aarch64
             os: ubuntu20.04
           - arch: armv7
-            os: bullseye
+            os: ubuntu20.04
     steps:
       - name: Clone
         run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

@@ -42,7 +42,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
     this.instructions.push(opcode);
     const bytes = new TextEncoder().encode(text);
     const length = bytes.length;
-    this.instructions.push(length & 0xff, (length >> 8) & 0xff, ...bytes);
+    this.instructions.push(length & 0xFF, (length >> 8) & 0xFF, ...bytes);
   }
 
   writeHeader(key, value) { return this._appendInstruction(1, key, value), this; }
@@ -55,7 +55,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   end(value) {
     const bytes = new TextEncoder().encode(value);
     const length = bytes.length;
-    this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
+    this.instructions.push(0, length & 0xFF, (length >> 8) & 0xFF, ...bytes);
     return new Uint8Array(this.instructions).buffer;
   }
 }

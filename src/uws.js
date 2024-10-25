@@ -17,7 +17,7 @@
 
 module.exports = (() => {
 	try {
-		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules + '.node');
+		return require('./uws_' + process.platform + '_' + process.arch + '_' + process.versions.modules);
 	} catch (e) {
 		throw new Error('This version of uWS.js (v20.52.0) supports only Node.js versions 20, 22, 23 and 24 on (glibc) Linux, macOS and Windows, on Tier 1 platforms (https://github.com/nodejs/node/blob/master/BUILDING.md#platform-list).\n\n' + e.toString());
 	}

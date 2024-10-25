@@ -13,7 +13,7 @@ jobs:
       - name: Update binaries
         run: |
           $ErrorActionPreference = 'SilentlyContinue'
-          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+          git clone --recursive https://github.com/${{ github.repository }}.git
           cd uWebSockets.js
           nmake
           git fetch origin binaries:binaries
@@ -23,7 +23,7 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries
           git checkout master -- tests/smoke.js
           npm install ws
           node tests/smoke.js || true
@@ -42,7 +42,7 @@ jobs:
           sudo apt update || true
           brew install go || true
           sudo apt install -y g++-aarch64-linux-gnu || true
-          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
+          git clone --recursive https://github.com/${{ github.repository }}.git
           cd uWebSockets.js
           make
           git fetch origin binaries:binaries
@@ -55,7 +55,7 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries
           git checkout master -- tests/smoke.js
           npm install ws
           node tests/smoke.js
@@ -69,8 +69,8 @@ jobs:
             os: ubuntu22.04
     steps:
       - name: Clone
-        run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
       - uses: uraimo/run-on-arch-action@v3.0.0
+        run: git clone --recursive https://github.com/${{ github.repository }}.git
         name: Compile binaries
         with:
           arch: ${{ matrix.arch }}
@@ -97,4 +97,4 @@ jobs:
           git config --global user.name "Alex Hultman"
           git add *.node *.js
           git commit -a -m "[GitHub Actions] Updated linux-${{ matrix.arch }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries

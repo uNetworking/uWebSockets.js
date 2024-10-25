@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for the new release'
+        required: true
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release new version
+        run: |
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          git clone --branch binaries --single-branch --depth 1 https://github.com/${{ github.repository }}.git
+          cd uWebSockets.js
+
+          version="${{ github.event.inputs.version }}"
+          binaries=($(find . -type f -name "*.node" -exec basename {} .node \;))
+
+          declare -A abi_map=(
+            ["108"]="18.x"
+            ["115"]="20.x"
+            ["120"]="21.x"
+            ["127"]="22.x"
+            ["131"]="23.x"
+          )
+
+          for binary in "${binaries[@]}"; do
+            IFS='_' read -r os cpu abi <<< "${binary#uws_}"
+            node_version="${abi_map[$abi]}"
+
+          echo '{
+            "name": "@uws/'"$binary"'",
+            "version": "'"${version}"'",
+            "main": "uws.js",
+            "os": ["'"$os"'"],
+            "cpu": ["'"$cpu"'"],
+            "engines": {
+              "node": "'"$node_version"'"
+            }
+          }' > package.json
+
+            echo 'module.exports = require("./'"$binary"'.node")' > uws.js
+
+            rm ESM_wrapper.mjs index.d.ts
+            find . -name '*.node' ! -name "${binary}.node" -exec rm -f {} +
+
+            git checkout --detach
+            git add -A
+            git commit -m "Released @uws/$binary with version $version"
+            git tag "v${version}-$binary"
+            git push "https://x-access-token:${{ secrets.SECRET }}@github.com/${{ github.repository }}" "v${version}-$binary"
+            git checkout binaries
+          done
+
+          rm -rf *.node
+
+          deps=""
+          for binary in "${binaries[@]}"; do
+            deps+="\"@uws/$binary\": \"github:porsager/uWebSockets.js#v${version}-$binary\",\n    "
+          done
+          deps=${deps%,*}
+
+          sed -i "s|\"optionalDependencies\": {}|\"optionalDependencies\": {\n  $deps\n}|" package.json
+          sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"${version}\"|g" package.json
+          sed -i "s|./uws_|@uws/uws_|g" uws.js
+
+          git checkout --detach
+          git add package.json
+          git add *.node
+          git commit -m "Release $version"
+
+          git tag "v$version"
+          git push "https://x-access-token:${{ secrets.SECRET }}@github.com/${{ github.repository }}" "v$version"

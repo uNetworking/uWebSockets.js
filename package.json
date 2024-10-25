@@ -8,5 +8,6 @@
     "import": "./ESM_wrapper.mjs",
     "require": "./uws.js",
     "types": "./index.d.ts"
-  }
+  },
+  "optionalDependencies": {}
 }

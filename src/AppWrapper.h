@@ -937,17 +937,17 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                     /* µWS itself will terminate if not responded and not attached
                     * onAborted handler, so we can assume it's done */
-                }, 13);
+                }/*, 13*/);
 
                 args.GetReturnValue().Set(args.Holder());
 
 
             } else {
-                uWS_App_get<APP>(&uWS::TemplatedApp<false, uWS::CachingApp<false>>::get, args);
+                //uWS_App_get<APP>(&uWS::TemplatedApp<false, uWS::CachingApp<false>>::get, args);
             }
 
         } else if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
-            uWS_App_get<APP>(&uWS::TemplatedApp<true, uWS::CachingApp<true>>::get, args);
+            //uWS_App_get<APP>(&uWS::TemplatedApp<true, uWS::CachingApp<true>>::get, args);
         }
        
     }, args.Data()));

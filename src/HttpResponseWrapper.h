@@ -44,7 +44,8 @@ struct HttpResponseWrapper {
         if constexpr (PROTOCOL == 2) {
             return (uWS::Http3Response *) res;
         } else if constexpr (PROTOCOL == 3) {
-            return (uWS::CachingHttpResponse *) res;
+            //return (uWS::CachingHttpResponse *) res; // is correct
+            return (uWS::HttpResponse<PROTOCOL != 0> *) res; // not correct
         } else {
             return (uWS::HttpResponse<PROTOCOL != 0> *) res;
         }

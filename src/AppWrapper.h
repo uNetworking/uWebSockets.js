@@ -943,11 +943,11 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
 
             } else {
-                //uWS_App_get<APP>(&uWS::TemplatedApp<false, uWS::CachingApp<false>>::get, args);
+                uWS_App_get<APP>(&uWS::TemplatedApp<false>::get, args);
             }
 
         } else if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
-            //uWS_App_get<APP>(&uWS::TemplatedApp<true, uWS::CachingApp<true>>::get, args);
+            uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
         }
        
     }, args.Data()));

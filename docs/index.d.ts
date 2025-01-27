@@ -331,10 +331,10 @@ export interface TemplatedApp {
     filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
-    /** Returns the descriptor the worker app (from a worker thread). **/
+    /** Retrieves the descriptor of the worker application. This method should be called from within a worker thread. */
     getDescriptor() : number;
-    /** Registers a worker app's descriptor to the main app (in the main thread). **/
-    addChildAppDescriptor(descriptor) : TemplatedApp;
+    /** Registers a worker application's descriptor with the main application. This method should be called from the main thread. */
+    addChildAppDescriptor(descriptor: number) : TemplatedApp;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.

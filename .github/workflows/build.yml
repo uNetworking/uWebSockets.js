@@ -37,6 +37,7 @@ jobs:
         run: |
           uname -a
           sudo apt update || true
+          nvm use 20 || true
           brew install go || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

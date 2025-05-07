@@ -36,7 +36,7 @@ struct HttpResponseWrapper {
     template <int PROTOCOL>
     static inline constexpr decltype(auto) getHttpResponse(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        void *res = args.Holder()->GetAlignedPointerFromInternalField(0);
+        void *res = args.This()->GetAlignedPointerFromInternalField(0);
         if (!res) {
             args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "uWS.HttpResponse must not be accessed after uWS.HttpResponse.onAborted callback, or after a successful response. See documentation for uWS.HttpResponse and consult the user manual.", NewStringType::kNormal).ToLocalChecked())));
         }
@@ -53,7 +53,7 @@ struct HttpResponseWrapper {
 
     /* Marks this JS object invalid */
     static inline void invalidateResObject(const FunctionCallbackInfo<Value> &args) {
-        args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
+        args.This()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes nothing, returns this */
@@ -62,7 +62,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             res->pause();
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -72,7 +72,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             res->resume();
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -83,7 +83,7 @@ struct HttpResponseWrapper {
         if (res) {
             invalidateResObject(args);
             res->close();
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -107,7 +107,7 @@ struct HttpResponseWrapper {
                 dataArrayBuffer->Detach();
             });
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -121,7 +121,7 @@ struct HttpResponseWrapper {
             UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             /* This is how we capture res (C++ this in invocation of this function) */
-            UniquePersistent<Object> resObject(isolate, args.Holder());
+            UniquePersistent<Object> resObject(isolate, args.This());
 
             res->onAborted([p = std::move(p), resObject = std::move(resObject), isolate]() {
                 HandleScope hs(isolate);
@@ -132,7 +132,7 @@ struct HttpResponseWrapper {
                 CallJS(isolate, Local<Function>::New(isolate, p), 0, nullptr);
             });
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -232,7 +232,7 @@ struct HttpResponseWrapper {
                 /* How important is this return? */
             });
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -249,7 +249,7 @@ struct HttpResponseWrapper {
             assumeCorked();
             res->writeStatus(data.getString());
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -272,7 +272,7 @@ struct HttpResponseWrapper {
             assumeCorked();
             res->endWithoutBody(reportedContentLength, closeConnection);
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -296,7 +296,7 @@ struct HttpResponseWrapper {
             assumeCorked();
             res->end(data.getString(), closeConnection);
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -367,7 +367,7 @@ struct HttpResponseWrapper {
             assumeCorked();
             res->writeHeader(header.getString(), value.getString());
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 
@@ -385,7 +385,7 @@ struct HttpResponseWrapper {
                 insideCorkCallback--;
             });
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 

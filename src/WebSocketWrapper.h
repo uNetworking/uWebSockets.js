@@ -28,7 +28,7 @@ struct WebSocketWrapper {
     template <bool SSL>
     static inline uWS::WebSocket<SSL, true, PerSocketData> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) args.Holder()->GetAlignedPointerFromInternalField(0);
+        auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) args.This()->GetAlignedPointerFromInternalField(0);
         if (!ws) {
             args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.", NewStringType::kNormal).ToLocalChecked())));
         }
@@ -36,13 +36,13 @@ struct WebSocketWrapper {
     }
 
     static inline void invalidateWsObject(const FunctionCallbackInfo<Value> &args) {
-        args.Holder()->SetAlignedPointerInInternalField(0, nullptr);
+        args.This()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes nothing returns holder (only used to fool TypeScript, as a conversion from WS to UserData) */
     template <bool SSL>
     static void uWS_WebSocket_getUserData(const FunctionCallbackInfo<Value> &args) {
-        args.GetReturnValue().Set(args.Holder());
+        args.GetReturnValue().Set(args.This());
     }
 
     /* Takes string topic */
@@ -285,7 +285,7 @@ struct WebSocketWrapper {
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 0, nullptr).IsEmpty();
             });
 
-            args.GetReturnValue().Set(args.Holder());
+            args.GetReturnValue().Set(args.This());
         }
     }
 

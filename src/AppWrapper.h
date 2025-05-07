@@ -33,7 +33,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
 
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
     /* This one is default constructed with defaults */
     typename APP::template WebSocketBehavior<PerSocketData> behavior = {};
 
@@ -293,13 +293,13 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     app->template ws<PerSocketData>(std::string(pattern.getString()), std::move(behavior));
 
     /* Return this */
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 /* This method wraps get, post and all http methods */
 template <typename APP, typename F>
 void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     /* Pattern */
     NativeString pattern(args.GetIsolate(), args[0]);
@@ -310,7 +310,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     /* If the handler is null */
     if (args[1]->IsNull()) {
         (app->*f)(std::string(pattern.getString()), nullptr);
-        args.GetReturnValue().Set(args.Holder());
+        args.GetReturnValue().Set(args.This());
         return;
     }
 
@@ -421,7 +421,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
         });
 
-        args.GetReturnValue().Set(args.Holder());
+        args.GetReturnValue().Set(args.This());
         return;
     }
 
@@ -455,20 +455,20 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
          * onAborted handler, so we can assume it's done */
     });
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_close(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     app->close();
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_listen_unix(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -497,12 +497,12 @@ void uWS_App_listen_unix(const FunctionCallbackInfo<Value> &args) {
 
     app->listen(std::move(cb), path);
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -539,12 +539,12 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     app->listen(host, numbers.size() ? numbers[0] : 0,
                 numbers.size() > 1 ? numbers[1] : 0, std::move(cb));
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[0]);
@@ -567,12 +567,12 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
         CallJS(isolate, cb.Get(isolate), 2, argv);
     });
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -588,12 +588,12 @@ void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
 
     app->domain(std::string(serverName.getString()));
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -619,7 +619,7 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 
 template <typename APP>
 void uWS_App_numSubscribers(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -715,7 +715,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
 template <typename APP>
 void uWS_App_adoptSocket(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -723,12 +723,12 @@ void uWS_App_adoptSocket(const FunctionCallbackInfo<Value> &args) {
 
     app->adoptSocket(fd);
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_removeChildApp(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -739,12 +739,12 @@ void uWS_App_removeChildApp(const FunctionCallbackInfo<Value> &args) {
 
     app->removeChildApp(receivingApp);
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_addChildApp(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -755,19 +755,19 @@ void uWS_App_addChildApp(const FunctionCallbackInfo<Value> &args) {
 
     memcpy(&receivingApp, &descriptor, sizeof(receivingApp));
 
-    /* Todo: check the class type of args[0] must match class type of args.Holder() */
+    /* Todo: check the class type of args[0] must match class type of args.This() */
     //if (args[0])
 
     //std::cout << "addChildApp: " << receivingApp << std::endl;
 
     app->addChildApp(receivingApp);
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
 
@@ -776,7 +776,7 @@ void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
     //static thread_local std::unordered_set<UniquePersistent<Object>> persistentApps;
 
     UniquePersistent<Object> *persistentApp = new UniquePersistent<Object>;
-    persistentApp->Reset(args.GetIsolate(), args.Holder());
+    persistentApp->Reset(args.GetIsolate(), args.This());
 
     //persistentApps.emplace(persistentApp);
 
@@ -792,7 +792,7 @@ void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
 
 template <typename APP>
 void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
     NativeString hostnamePatternValue(isolate, args[0]);
@@ -811,12 +811,12 @@ void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
 
     app->addServerName(hostnamePattern.c_str(), options);
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
     NativeString hostnamePatternValue(isolate, args[0]);
@@ -830,12 +830,12 @@ void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
 
     app->removeServerName(hostnamePattern.c_str());
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
 void uWS_App_missingServerName(const FunctionCallbackInfo<Value> &args) {
-    APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
     Isolate *isolate = args.GetIsolate();
 
     UniquePersistent<Function> missingPf;
@@ -849,7 +849,7 @@ void uWS_App_missingServerName(const FunctionCallbackInfo<Value> &args) {
         CallJS(isolate, missingLf, 1, argv);
     });
 
-    args.GetReturnValue().Set(args.Holder());
+    args.GetReturnValue().Set(args.This());
 }
 
 template <typename APP>
@@ -899,7 +899,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 std::cout << "Registering cached get handler" << std::endl;
 
 
-                APP *app = (APP *) args.Holder()->GetAlignedPointerFromInternalField(0);
+                APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
                 /* Pattern */
                 NativeString pattern(args.GetIsolate(), args[0]);
@@ -939,7 +939,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                     * onAborted handler, so we can assume it's done */
                 }/*, 13*/);
 
-                args.GetReturnValue().Set(args.Holder());
+                args.GetReturnValue().Set(args.This());
 
 
             } else {

@@ -55,6 +55,7 @@ jobs:
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
+          nvm use 20
           npm install ws
           node tests/smoke.js
   build-arm:

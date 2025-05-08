@@ -33,11 +33,13 @@ jobs:
       matrix:
         os: [macos-13, ubuntu-22.04]
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Update binaries
         run: |
           uname -a
           sudo apt update || true
-          nvm use 20 || true
           brew install go || true
           sudo apt install -y g++-aarch64-linux-gnu || true
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
@@ -55,7 +57,6 @@ jobs:
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
-          nvm use 20
           npm install ws
           node tests/smoke.js
   build-arm:

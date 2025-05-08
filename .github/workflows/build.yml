@@ -69,8 +69,8 @@ jobs:
             os: ubuntu22.04
     steps:
       - name: Clone
-      - uses: uraimo/run-on-arch-action@v3.0.0
         run: git clone --recursive https://github.com/${{ github.repository }}.git
+      - uses: uraimo/run-on-arch-action@v3.0.0
         name: Compile binaries
         with:
           arch: ${{ matrix.arch }}

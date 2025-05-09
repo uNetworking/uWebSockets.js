@@ -60,7 +60,7 @@ jobs:
           npm install ws
           node tests/smoke.js
   build-arm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Build on ${{ matrix.arch }}
     strategy:
       matrix:

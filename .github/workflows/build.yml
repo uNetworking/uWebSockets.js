@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: Clone
         run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-      - uses: uraimo/run-on-arch-action@v2.8.1
+      - uses: uraimo/run-on-arch-action@v3.0.0
         name: Compile binaries
         with:
           arch: ${{ matrix.arch }}

@@ -110,31 +110,20 @@ export interface WebSocket<UserData> {
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {
-    /** Writes the HTTP status message such as "200 OK".
-     * This has to be called first in any response, otherwise
-     * it will be called automatically with "200 OK".
-     *
-     * If you want to send custom headers in a WebSocket
-     * upgrade response, you have to call writeStatus with
-     * "101 Switching Protocols" before you call writeHeader,
-     * otherwise your first call to writeHeader will call
-     * writeStatus with "200 OK" and the upgrade will fail.
-     *
-     * As you can imagine, we format outgoing responses in a linear
-     * buffer, not in a hash table. You can read about this in
-     * the user manual under "corking".
-    */
-
     /** Pause http body streaming (throttle) */
     pause() : void;
 
     /** Resume http body streaming (unthrottle) */
     resume() : void;
 
+    /** Writes the HTTP status message, such as "200 OK".
+     * This must be called first in any response, otherwise the default status "200 OK" will be used.
+     *
+     * If you want to send custom headers in a WebSocket upgrade response,
+     * you must call writeStatus with "101 Switching Protocols" before you call writeHeader,
+     * otherwise the status will be set to "200 OK" and the upgrade will fail. */
     writeStatus(status: RecognizedString) : HttpResponse;
-    /** Writes key and value to HTTP response.
-     * See writeStatus and corking.
-    */
+    /** Writes key and value to HTTP response. See writeStatus and corking. */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
@@ -151,19 +140,20 @@ export interface HttpResponse {
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
 
-    /** Registers a handler for writable events. Continue failed write attempts in here.
-     * You MUST return true for success, false for failure.
-     * Writing nothing is always success, so by default you must return true.
-     */
+    /** Handler for retrying previously failed write attempts.
+     * You MUST return false on rewrite failure and true otherwise.
+     * This must be used in conjunction with tryEnd. */
     onWritable(handler: (offset: number) => boolean) : HttpResponse;
 
-    /** Every HttpResponse MUST have an attached abort handler IF you do not respond
-     * to it immediately inside of the callback. Returning from an Http request handler
-     * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
-     * When this event emits, the response has been aborted and may not be used. */
+    /** Every HttpResponse MUST have an attached abort handler IF you perform any asynchronous operation.
+     * Returning from an Http request handler without attaching an abort handler is ill-use and will throw.
+     * When this event is emitted, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
 
-    /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
+    /** Handler for reading Http request's body data.
+     * Must be attached before performing any asynchronous operation, otherwise data will be lost.
+     * You MUST copy the ArrayBuffer's data if isLast is not true.
+     * We Neuter ArrayBuffers on return, making it zero length. */
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
@@ -181,15 +171,14 @@ export interface HttpResponse {
     /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
      * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from
      * await, or when being called back from an async database request or anything that isn't directly executing in the route handler, you'll want
-     * to cork before calling writeStatus, writeHeader or just write. Corking takes a callback in which you execute the writeHeader, writeStatus and
-     * such calls, in one atomic IO operation. This is important, not only for TCP but definitely for TLS where each write would otherwise result
-     * in one TLS block being sent off, each with one send syscall.
+     * to cork before calling writeStatus, writeHeader, write or end functions. Corking takes a callback in which you execute such calls, in one atomic IO operation.
+     * This is important, not only for TCP but definitely for TLS where each write would otherwise result in one TLS block being sent off, each with one send syscall.
      *
      * Example usage:
      *
      * ```
      * res.cork(() => {
-     *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
+     *   res.writeStatus("200 OK").writeHeader("Some", "Value").end("Hello world!");
      * });
      * ```
      */
@@ -218,7 +207,7 @@ export interface HttpRequest {
     getQuery() : string;
     /** Returns a decoded query parameter value or undefined. */
     getQuery(key: string) : string | undefined;
-    /** Loops over all headers. */
+    /** Loops over all headers. Keys and values are in lowercase. */
     forEach(cb: (key: string, value: string) => void) : void;
     /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */
     setYield(_yield: boolean) : HttpRequest;
@@ -328,7 +317,7 @@ export interface TemplatedApp {
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
     missingServerName(cb: (hostname: string) => void) : TemplatedApp;
     /** Attaches a "filter" function to track socket connections / disconnections */
-    filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
+    filter(cb: (res: HttpResponse, count: number) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
 }

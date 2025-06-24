@@ -32,6 +32,14 @@ export interface us_socket_context_t {
 
 }
 
+/** Native type representing a raw uWebSockets struct AppDescriptor.
+ * Used internally for worker thread distribution.
+ * Careful with this one, it is entirely unchecked and native so invalid usage will blow up.
+ */
+export interface AppDescriptor {
+
+}
+
 /** Recognized string types, things C++ can read and understand as strings.
  * "String" does not have to mean "text", it can also be "binary".
  *
@@ -331,6 +339,12 @@ export interface TemplatedApp {
     filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
+    /** Returns the app descriptor for worker thread distribution. */
+    getDescriptor(): AppDescriptor;
+    /** Add a child app descriptor for worker thread distribution. */
+    addChildAppDescriptor(descriptor: AppDescriptor): void;
+    /** Remove a child app descriptor. */
+    removeChildAppDescriptor(descriptor: AppDescriptor): void;
 }
 
 /** Constructs a non-SSL app. An app is your starting point where you attach behavior to URL routes.

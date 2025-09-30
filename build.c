@@ -16,6 +16,10 @@
 #define OS "darwin"
 #define IS_MACOS
 #endif
+#ifdef __FreeBSD__
+#define OS "freebsd"
+#define IS_FREEBSD
+#endif
 
 const char *ARM = "arm";
 const char *ARM64 = "arm64";
@@ -88,6 +92,10 @@ void build_lsquic(const char *arch) {
 
 /* Build boringssl */
 void build_boringssl(const char *arch) {
+
+#ifdef IS_FREEBSD
+  run("cd uWebSockets/uSockets/boringssl && mkdir -p %s && cd %s && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release .. && gmake crypto ssl", arch, arch);
+#endif
 
 #ifdef IS_MACOS
     /* Only macOS uses cross-compilation */

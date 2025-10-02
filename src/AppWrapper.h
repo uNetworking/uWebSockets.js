@@ -571,6 +571,45 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
+void uWS_App_onHttpParsingError(const FunctionCallbackInfo<Value> &args) {
+    APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
+
+    /* Handler */
+    Callback checkedCallback(args.GetIsolate(), args[0]);
+    if (checkedCallback.isInvalid(args)) {
+        return;
+    }
+    UniquePersistent<Function> cb = checkedCallback.getFunction();
+
+    /* This function requires perContextData */
+    PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
+
+    app->onHttpParsingError([cb = std::move(cb), perContextData](auto *req, int statusCode, std::string_view responseBody) {
+        Isolate *isolate = perContextData->isolate;
+        HandleScope hs(isolate);
+
+        Local<Object> reqObject;
+        if (req) {
+            reqObject = perContextData->reqTemplate[getAppTypeIndex<APP>()].Get(isolate)->Clone();
+            reqObject->SetAlignedPointerInInternalField(0, req);
+        } else {
+            reqObject = Local<Object>::Cast(Null(isolate));
+        }
+
+        Local<ArrayBuffer> responseBodyBuffer = ArrayBuffer_New(isolate, (void *) responseBody.data(), responseBody.length());
+
+        Local<Value> argv[] = {reqObject, Local<Value>::Cast(Integer::New(isolate, statusCode)), responseBodyBuffer};
+        CallJS(isolate, cb.Get(isolate), 3, argv);
+
+        /* Important: we clear the ArrayBuffer to make sure it is not invalidly used after return */
+        responseBodyBuffer->Detach();
+    });
+
+    args.GetReturnValue().Set(args.This());
+}
+
+
+template <typename APP>
 void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
@@ -996,6 +1035,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen_unix", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen_unix<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "filter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_filter<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onHttpParsingError", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_onHttpParsingError<APP>, args.Data()));
 
         /* load balancing */
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeChildAppDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeChildApp<APP>, args.Data()));

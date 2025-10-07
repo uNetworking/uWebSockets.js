@@ -2,7 +2,7 @@ const uWS = require('../src/uws.js');
 
 const app = uWS.App({
   // Optional SSL configuration
-}).onHttpParsingError((req, httpStatus, responseBody) => {
+}).log((req, httpStatus, responseBody) => {
   console.log('HTTP parsing error occurred with status:', httpStatus);
   
   if (req) {

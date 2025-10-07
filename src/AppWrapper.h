@@ -571,7 +571,7 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
 }
 
 template <typename APP>
-void uWS_App_onHttpParsingError(const FunctionCallbackInfo<Value> &args) {
+void uWS_App_log(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     /* Handler */
@@ -584,7 +584,7 @@ void uWS_App_onHttpParsingError(const FunctionCallbackInfo<Value> &args) {
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
 
-    app->onHttpParsingError([cb = std::move(cb), perContextData](auto *req, int statusCode, std::string_view responseBody) {
+    app->log([cb = std::move(cb), perContextData](auto *req, int statusCode, std::string_view responseBody) {
         Isolate *isolate = perContextData->isolate;
         HandleScope hs(isolate);
 
@@ -1035,7 +1035,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_close<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "listen_unix", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_listen_unix<APP>, args.Data()));
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "filter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_filter<APP>, args.Data()));
-        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onHttpParsingError", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_onHttpParsingError<APP>, args.Data()));
+        appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_log<APP>, args.Data()));
 
         /* load balancing */
         appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "removeChildAppDescriptor", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_App_removeChildApp<APP>, args.Data()));

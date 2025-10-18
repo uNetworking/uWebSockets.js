@@ -40,7 +40,7 @@ struct node_version {
     {"v24.0.0", "137"},
     {"v20.0.0", "115"},
     {"v22.0.0", "127"},
-    {"v23.0.0", "131"}
+    {"v25.0.0", "141"}
 };
 
 /* Downloads headers, creates folders */

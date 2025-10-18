@@ -195,8 +195,8 @@ int main() {
 
 #else
     /* Linux does not cross-compile but picks whatever arch the host is on */
-    build("clang",
-          "clang++",
+    build("clang-15",
+          "clang++-15",
           "-static-libstdc++ -static-libgcc -s",
           OS,
           arch);

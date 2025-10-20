@@ -60,13 +60,13 @@ jobs:
           npm install ws
           node tests/smoke.js
   build-arm:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Build on ${{ matrix.arch }}
     strategy:
       matrix:
         include:
           - arch: aarch64
-            os: ubuntu22.04
+            os: ubuntu24.04
     steps:
       - name: Clone
         run: git clone --recursive https://github.com/uNetworking/uWebSockets.js.git

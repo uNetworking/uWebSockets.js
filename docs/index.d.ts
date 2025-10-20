@@ -48,10 +48,9 @@ export type RecognizedString = string | ArrayBuffer | Uint8Array | Int8Array | U
  * Read more about this in the user manual.
  */
 export interface WebSocket<UserData> {
-    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time. You can check backpressure before or after sending by calling getBufferedAmount().
-     *
-     * Make sure you properly understand the concept of backpressure. Check the backpressure example file.
-     */
+    /** Sends a message. Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure that will drain over time.
+     * You can check backpressure before or after sending by calling getBufferedAmount().
+     * Make sure you properly understand the concept of backpressure. Check the backpressure example file. */
     send(message: RecognizedString, isBinary?: boolean, compress?: boolean) : number;
 
     /** Returns the bytes buffered in backpressure. This is similar to the bufferedAmount property in the browser counterpart.
@@ -110,31 +109,14 @@ export interface WebSocket<UserData> {
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */
 export interface HttpResponse {
-    /** Writes the HTTP status message such as "200 OK".
-     * This has to be called first in any response, otherwise
-     * it will be called automatically with "200 OK".
+    /** Writes the HTTP status message, such as "200 OK".
+     * This must be called first in any response, otherwise the default status "200 OK" will be used.
+     * We format outgoing responses in a linear buffer, not in a hash table, you can read about this in the user manual under "corking".
      *
-     * If you want to send custom headers in a WebSocket
-     * upgrade response, you have to call writeStatus with
-     * "101 Switching Protocols" before you call writeHeader,
-     * otherwise your first call to writeHeader will call
-     * writeStatus with "200 OK" and the upgrade will fail.
-     *
-     * As you can imagine, we format outgoing responses in a linear
-     * buffer, not in a hash table. You can read about this in
-     * the user manual under "corking".
-    */
-
-    /** Pause http body streaming (throttle) */
-    pause() : void;
-
-    /** Resume http body streaming (unthrottle) */
-    resume() : void;
-
+     * If you want to send custom headers in a WebSocket upgrade response, you must call writeStatus with "101 Switching Protocols" first.
+     * Otherwise the status will be set to "200 OK" and the upgrade will fail. */
     writeStatus(status: RecognizedString) : HttpResponse;
-    /** Writes key and value to HTTP response.
-     * See writeStatus and corking.
-    */
+    /** Writes key and value to HTTP response. See writeStatus and corking. */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
@@ -142,29 +124,32 @@ export interface HttpResponse {
     end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse;
     /** Ends this response without a body. */
     endWithoutBody(reportedContentLength?: number, closeConnection?: boolean) : HttpResponse;
-    /** Ends this response, or tries to, by streaming appropriately sized chunks of body. Use in conjunction with onWritable. Returns tuple [ok, hasResponded].*/
+
+    /** Ends this response, or tries to, by streaming appropriately sized chunks of body.
+     * Use in conjunction with onWritable. Returns tuple [ok, done]. */
     tryEnd(fullBodyOrChunk: RecognizedString, totalSize: number) : [boolean, boolean];
-
-    /** Immediately force closes the connection. Any onAborted callback will run. */
-    close() : HttpResponse;
-
+    /** Handler for retrying previously failed write attempts.
+     * You MUST return false on rewrite failure and true otherwise. */
+    onWritable(handler: (offset: number) => boolean) : HttpResponse;
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
 
-    /** Registers a handler for writable events. Continue failed write attempts in here.
-     * You MUST return true for success, false for failure.
-     * Writing nothing is always success, so by default you must return true.
-     */
-    onWritable(handler: (offset: number) => boolean) : HttpResponse;
-
-    /** Every HttpResponse MUST have an attached abort handler IF you do not respond
-     * to it immediately inside of the callback. Returning from an Http request handler
-     * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
-     * When this event emits, the response has been aborted and may not be used. */
+    /** Every HttpResponse MUST have an attached abort handler IF you perform any asynchronous operation.
+     * Returning from an HTTP request handler without attaching an abort handler is ill-use and will terminate.
+     * When this event is emitted, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
+    /** Immediately force closes the connection. Any onAborted callback will run. */
+    close() : HttpResponse;
 
-    /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
+    /** Handler for reading HTTP request's body data.
+     * Must be attached before performing any asynchronous operation, otherwise data may be lost.
+     * You MUST copy the ArrayBuffer's data if isLast is not true. We Neuter ArrayBuffers on return, making them zero length. */
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
+    /** Pause HTTP request's body streaming (throttle).
+     * Some buffered data may still be sent to onData. */
+    pause() : void;
+    /** Resume HTTP request's body streaming (unthrottle). */
+    resume() : void;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;
@@ -179,17 +164,16 @@ export interface HttpResponse {
     getProxiedRemoteAddressAsText() : ArrayBuffer;
 
     /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
-     * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from
-     * await, or when being called back from an async database request or anything that isn't directly executing in the route handler, you'll want
-     * to cork before calling writeStatus, writeHeader or just write. Corking takes a callback in which you execute the writeHeader, writeStatus and
-     * such calls, in one atomic IO operation. This is important, not only for TCP but definitely for TLS where each write would otherwise result
-     * in one TLS block being sent off, each with one send syscall.
+     * This is important, not only for TCP but definitely for TLS where each write would otherwise result in one syscall and TLS block being sent off.
+     * By default, you're corked in the HTTP request handler, until you perform any asynchronous operation.
+     * After an asynchronous operation, you should cork before calling any "write" or "end" functions.
+     * Corking takes a callback in which you execute such calls, in one atomic IO operation.
      *
      * Example usage:
      *
      * ```
      * res.cork(() => {
-     *   res.writeStatus("200 OK").writeHeader("Some", "Value").write("Hello world!");
+     *   res.writeStatus("200 OK").writeHeader("Key", "Value").end("Hello world!");
      * });
      * ```
      */
@@ -218,7 +202,7 @@ export interface HttpRequest {
     getQuery() : string;
     /** Returns a decoded query parameter value or undefined. */
     getQuery(key: string) : string | undefined;
-    /** Loops over all headers. */
+    /** Loops over all headers. Keys and values are in lowercase. */
     forEach(cb: (key: string, value: string) => void) : void;
     /** Setting yield to true is to say that this route handler did not handle the route, causing the router to continue looking for a matching route handler, or fail. */
     setYield(_yield: boolean) : HttpRequest;
@@ -250,13 +234,13 @@ export interface WebSocketBehavior<UserData> {
     open?: (ws: WebSocket<UserData>) => void | Promise<void>;
     /** Handler for a WebSocket message. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
     message?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void | Promise<void>;
-    /** Handler for a dropped WebSocket message. Messages can be dropped due to specified backpressure settings. Messages are given as ArrayBuffer no matter if they are binary or not. Given ArrayBuffer is valid during the lifetime of this callback (until first await or return) and will be neutered. */
+    /** Handler for a dropped WebSocket message. Messages can be dropped due to specified backpressure settings. Given ArrayBuffer is neutered on return. */
     dropped?: (ws: WebSocket<UserData>, message: ArrayBuffer, isBinary: boolean) => void | Promise<void>;
     /** Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount(). Use this to guide / drive your backpressure throttling. */
     drain?: (ws: WebSocket<UserData>) => void;
     /** Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event. Do not send on this WebSocket from within here, it is closed. */
     close?: (ws: WebSocket<UserData>, code: number, message: ArrayBuffer) => void;
-    /** Handler for received ping control message. You do not need to handle this, pong messages are automatically sent as per the standard. */
+    /** Handler for received ping control message. You don't need to send pong messages, they are automatically sent as per the standard. */
     ping?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
     /** Handler for received pong control message. */
     pong?: (ws: WebSocket<UserData>, message: ArrayBuffer) => void;
@@ -328,7 +312,7 @@ export interface TemplatedApp {
     /** Registers a synchronous callback on missing server names. See /examples/ServerName.js. */
     missingServerName(cb: (hostname: string) => void) : TemplatedApp;
     /** Attaches a "filter" function to track socket connections / disconnections */
-    filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
+    filter(cb: (res: HttpResponse, count: number) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
 }
@@ -345,7 +329,7 @@ export function SSLApp(options: AppOptions) : TemplatedApp;
 export function us_listen_socket_close(listenSocket: us_listen_socket) : void;
 
 /** Gets local port of socket (or listenSocket) or -1. */
-export function us_socket_local_port(socket: us_socket) : number;
+export function us_socket_local_port(socket: us_socket | us_listen_socket) : number;
 
 export interface MultipartField {
     data: ArrayBuffer;

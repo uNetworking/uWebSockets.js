@@ -27,27 +27,26 @@ jobs:
           uname -a
           sudo apt update || true
           brew install go || true
-          sudo apt install -y g++-aarch64-linux-gnu || true
       - name: Build and update binaries
         shell: bash
         run: |
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
           cd uWebSockets.js
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            nmake || true
+            nmake
           else
             make
           fi
-          cp dist/*.node . || true
-          cp dist/*.js . || true
-          git checkout master docs/index.d.ts && mv docs/index.d.ts . || true
-          git add *.node *.js index.d.ts || true
+          cp dist/*.node .
+          cp dist/*.js .
+          git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git fetch origin binaries:binaries
+          git add *.node *.js index.d.ts
           git checkout binaries
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
-          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git commit -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
           npm install ws

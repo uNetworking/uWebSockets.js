@@ -17,8 +17,7 @@ jobs:
       - name: Setup NASM for Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1.2.1
-      - name: Setup Node.js for Unix
-        if: matrix.os != 'windows-latest'
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -36,10 +35,10 @@ jobs:
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           git fetch origin binaries:binaries
           git checkout binaries
-          ${{ matrix.os == 'windows-latest' && 'xcopy /Y dist\\*.node .' || 'cp dist/*.node .' }}
-          ${{ matrix.os != 'windows-latest' && 'cp dist/*.js .' || '' }}
-          ${{ matrix.os != 'windows-latest' && 'git rev-parse master > source_commit' || '' }}
-          ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
+          cp dist/*.node .
+          cp dist/*.js .
+          git rev-parse master > source_commit'
+          git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"

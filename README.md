@@ -11,7 +11,7 @@
 µWebSockets.js is a standards compliant web server written in 10,000 lines of C++. It is exposed to Node.js as a simple-to-use, native V8 addon and performs at least **[10x that of Socket.IO](https://medium.com/swlh/100k-secure-websockets-with-raspberry-pi-4-1ba5d2127a23)**, **[8.5x that of Fastify](https://alexhultman.medium.com/serving-100k-requests-second-from-a-fanless-raspberry-pi-4-over-ethernet-fdd2c2e05a1e)**. It makes up the **[core components of Bun](https://twitter.com/uNetworkingAB/status/1810380862556397887)** and is the **[fastest standards compliant web server](https://x.com/uNetworkingAB/status/1812914159295869075)** in the TechEmpower (**[not endorsed](https://x.com/uNetworkingAB/status/1811425564764610926)**) benchmarks.
 
 We aren't in the NPM registry but you can easily install it with the NPM client:
-* `npm install uNetworking/uWebSockets.js#v20.54.0`
+* `npm install uNetworking/uWebSockets.js#v20.55.0`
 * Browse the [documentation](https://unetworking.github.io/uWebSockets.js/generated/functions/App.html) and see the [main repo](https://github.com/uNetworking/uWebSockets). There are tons of [examples](examples) but here's the gist of it all:
 
 ### :dart: In essence

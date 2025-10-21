@@ -1,9 +1,7 @@
 name: Build
-
 on:
   push:
     branches: [ master ]
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -21,19 +19,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install Unix dependencies
-        if: matrix.os != 'windows-latest'
-        run: |
-          uname -a
-          sudo apt update || true
-          brew install go || true
-          sudo apt install -y g++-aarch64-linux-gnu || true
       - name: Update binaries
         run: |
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
-          git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .

@@ -178,6 +178,9 @@ export interface HttpResponse {
     /** Returns the remote IP address as text, as reported by the PROXY Protocol v2 compatible proxy. */
     getProxiedRemoteAddressAsText() : ArrayBuffer;
 
+    /** Returns the SSL cipher used for connection */
+    getSSLCipher(): string
+
     /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
      * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from
      * await, or when being called back from an async database request or anything that isn't directly executing in the route handler, you'll want

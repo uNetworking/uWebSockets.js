@@ -202,4 +202,19 @@ std::string extractX509PemCertificate(SSL* ssl) {
     return pemCertificate;
 }
 
+std::string getSSLCipher(SSL* ssl) {
+    std::string cipher;
+    if (!ssl) {
+        return cipher;
+    }
+    const SSL_CIPHER *peerCipher = SSL_get_current_cipher(ssl);
+    if (!peerCipher) {
+        return cipher;
+    }
+    const char *cipher_name = SSL_CIPHER_get_name(peerCipher);
+    cipher = std::string(cipher_name);
+    return cipher;
+}
+
+
 #endif

@@ -42,11 +42,13 @@ jobs:
           git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git fetch origin binaries:binaries
           git add *.node *.js index.d.ts
+          git stash
           git checkout binaries
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
-          git commit -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git stash apply
+          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
           git checkout master -- tests/smoke.js
           npm install ws

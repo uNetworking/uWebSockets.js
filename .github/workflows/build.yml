@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-15, ubuntu-24.04]
+        os: [macos-15, ubuntu-24.04, ubuntu-24.04-arm]
     steps:
       - uses: actions/setup-node@v4
         with:

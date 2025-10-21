@@ -37,7 +37,7 @@ jobs:
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
-          git rev-parse master > source_commit'
+          git rev-parse master > source_commit
           git checkout master docs/index.d.ts && mv docs/index.d.ts .
           git status
           git config --global user.email "alexhultman@gmail.com"

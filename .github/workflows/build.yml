@@ -26,6 +26,7 @@ jobs:
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           cp dist/*.node .
           cp dist/*.js .
+          ls
           npm install ws
           node tests/smoke.js
           rm dist/*.node .

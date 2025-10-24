@@ -24,10 +24,12 @@ jobs:
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
-          cd dist
+          cp dist/*.node .
+          cp dist/*.js .
           npm install ws
           node tests/smoke.js
-          cd ..
+          rm dist/*.node .
+          rm dist/*.js .
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .

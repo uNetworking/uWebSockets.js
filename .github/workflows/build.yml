@@ -29,8 +29,8 @@ jobs:
           ls
           npm install ws
           node tests/smoke.js
-          rm dist/*.node .
-          rm dist/*.js .
+          rm *.node
+          rm *.js
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .

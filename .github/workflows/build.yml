@@ -35,10 +35,11 @@ jobs:
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
+          git add *.node *.js
           git rev-parse master > source_commit
           ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
-          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git commit -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

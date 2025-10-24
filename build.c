@@ -136,9 +136,12 @@ void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *o
     
     /* For all versions */
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        run("cl /Zc:__cplusplus /MD /W3 /D WIN32_LEAN_AND_MEAN /D \"UWS_WITH_PROXY\" /D \"LIBUS_USE_LIBUV\" /D \"LIBUS_USE_QUIC\" /I uWebSockets/uSockets/lsquic/include /I uWebSockets/uSockets/lsquic/wincompat /I uWebSockets/uSockets/boringssl/include /D \"LIBUS_USE_OPENSSL\" /std:c++20 /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/crypto/sni_tree.cpp "
-            "uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c /I targets/node-%s/include/node /I uWebSockets/src /EHsc "
-            "/Ox /LD /Fedist/uws_win32_%s_%s.node src/addon.cpp advapi32.lib uWebSockets/uSockets/boringssl/x64/ssl/ssl.lib uWebSockets/uSockets/boringssl/x64/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib",
+        run("clang -target x86_64-pc-windows-msvc -DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -IuWebSockets/uSockets/lsquic/include -IuWebSockets/uSockets/lsquic/wincompat -IuWebSockets/uSockets/boringssl/include -DLIBUS_USE_OPENSSL -std=c++20 -IuWebSockets/uSockets/src "
+            "uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/crypto/sni_tree.cpp uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c -Itargets/node-%s/include/node -IuWebSockets/src "
+            "-O2 -shared -o dist/uws_win32_%s_%s.node src/addon.cpp -ladvapi32 "
+            "-LuWebSockets/uSockets/boringssl/x64/ssl -lssl -LuWebSockets/uSockets/boringssl/x64/crypto -lcrypto "
+            "-LuWebSockets/uSockets/lsquic/src/liblsquic/Debug -llsquic "
+            "-Ltargets/node-%s -lnode",
             versions[i].name, arch, versions[i].abi, versions[i].name);
     }
 }
@@ -194,19 +197,12 @@ int main() {
           ARM64);
 
 #else
-    /* Linux does not cross-compile but picks whatever arch the host is on */
+    /* Linux does not cross-compile but picks whatever arch the host is on (we run on both x64 and ARM64) */
     build("clang-18",
           "clang++-18",
           "-static-libstdc++ -static-libgcc -s",
           OS,
           arch);
-
-    /* If linux we also want arm64 */
-    /*build("aarch64-linux-gnu-gcc",
-        "aarch64-linux-gnu-g++",
-        "-static-libstdc++ -static-libgcc -s",
-        OS,
-        ARM64);*/
 #endif
 #endif
 

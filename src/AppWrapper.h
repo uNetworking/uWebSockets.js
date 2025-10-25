@@ -332,9 +332,9 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                     switch(remainingInstructions[0]) {
                         case 0: {
                             /* opCode END */
-                            uint16_t length;
-                            memcpy(&length, remainingInstructions.data() + 1, 2);
-                            remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                            uint32_t length;
+                            memcpy(&length, remainingInstructions.data() + 1, 4);
+                            remainingInstructions.remove_prefix(5); // Skip opCode and length bytes
                             
                             res->end(remainingInstructions.substr(0, length));
                             remainingInstructions.remove_prefix(length);
@@ -391,9 +391,9 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                         break;
                         case 5: {
                             /* opCode WRITE */
-                            uint16_t length;
-                            memcpy(&length, remainingInstructions.data() + 1, 2);
-                            remainingInstructions.remove_prefix(3); // Skip opCode and length bytes
+                            uint32_t length;
+                            memcpy(&length, remainingInstructions.data() + 1, 4);
+                            remainingInstructions.remove_prefix(5); // Skip opCode and length bytes
                             
                             std::string_view valueString(remainingInstructions.data(), length);
                             remainingInstructions.remove_prefix(length);
@@ -411,6 +411,18 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                             remainingInstructions.remove_prefix(keyLength);
 
                             res->write(req->getParameter(keyString));
+                        }
+                        break;
+                        case 7: {
+                            /* opCode WRITE_STATUS */
+                            uint8_t statusLength;
+                            memcpy(&statusLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and status length bytes
+                            
+                            std::string_view statusString(remainingInstructions.data(), statusLength);
+                            remainingInstructions.remove_prefix(statusLength);
+
+                            res->writeStatus(statusString);
                         }
                         break;
                     }

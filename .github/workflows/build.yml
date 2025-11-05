@@ -26,7 +26,7 @@ jobs:
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           ls dist
-          cd test && npm install ws && node smoke.js
+          cd tests && npm install ws && node smoke.js
           ls dist
           git fetch origin binaries:binaries
           git checkout binaries

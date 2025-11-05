@@ -140,7 +140,7 @@ void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *o
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -Itargets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -Itargets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s -target x86_64-pc-windows-msvc -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_linker, arch, arch, versions[i].name, arch, versions[i].abi);
+        run("%s -target x86_64-pc-windows-msvc -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, arch, arch, versions[i].name, arch, versions[i].abi);
     }
 }
 

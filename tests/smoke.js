@@ -1,4 +1,5 @@
-const uWS = require('../uws.js');
+// We are run inside the dist folder with the uws.js and newly compiled binaries will lie
+const uWS = require('./uws.js');
 const WebSocket = require('ws');
 
 const expectedCloseReasons = {

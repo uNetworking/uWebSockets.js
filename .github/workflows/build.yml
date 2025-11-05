@@ -26,6 +26,8 @@ jobs:
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           ls dist
+          cd test && npm install ws && node smoke.js
+          ls dist
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
@@ -38,6 +40,3 @@ jobs:
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
-          git checkout master -- tests/smoke.js
-          npm install ws
-          node tests/smoke.js

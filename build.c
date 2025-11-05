@@ -172,8 +172,8 @@ int main() {
 
 #ifdef IS_WINDOWS
     /* We can use clang, but we currently do use cl.exe still */
-    build_windows("clang",
-          "clang++",
+    build_windows("clang -fms-runtime-lib=static",
+          "clang++ -fms-runtime-lib=static",
           "",
           OS,
           X64);

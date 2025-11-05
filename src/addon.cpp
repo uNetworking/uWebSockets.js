@@ -415,7 +415,7 @@ PerContextData *Main(Local<Object> exports) {
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "clearTimeout", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_clearTimeout)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "arm", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_arm)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
 
-    //exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
+    exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "_cfg", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_cfg)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     exports->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "getParts", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_getParts)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).ToChecked();
     
     /* Expose some µSockets functions directly under uWS namespace */

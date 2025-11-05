@@ -24,22 +24,17 @@ jobs:
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
-          cp dist/*.node .
-          cp dist/*.js .
-          ls
-          npm install ws
-          node tests/smoke.js
-          rm *.node
-          rm *.js
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
-          git add *.node *.js
           git rev-parse master > source_commit
           ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
-          git commit -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+          git checkout master -- tests/smoke.js
+          npm install ws
+          node tests/smoke.js

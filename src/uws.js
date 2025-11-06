@@ -23,26 +23,36 @@ module.exports = (() => {
 	}
 })();
 
+const MAX_U8 = Math.pow(2, 8) - 1;
+const textEncoder = new TextEncoder();
+const toArrayBuffer = (value) => {
+  if (typeof value === 'string') return textEncoder.encode(value);
+  else if (!value) return new Uint8Array(0);
+  else return value;
+};
+
 module.exports.DeclarativeResponse = class DeclarativeResponse {
   constructor() {
     this.instructions = [];
   }
 
-  // Utility method to encode text and append instruction
-  _appendInstruction(opcode, ...text) {
+  // Append instruction and 1-byte length values
+  _appendInstruction(opcode, ...values) {
     this.instructions.push(opcode);
-    text.forEach(str => {
-      const bytes = (typeof str === 'string') ? new TextEncoder().encode(str) : str;
-      this.instructions.push(bytes.length, ...bytes);
+    values.forEach(value => {
+      const arrayBuffer = toArrayBuffer(value);
+      const length = arrayBuffer.length;
+      if (length > MAX_U8) throw new RangeError('Data length exceeds ' + MAX_U8);
+      this.instructions.push(length, ...arrayBuffer);
     });
   }
 
-  // Utility method to append 2-byte length text in little-endian format
-  _appendInstructionWithLength(opcode, text) {
-    this.instructions.push(opcode);
-    const bytes = new TextEncoder().encode(text);
-    const length = bytes.length;
-    this.instructions.push(length & 0xff, (length >> 8) & 0xff, ...bytes);
+  // Append instruction and 4-byte length value
+  _appendInstructionWithLength(opcode, value) {
+    const arrayBuffer = toArrayBuffer(value);
+    const lengthBuffer = new Buffer.alloc(4);
+    lengthBuffer.writeUInt32LE(arrayBuffer.length);
+    this.instructions.push(opcode, ...lengthBuffer, ...arrayBuffer);
   }
 
   writeHeader(key, value) { return this._appendInstruction(1, key, value), this; }
@@ -51,11 +61,9 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   writeHeaderValue(key) { return this._appendInstruction(4, key), this; }
   write(value) { return this._appendInstructionWithLength(5, value), this; }
   writeParameterValue(key) { return this._appendInstruction(6, key), this; }
-
+  writeStatus(status) { return this._appendInstruction(7, status), this; }
   end(value) {
-    const bytes = new TextEncoder().encode(value);
-    const length = bytes.length;
-    this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
+    this._appendInstructionWithLength(0, value);
     return new Uint8Array(this.instructions).buffer;
   }
 }

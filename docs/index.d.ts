@@ -104,6 +104,9 @@ export interface WebSocket<UserData> {
     /** Returns the remote IP address as text. See RecognizedString. */
     getRemoteAddressAsText() : ArrayBuffer;
 
+    /** Returns the remote port number. */
+    getRemotePort() : number;
+
     /** Returns the UserData object. */
     getUserData() : UserData;
 }
@@ -172,11 +175,17 @@ export interface HttpResponse {
     /** Returns the remote IP address as text. */
     getRemoteAddressAsText() : ArrayBuffer;
 
+    /** Returns the remote port number. */
+    getRemotePort() : number;
+
     /** Returns the remote IP address in binary format (4 or 16 bytes), as reported by the PROXY Protocol v2 compatible proxy. */
     getProxiedRemoteAddress() : ArrayBuffer;
 
     /** Returns the remote IP address as text, as reported by the PROXY Protocol v2 compatible proxy. */
     getProxiedRemoteAddressAsText() : ArrayBuffer;
+
+    /** Returns the remote port number, as reported by the PROXY Protocol v2 compatible proxy. */
+    getProxiedRemotePort() : number;
 
     /** Corking a response is a performance improvement in both CPU and network, as you ready the IO system for writing multiple chunks at once.
      * By default, you're corked in the immediately executing top portion of the route handler. In all other cases, such as when returning from

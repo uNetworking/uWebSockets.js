@@ -1,0 +1,62 @@
+name: Build/Release FreeBSD
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-freebsd:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          show-progress: false
+      - name: Build node modules
+        uses: vmactions/freebsd-vm@v1.2.6
+        with:
+          copyback: false
+          run: |       
+            set -e
+            set -o pipefail
+            
+            echo '#define __linux 1' > build.c.temp
+            cat build.c >> build.c.temp
+            mv build.c.temp build.c
+            sed -i.bak 's|#define OS "linux"|#define OS "freebsd"|' build.c && rm -f build.c.bak
+            sed -i.bak 's/clang-18/clang18/' build.c && rm -f build.c.bak
+            sed -i.bak 's/clang++-18/clang++18/' build.c && rm -f build.c.bak
+            
+            pkg install -y cmake llvm18 libuv v8 curl git \
+              node22 npm-node22 ||
+              echo 'cannot install packages, no privileges'
+            
+            make
+
+            git config --global --add safe.directory /home/runner/work/uWebSockets.js/uWebSockets.js
+            git fetch --depth 1 origin binaries:binaries
+            
+            mkdir /tmp/node-binaries
+            cp dist/*.node /tmp/node-binaries/
+            cp dist/*.js /tmp/node-binaries/
+            
+            git reset --hard
+            
+            git checkout binaries
+            cp /tmp/node-binaries/*.node .
+            git add ./*.node
+            git checkout master docs/index.d.ts && mv docs/index.d.ts .
+            git add index.d.ts
+            git status
+            git rev-parse master > source_commit
+            git config --global user.email "patrick@tamstrup.dk"
+            git config --global user.name "Patrick Tamstrup"
+            git commit -m "[GitHub Actions] Updated FreeBSD binaries" || true
+            git push origin binaries
+            git checkout master -- tests/smoke.js
+            
+            npm install ws
+            node tests/smoke.js
+
+            

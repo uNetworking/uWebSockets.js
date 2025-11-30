@@ -329,6 +329,9 @@ export interface TemplatedApp {
     missingServerName(cb: (hostname: string) => void) : TemplatedApp;
     /** Attaches a "filter" function to track socket connections / disconnections */
     filter(cb: (res: HttpResponse, count: Number) => void | Promise<void>) : TemplatedApp;
+    /** Registers an HTTP parsing error handler that is called when malformed HTTP requests are encountered.
+     * The handler receives the request object (or null if request is too malformed), HTTP status code, and complete response body. */
+    log(cb: (req: HttpRequest | null, statusCode: number, responseBody: ArrayBuffer) => void | Promise<void>) : TemplatedApp;
     /** Closes all sockets including listen sockets. This will forcefully terminate all connections. */
     close() : TemplatedApp;
 }

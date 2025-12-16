@@ -26,13 +26,14 @@ module.exports = (() => {
 module.exports.DeclarativeResponse = class DeclarativeResponse {
   constructor() {
     this.instructions = [];
+    this.encoder = new TextEncoder();
   }
 
   // Utility method to encode text and append instruction
   _appendInstruction(opcode, ...text) {
     this.instructions.push(opcode);
     text.forEach(str => {
-      const bytes = (typeof str === 'string') ? new TextEncoder().encode(str) : str;
+      const bytes = (typeof str === 'string') ? this.encoder.encode(str) : str;
       this.instructions.push(bytes.length, ...bytes);
     });
   }
@@ -40,7 +41,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   // Utility method to append 2-byte length text in little-endian format
   _appendInstructionWithLength(opcode, text) {
     this.instructions.push(opcode);
-    const bytes = new TextEncoder().encode(text);
+    const bytes = this.encoder.encode(text);
     const length = bytes.length;
     this.instructions.push(length & 0xff, (length >> 8) & 0xff, ...bytes);
   }
@@ -53,7 +54,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   writeParameterValue(key) { return this._appendInstruction(6, key), this; }
 
   end(value) {
-    const bytes = new TextEncoder().encode(value);
+    const bytes = this.encoder.encode(value);
     const length = bytes.length;
     this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
     return new Uint8Array(this.instructions).buffer;

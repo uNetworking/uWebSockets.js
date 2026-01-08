@@ -221,7 +221,7 @@ struct WebSocketWrapper {
         }
     }
 
-    /* Takes message, isBinary, compressed. Returns true on success, false otherwise */
+    /* Takes message, isBinary, compressed, offset, length. Returns true on success, false otherwise */
     template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
@@ -232,7 +232,44 @@ struct WebSocketWrapper {
                 return;
             }
 
-            unsigned int sendStatus = ws->send(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
+            const auto data = message.getString();
+
+            uint32_t offset = 0;
+            uint32_t length = data.length();
+
+            if (args.Length() > 3) {
+                if (!args[3]->IsUint32()) {
+                    isolate->ThrowException(Exception::TypeError(
+                        String::NewFromUtf8Literal(isolate, "offset must be an integer")
+                    ));
+                }
+                offset = args[3]->As<v8::Uint32>()->Value();
+            }
+
+            if (args.Length() > 4) {
+                if (!args[4]->IsUint32()) {
+                    isolate->ThrowException(Exception::TypeError(
+                        String::NewFromUtf8Literal(isolate, "length must be an integer")
+                    ));
+                }
+                length = args[4]->As<v8::Uint32>()->Value();
+            }
+
+            if (offset > data.size()) {
+                isolate->ThrowException(Exception::RangeError(
+                    String::NewFromUtf8Literal(isolate, "offset out of range")
+                ));
+                return;
+            }
+
+            if (length > data.size() - offset) {
+                isolate->ThrowException(Exception::RangeError(
+                    String::NewFromUtf8Literal(isolate, "length out of range")
+                ));
+                return;
+            }
+
+            unsigned int sendStatus = ws->send(data.substr(offset, length), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
 
             args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }

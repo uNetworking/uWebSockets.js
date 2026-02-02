@@ -1,0 +1,19 @@
+{
+  "name": "@jimmyolo/uws-alma",
+  "version": "20.57.0",
+  "description": "glibc 2.34 compatible uWebSockets.js build",
+  "main": "uws.js",
+  "types": "index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jimmyolo/uWebSockets.js.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "files": [
+    "uws.js",
+    "*.node",
+    "index.d.ts"
+  ]
+}

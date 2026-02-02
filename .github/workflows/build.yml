@@ -1,42 +1,101 @@
 name: Build
 on:
   push:
-    branches: [ master ]
+    branches: [ master, alma9 ]
+    tags: ['*']
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    container: ${{ contains(matrix.os, 'ubuntu') && 'almalinux:9' || null }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, ubuntu-24.04, ubuntu-24.04-arm]
     steps:
+      - name: Install dependencies (AlmaLinux)
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          dnf install -y git make gcc-c++ gzip which clang cmake zlib-devel openssl-devel
+          ln -s /usr/bin/clang /usr/bin/clang-18
+          ln -s /usr/bin/clang++ /usr/bin/clang++-18
+          /usr/lib64/libc.so.6
+
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Setup Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
       - name: Setup NASM for Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1.2.1
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 25
-      - name: Update binaries
+          node-version: 22
+
+      - name: Build binaries
         run: |
-          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-          cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           ls dist
           cd tests && npm install ws && node smoke.js && cd ..
           ls dist
-          git fetch origin binaries:binaries
-          git checkout binaries
-          cp dist/*.node .
-          cp dist/*.js .
-          git rev-parse master > source_commit
-          ls
-          ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
-          git status
-          git config --global user.email "alexhultman@gmail.com"
-          git config --global user.name "Alex Hultman"
-          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+
+      - name: Publish to alma9-binaries branch
+        if: github.event_name == 'push' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          git config --global user.email "victor0801@gmail.com"
+          git config --global user.name "jimmyolo"
+
+          # Fix git safe directory
+          git config --global --add safe.directory '*'
+
+          # Stash artifacts
+          mkdir -p /tmp/dist
+          cp dist/*.node /tmp/dist/ 2>/dev/null || true
+          cp dist/*.js /tmp/dist/ 2>/dev/null || true
+          [ -f package.json ] && cp package.json /tmp/dist/ || true
+          [ -f docs/index.d.ts ] && cp docs/index.d.ts /tmp/dist/ || true
+
+          ls /tmp/dist
+
+          # Fetch/Checkout target branch
+          git reset --hard
+          git fetch origin alma9-binaries || true
+          if git rev-parse --verify origin/alma9-binaries >/dev/null 2>&1; then
+            git checkout alma9-binaries
+          else
+            git checkout --orphan alma9-binaries
+            git rm -rf . 2>/dev/null || true
+          fi
+
+          # Restore artifacts
+          cp /tmp/dist/*.node . 2>/dev/null || true
+          cp /tmp/dist/*.js . 2>/dev/null || true
+          [ -f /tmp/dist/package.json ] && cp /tmp/dist/package.json . || true
+          [ -f /tmp/dist/index.d.ts ] && cp /tmp/dist/index.d.ts . || true
+
+          # Commit and push
+          git add -A
+          git commit -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || exit 0
+          git push origin alma9-binaries
+
+          # Tagging (only on tag events)
+          if [[ "${{ github.ref }}" == refs/tags/* ]] && [ -f package.json ]; then
+            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+            if [ -n "$VERSION" ]; then
+              git tag -f "v${VERSION}-${{ matrix.os }}"
+              git push -f origin "v${VERSION}-${{ matrix.os }}"
+            fi
+          fi

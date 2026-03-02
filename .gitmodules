@@ -1,4 +1,0 @@
-[submodule "uWebSockets"]
-	path = uWebSockets
-	url = https://github.com/the-lstv/akeno-uws.git
-	branch = master

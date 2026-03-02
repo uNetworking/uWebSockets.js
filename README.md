@@ -50,15 +50,18 @@ gcc build.c
 
 Mac OS may be similar, I haven't tested it. uWebSockets supports it, but I've heard of some issues from time to time, so I can't guarantee it works. It should be relatively similar to Linux, just like any other UNIX-like system.
 
-If you really *must* compile on Windows, a recommended way to do that is to not bulid on Windows at all, but use WSL or Linux (via a VM or simillar) and cross-compile with the `--cross-windows` flag, which should output Windows binaries. Compiling on Windows itself is going to be painful and I don't recommend it. If you can't use WSL, I recommend some kind of service (Github, run.lstv.space, etc.), only compile on Windows as a last resort.
+~~If you really *must* compile on Windows, a recommended way to do that is to not bulid on Windows at all, but use WSL or Linux (via a VM or simillar) and cross-compile with the `--cross-windows` flag, which should output Windows binaries. Compiling on Windows itself is going to be painful and I don't recommend it. If you can't use WSL, I recommend some kind of service (Github, run.lstv.space, etc.), only compile on Windows as a last resort.~~ <br>
+
+Edit: I guess not, because node requires MSVC on Windows. Of course it does. This makes building for Windows even harder<br>
+Since Windows is Windows, you cannot build anything like a normal person, you need to use the Developer Command Prompt, patch everything, and pray it works<br>
+
 Note that Windows is not officially supported by Akeno, so use at your own risk, I give no guarantee it runs well (if at all) on Windows. I will try to help with issues, but it's the lowest priority.
 I also do not provide any service reliability, security or safety guarantee for Windows.
 
-Example for cross-compiling on Linux to Windows:
-```sh
-gcc build.c
-./a.out --cross-windows --no-http3
-```
+<details>
+  <summary>Super secret message</summary>
+  🖕🪟
+</details>
 
 ## Licence
 This repository contains code with different licences:

@@ -25,8 +25,6 @@ int addon_only = 0;
 int latest_only = 0;
 int debug_mode = 0;
 int disable_http3 = 0;
-int cross_windows = 0;
-int cross_brotli_enabled = 0;
 char *selected_version = NULL;
 
 int exists(const char *fname) {
@@ -77,16 +75,6 @@ const char *windows_arch_name(const char *arch) {
     return NULL;
 }
 
-const char *windows_target_triple(const char *arch) {
-    if (arch_is(arch, X64)) {
-        return "x86_64-w64-mingw32";
-    }
-    if (arch_is(arch, ARM64)) {
-        return "aarch64-w64-mingw32";
-    }
-    return NULL;
-}
-
 const char *windows_build_dir(const char *arch) {
     if (arch_is(arch, X64)) {
         return "win-x64";
@@ -95,30 +83,6 @@ const char *windows_build_dir(const char *arch) {
         return "win-arm64";
     }
     return NULL;
-}
-
-const char *windows_cross_gxx(const char *arch) {
-    if (arch_is(arch, X64)) {
-        return "x86_64-w64-mingw32-g++";
-    }
-    if (arch_is(arch, ARM64)) {
-        return "aarch64-w64-mingw32-g++";
-    }
-    return NULL;
-}
-
-const char *windows_sysroot(const char *target_triple) {
-    static char path[256];
-    snprintf(path, sizeof(path), "/usr/%s/sys-root/mingw", target_triple);
-    return path;
-}
-
-int detect_cross_brotli(const char *target_triple) {
-    char enc[512];
-    char common[512];
-    snprintf(enc, sizeof(enc), "/usr/%s/sys-root/mingw/lib/libbrotlienc.a", target_triple);
-    snprintf(common, sizeof(common), "/usr/%s/sys-root/mingw/lib/libbrotlicommon.a", target_triple);
-    return exists(enc) && exists(common);
 }
 
 /* Downloads headers, creates folders */
@@ -185,7 +149,7 @@ void build_lsquic(const char *arch) {
     }
 
     run("tar xzf zlib-1.3.1.tar.gz");
-    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"-DWIN32 -I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off -GNinja . && ninja");
+    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"-DWIN32 -I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off -GNinja . && ninja");
 #endif
 }
 
@@ -208,7 +172,7 @@ void build_boringssl(const char *arch) {
     
 #ifdef IS_WINDOWS
     /* Build for x64 (the host) */
-    run("cd uWebSockets/uSockets/boringssl && if not exist x64 mkdir x64 && cd x64 && cmake -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
+    run("cd uWebSockets/uSockets/boringssl && if not exist x64 mkdir x64 && cd x64 && cmake -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
 #endif
 
 }
@@ -239,7 +203,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
             run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
             run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
         }
-        run("%s -pthread -flto %s *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a%s -I uWebSockets/libdeflate -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, opt_flags, arch, arch, lsquic_libs, cpp_linker, os, arch, versions[i].abi);
+        run("%s -pthread -flto %s *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a%s -I uWebSockets/libdeflate -std=c++20 -shared %s -o dist/akeno_%s_%s_%s.node", cpp_compiler, opt_flags, arch, arch, lsquic_libs, cpp_linker, os, arch, versions[i].abi);
 
         if(addon_only || latest_only) {
             break; // Only build for one version
@@ -255,73 +219,18 @@ void copy_files() {
 #endif
 }
 
-/* Special case for windows */
-void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const char *arch) {
-    const char *opt_flags = debug_mode ? "-g -O0" : "-O3";
-    const char *http3_defs = disable_http3 ? "-DUWS_NO_HTTP3" : "-DLIBUS_USE_QUIC";
-    const char *http3_includes = disable_http3 ? "" : " -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/lsquic/wincompat";
-    const char *http3_libs = disable_http3 ? "" : " uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib";
-    char c_shared[1024];
-    char cpp_shared[1024];
-    snprintf(c_shared, sizeof(c_shared), "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV %s -I uWebSockets/uSockets/boringssl/include -I uWebSockets/libdeflate -I C:/msys64/clang64/include -DLIBUS_USE_OPENSSL %s%s -c -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c", http3_defs, opt_flags, http3_includes);
-    snprintf(cpp_shared, sizeof(cpp_shared), "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV %s -I uWebSockets/uSockets/boringssl/include -I uWebSockets/libdeflate -I C:/msys64/clang64/include -DLIBUS_USE_OPENSSL %s%s -c -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp -static -lbrotlienc", http3_defs, opt_flags, http3_includes);
+/* Special case for windows (MSVC) */
+void build_windows(const char *os, const char *arch) {
+    const char *http3_defs = disable_http3 ? "/DUWS_NO_HTTP3" : "/DLIBUS_USE_QUIC";
+    const char *http3_includes = disable_http3 ? "" : " /I uWebSockets/uSockets/lsquic/include /I uWebSockets/uSockets/lsquic/wincompat";
+    const char *http3_libs = disable_http3 ? "" : " uWebSockets\\uSockets\\lsquic\\src\\liblsquic\\Debug\\lsquic.lib";
+    const char *opt_flags = debug_mode ? "/Zi /Od" : "/O2";
 
-    for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        if (selected_version && strcmp(versions[i].name, selected_version)) {
-            continue;
-        }
+    char c_shared[1800];
+    char cpp_shared[1800];
 
-        if(!addon_only) {
-            run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
-            run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        }
-
-        run("%s %s *.o uWebSockets/uSockets/boringssl/%s/ssl/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto/crypto.lib%s -I C:/msys64/clang64/include targets/node-%s/node.lib -lbrotlienc -lbrotlicommon -llibdeflate -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, opt_flags, arch, arch, http3_libs, versions[i].name, arch, versions[i].abi);
-
-        if(addon_only || latest_only) {
-            break; // Only build for one version
-        }
-    }
-}
-
-#ifdef IS_LINUX
-void build_boringssl_windows_cross(const char *target_triple, const char *win_dir, const char *sysroot) {
-    run("cd uWebSockets/uSockets/boringssl && mkdir -p %s && cd %s && cmake -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSROOT=%s -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER_TARGET=%s -DCMAKE_CXX_COMPILER_TARGET=%s -DCMAKE_C_FLAGS=\"--target=%s --sysroot=%s\" -DCMAKE_CXX_FLAGS=\"--target=%s --sysroot=%s\" -DCMAKE_BUILD_TYPE=Release .. && make crypto ssl", win_dir, win_dir, sysroot, target_triple, target_triple, target_triple, sysroot, target_triple, sysroot);
-}
-
-void build_lsquic_windows_cross(const char *target_triple, const char *win_dir, const char *sysroot) {
-    if (disable_http3) {
-        return;
-    }
-    run("cd uWebSockets/uSockets/lsquic && mkdir -p %s && cd %s && cmake -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSROOT=%s -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER_TARGET=%s -DCMAKE_CXX_COMPILER_TARGET=%s -DCMAKE_C_FLAGS=\"--target=%s --sysroot=%s -DWIN32_LEAN_AND_MEAN -DNOMINMAX -I../wincompat\" -DCMAKE_CXX_FLAGS=\"--target=%s --sysroot=%s\" -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off .. && make lsquic", win_dir, win_dir, sysroot, target_triple, target_triple, target_triple, sysroot, target_triple, sysroot);
-}
-
-void build_windows_cross_linux(const char *target_triple, const char *arch, const char *win_dir, const char *sysroot) {
-    const char *opt_flags = debug_mode ? "-g -O0" : "-O3";
-    const char *http3_defs = disable_http3 ? "-DUWS_NO_HTTP3" : "-DLIBUS_USE_QUIC";
-    const char *http3_includes = disable_http3 ? "" : " -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/lsquic/wincompat";
-    const char *brotli_define = cross_brotli_enabled ? "" : " -DUWS_NO_BROTLI";
-    const char *brotli_compile = cross_brotli_enabled ? " -lbrotlienc" : "";
-    const char *brotli_link = cross_brotli_enabled ? " -lbrotlienc -lbrotlicommon" : "";
-
-    char c_shared[1200];
-    char cpp_shared[1200];
-    char http3_libs[512] = "";
-    char link_brotli[128] = "";
-    const char *cross_linker = windows_cross_gxx(arch);
-
-    if (!cross_linker) {
-        cross_linker = "clang++";
-    }
-
-    snprintf(link_brotli, sizeof(link_brotli), "%s", brotli_link);
-
-    snprintf(c_shared, sizeof(c_shared), "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DUWS_USE_LIBDEFLATE %s%s -I uWebSockets/uSockets/boringssl/include -I uWebSockets/libdeflate -DLIBUS_USE_OPENSSL %s%s -c -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c uWebSockets/libdeflate/lib/*.c", http3_defs, brotli_define, opt_flags, http3_includes);
-    snprintf(cpp_shared, sizeof(cpp_shared), "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DUWS_USE_LIBDEFLATE %s%s -I uWebSockets/uSockets/boringssl/include -I uWebSockets/libdeflate -DLIBUS_USE_OPENSSL %s%s -c -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp -static%s", http3_defs, brotli_define, opt_flags, http3_includes, brotli_compile);
-
-    if (!disable_http3) {
-        snprintf(http3_libs, sizeof(http3_libs), " uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a", win_dir);
-    }
+    snprintf(c_shared, sizeof(c_shared), "/nologo /c /FS /MT /DWIN32_LEAN_AND_MEAN /DLIBUS_USE_LIBUV /DUWS_USE_LIBDEFLATE %s /I uWebSockets/uSockets/boringssl/include /I uWebSockets/libdeflate /DLIBUS_USE_OPENSSL %s%s /I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c", http3_defs, opt_flags, http3_includes);
+    snprintf(cpp_shared, sizeof(cpp_shared), "/nologo /c /FS /MT /std:c++20 /EHsc /DWIN32_LEAN_AND_MEAN /DUWS_WITH_PROXY /DLIBUS_USE_LIBUV /DUWS_USE_LIBDEFLATE %s /I uWebSockets/uSockets/boringssl/include /I uWebSockets/libdeflate /DLIBUS_USE_OPENSSL %s%s /I uWebSockets/uSockets/src /I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp", http3_defs, opt_flags, http3_includes);
 
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         if (selected_version && strcmp(versions[i].name, selected_version)) {
@@ -329,18 +238,18 @@ void build_windows_cross_linux(const char *target_triple, const char *arch, cons
         }
 
         if (!addon_only) {
-            run("clang --target=%s --sysroot=%s %s -I targets/node-%s/include/node", target_triple, sysroot, c_shared, versions[i].name);
-            run("clang++ --target=%s --sysroot=%s %s -I targets/node-%s/include/node", target_triple, sysroot, cpp_shared, versions[i].name);
+            run("del /Q *.obj >NUL 2>&1");
+            run("cl %s /I targets/node-%s/include/node", c_shared, versions[i].name);
+            run("cl %s /I targets/node-%s/include/node", cpp_shared, versions[i].name);
         }
 
-        run("%s --sysroot=%s %s *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a%s targets/node-%s/node.lib%s -lws2_32 -lcrypt32 -lbcrypt -liphlpapi -luserenv -lpsapi -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cross_linker, sysroot, opt_flags, win_dir, win_dir, http3_libs, versions[i].name, link_brotli, windows_arch_name(arch), versions[i].abi);
+        run("link /NOLOGO /DLL /OUT:dist\\akeno_%s_%s_%s.node *.obj uWebSockets\\uSockets\\boringssl\\%s\\ssl\\ssl.lib uWebSockets\\uSockets\\boringssl\\%s\\crypto\\crypto.lib%s targets\\node-%s\\node.lib BrotliEnc.lib BrotliCommon.lib Ws2_32.lib Crypt32.lib Bcrypt.lib Iphlpapi.lib Userenv.lib Psapi.lib Advapi32.lib", os, arch, versions[i].abi, arch, arch, http3_libs, versions[i].name);
 
         if (addon_only || latest_only) {
             break;
         }
     }
 }
-#endif
 
 int main(int argc, char **argv) {
 #ifdef IS_WINDOWS
@@ -363,10 +272,6 @@ int main(int argc, char **argv) {
             disable_http3 = 1;
             printf("HTTP/3 and QUIC support disabled.\n");
         }
-        if (!strcmp(argv[i], "--cross-windows")) {
-            cross_windows = 1;
-            printf("Windows cross-compilation requested.\n");
-        }
         if (strncmp(argv[i], "--version=", 10) == 0) {
             selected_version = argv[i] + 10;
         } else if (!strcmp(argv[i], "--version") && i + 1 < argc) {
@@ -380,52 +285,6 @@ int main(int argc, char **argv) {
 #endif
 #ifdef __aarch64__
     arch = ARM64;
-#endif
-
-#ifdef IS_LINUX
-    if (cross_windows) {
-        const char *target_triple = windows_target_triple(arch);
-        const char *win_arch = windows_arch_name(arch);
-        const char *win_dir = windows_build_dir(arch);
-        const char *sysroot = NULL;
-
-        if (!target_triple || !win_arch || !win_dir) {
-            printf("[Error] --cross-windows supports Linux hosts with x64 or arm64 only.\n");
-            return 1;
-        }
-
-        sysroot = windows_sysroot(target_triple);
-
-        if (!exists(sysroot)) {
-            printf("[Error] MinGW sysroot not found for target %s at %s\n", target_triple, sysroot);
-            return 1;
-        }
-
-        cross_brotli_enabled = detect_cross_brotli(target_triple);
-        if (!cross_brotli_enabled) {
-            printf("[Warning] MinGW Brotli static libraries were not found for %s. Building with UWS_NO_BROTLI.\n", target_triple);
-        }
-
-        if (!addon_only) {
-            printf("[Preparing]\n");
-            prepare(win_arch);
-        }
-
-        printf("\n[Building - Linux -> Windows]\n");
-        if (!addon_only) {
-            build_boringssl_windows_cross(target_triple, win_dir, sysroot);
-            if (!disable_http3) {
-                build_lsquic_windows_cross(target_triple, win_dir, sysroot);
-            }
-        }
-        build_windows_cross_linux(target_triple, arch, win_dir, sysroot);
-        copy_files();
-        return 0;
-    }
-#else
-    if (cross_windows) {
-        printf("[Warning] --cross-windows is only available on Linux hosts. Ignoring.\n");
-    }
 #endif
 
     if (!addon_only) {
@@ -456,17 +315,7 @@ int main(int argc, char **argv) {
 
 
 #ifdef IS_WINDOWS
-    /* We can use clang, but we currently do use cl.exe still */
-    // build_windows("clang -fms-runtime-lib=static",
-    //       "clang++ -fms-runtime-lib=static",
-    //       "",
-    //       OS,
-    //       X64);
-    build_windows("clang -target x86_64-w64-windows-gnu",
-          "clang++ -target x86_64-w64-windows-gnu",
-          "",
-          OS,
-          X64);
+    build_windows(OS, X64);
 #else
 #ifdef IS_MACOS
 

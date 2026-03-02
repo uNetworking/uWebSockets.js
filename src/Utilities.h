@@ -105,9 +105,12 @@ static constexpr int getProtoTypeIndex() {
         return 0;
     } else if constexpr (std::is_same<PROTO, uWS::HTTPSProtocol>::value) {
         return 1;
-    } else if constexpr (std::is_same<PROTO, uWS::H3App>::value) {
-        return 2;
     } else {
+#ifndef UWS_NO_HTTP3
+        if constexpr (std::is_same<PROTO, uWS::H3App>::value) {
+            return 2;
+        }
+#endif
         return 0;
     }
 }

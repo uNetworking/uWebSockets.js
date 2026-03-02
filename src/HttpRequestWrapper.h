@@ -35,7 +35,11 @@ struct HttpRequestWrapper {
         }
 
         if constexpr (QUIC) {
+#ifndef UWS_NO_HTTP3
             return (uWS::Http3Request *) req;
+#else
+            static_assert(!QUIC, "HTTP3/QUIC support is disabled");
+#endif
         } else {
             return req;
         }

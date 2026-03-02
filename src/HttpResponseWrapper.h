@@ -18,7 +18,9 @@
 #pragma once
 
 #include "akeno/App.h"
+#ifndef UWS_NO_HTTP3
 #include "Http3App.h"
+#endif
 #include "Utilities.h"
 #include "akeno/Router.h"
 #include "akeno/Misc.h"
@@ -77,7 +79,11 @@ struct HttpResponseWrapper {
         }
 
         if constexpr (PROTOCOL == 2) {
+    #ifndef UWS_NO_HTTP3
             return (uWS::Http3Response *) res;
+    #else
+            static_assert(PROTOCOL != 2, "HTTP3/QUIC support is disabled");
+    #endif
         } else if constexpr (PROTOCOL == 3) {
             //return (uWS::CachingHttpResponse *) res; // is correct
             return (uWS::HttpResponse<PROTOCOL != 0> *) res; // not correct

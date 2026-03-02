@@ -21,7 +21,9 @@
 /* We are only allowed to depend on µWS and V8 in this layer. */
 #include "akeno/DomainHandler.h"
 #include "akeno/App.h"
+#ifndef UWS_NO_HTTP3
 #include "Http3App.h"
+#endif
 
 #include <iostream>
 #include <vector>
@@ -423,10 +425,14 @@ PerContextData *Main(Local<Object> exports) {
     PerContextData *perContextData = new PerContextData;
     perContextData->isolate = isolate;
     perContextData->reqTemplate[0].Reset(isolate, HttpRequestWrapper::init<false>(isolate));
+#ifndef UWS_NO_HTTP3
     perContextData->reqTemplate[1].Reset(isolate, HttpRequestWrapper::init<true>(isolate));
+#endif
     perContextData->resTemplate[0].Reset(isolate, HttpResponseWrapper::init<0>(isolate));
     perContextData->resTemplate[1].Reset(isolate, HttpResponseWrapper::init<1>(isolate));
+#ifndef UWS_NO_HTTP3
     perContextData->resTemplate[2].Reset(isolate, HttpResponseWrapper::init<2>(isolate));
+#endif
     perContextData->resTemplate[3].Reset(isolate, HttpResponseWrapper::init<3>(isolate));
     perContextData->wsTemplate[0].Reset(isolate, WebSocketWrapper::init<0>(isolate));
     perContextData->wsTemplate[1].Reset(isolate, WebSocketWrapper::init<1>(isolate));

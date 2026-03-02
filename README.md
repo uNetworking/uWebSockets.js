@@ -45,8 +45,10 @@ make
 
 Mac OS may be similar, I haven't tested it. uWebSockets supports it, but I've heard of some issues from time to time, so I can't guarantee it works. It should be relatively similar to Linux, just like any other UNIX-like system.
 
-If you really *must* compile on Windows, you may need to do a bunch of extra steps based on your environment (in my experience, building on Windows is a major pain, but I guess it may vary (I ended up just giving up, as when I finally got it to work, it broke the next day). You will need to manually get the environment (may require you to selectively patch vsdevcmdwhatever and reconstruct your PATH every time because why not), and there are some problems in deciding what compiler format to use, some libraries remap libs for windows support (which usually works, sometimes not, depends on how well the OS slept that day i guess), standard functions give misleading warnings etc.).
+If you really *must* compile on Windows, you may need to do a bunch of extra steps based on your environment (in my experience, building on Windows is a major pain, but I guess it may vary. I recommend trying msys2 or WSL if you want to try).
 Note that Windows is not officially supported by Akeno, so use at your own risk, I give no guarantee it runs well (if at all) on Windows. I will try to help with issues, but it's the lowest priority.
+I also do not provide any service reliability, security or safety guarantee for Windows.
+QUIC may not want to bulid at all, in which case try buliding with `--no-http3`.
 
 ## Licence
 This repository contains code with different licences:

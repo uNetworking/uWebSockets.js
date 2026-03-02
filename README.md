@@ -42,13 +42,23 @@ To build, simply run:
 ```sh
 make
 ```
+Note that the makefile just bulids bulid.c and runs it. You can also do it directly:
+```sh
+gcc build.c
+./a.out # <- Flags can go here.
+```
 
 Mac OS may be similar, I haven't tested it. uWebSockets supports it, but I've heard of some issues from time to time, so I can't guarantee it works. It should be relatively similar to Linux, just like any other UNIX-like system.
 
-If you really *must* compile on Windows, you may need to do a bunch of extra steps based on your environment (in my experience, building on Windows is a major pain, but I guess it may vary. I recommend trying msys2 or WSL if you want to try).
+If you really *must* compile on Windows, a recommended way to do that is to not bulid on Windows at all, but use WSL or Linux (via a VM or simillar) and cross-compile with the `--cross-windows` flag, which should output Windows binaries. Compiling on Windows itself is going to be painful and I don't recommend it. If you can't use WSL, I recommend some kind of service (Github, run.lstv.space, etc.), only compile on Windows as a last resort.
 Note that Windows is not officially supported by Akeno, so use at your own risk, I give no guarantee it runs well (if at all) on Windows. I will try to help with issues, but it's the lowest priority.
 I also do not provide any service reliability, security or safety guarantee for Windows.
-QUIC may not want to bulid at all, in which case try buliding with `--no-http3`.
+
+Example for cross-compiling on Linux to Windows:
+```sh
+gcc build.c
+./a.out --cross-windows --no-http3
+```
 
 ## Licence
 This repository contains code with different licences:

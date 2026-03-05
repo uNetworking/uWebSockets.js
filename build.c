@@ -213,9 +213,9 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
 
 void copy_files() {
 #ifdef IS_WINDOWS
-    run("copy \"src\\uws.js\" dist /Y");
+    run("copy \"src\\akeno.js\" dist /Y");
 #else
-    run("cp src/uws.js dist/uws.js");
+    run("cp src/akeno.js dist/akeno.js");
 #endif
 }
 

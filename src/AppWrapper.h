@@ -413,6 +413,18 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
                             res->write(req->getParameter(keyString));
                         }
                         break;
+                        case 7: {
+                            /* opCode WRITE_STATUS */
+                            uint8_t statusLength;
+                            memcpy(&statusLength, remainingInstructions.data() + 1, 1);
+                            remainingInstructions.remove_prefix(2); // Skip opCode and status length bytes
+                            
+                            std::string_view statusString(remainingInstructions.data(), statusLength);
+                            remainingInstructions.remove_prefix(statusLength);
+
+                            res->writeStatus(statusString);
+                        }
+                        break;
                     }
                 }
 

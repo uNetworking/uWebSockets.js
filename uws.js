@@ -54,7 +54,7 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   writeParameterValue(key) { return this._appendInstruction(6, key), this; }
 
   end(value) {
-    const bytes = (typeof value === 'string') ? this.encoder.encode(value) : value;
+    const bytes = (typeof str === 'string') ? this.encoder.encode(str) : str;
     const length = bytes.length;
     this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
     return new Uint8Array(this.instructions).buffer;

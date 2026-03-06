@@ -23,26 +23,41 @@ module.exports = (() => {
 	}
 })();
 
+const MAX_U8 = Math.pow(2, 8) - 1;
+const MAX_U16 = Math.pow(2, 16) - 1;
+const textEncoder = new TextEncoder();
+
+/**
+ * @param {RecognizedString|undefined} value
+ * @return {Uint8Array<ArrayBuffer>}
+ */
+const toUint8Array = (value) => {
+  if (value === undefined) return new Uint8Array(0);
+  else if (typeof value === 'string') return textEncoder.encode(value);
+  else if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  else return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+};
+
 module.exports.DeclarativeResponse = class DeclarativeResponse {
   constructor() {
     this.instructions = [];
   }
 
-  // Utility method to encode text and append instruction
-  _appendInstruction(opcode, ...text) {
+  // Append instruction and 1-byte length values
+  _appendInstruction(opcode, ...values) {
     this.instructions.push(opcode);
-    text.forEach(str => {
-      const bytes = (typeof str === 'string') ? new TextEncoder().encode(str) : str;
-      this.instructions.push(bytes.length, ...bytes);
+    values.forEach(value => {
+      const uint8Array = toUint8Array(value);
+      if (uint8Array.byteLength > MAX_U8) throw new RangeError('Data length exceeds '+ MAX_U8);
+      this.instructions.push(uint8Array.byteLength, ...uint8Array);
     });
   }
 
-  // Utility method to append 2-byte length text in little-endian format
-  _appendInstructionWithLength(opcode, text) {
-    this.instructions.push(opcode);
-    const bytes = new TextEncoder().encode(text);
-    const length = bytes.length;
-    this.instructions.push(length & 0xff, (length >> 8) & 0xff, ...bytes);
+  // Append instruction and 2-byte length value
+  _appendInstructionWithLength(opcode, value) {
+    const uint8Array = toUint8Array(value);
+    if (uint8Array.byteLength > MAX_U16) throw new RangeError('Data length exceeds '+ MAX_U16);
+    this.instructions.push(opcode, uint8Array.byteLength & 0xff, (uint8Array.byteLength >> 8) & 0xff, ...uint8Array);
   }
 
   writeHeader(key, value) { return this._appendInstruction(1, key, value), this; }
@@ -52,10 +67,8 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   write(value) { return this._appendInstructionWithLength(5, value), this; }
   writeParameterValue(key) { return this._appendInstruction(6, key), this; }
 
-  end(str) {
-    const bytes = (typeof str === 'string') ? new TextEncoder().encode(str) : str;
-    const length = bytes.length;
-    this.instructions.push(0, length & 0xff, (length >> 8) & 0xff, ...bytes);
+  end(value) {
+    this._appendInstructionWithLength(0, value);
     return new Uint8Array(this.instructions).buffer;
   }
 }

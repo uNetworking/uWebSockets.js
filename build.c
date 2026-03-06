@@ -82,7 +82,7 @@ void build_lsquic(const char *arch) {
     run("curl -OL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz");
     run("tar xzf zlib-1.3.1.tar.gz");
     
-    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"/Wv:18 /DWIN32 /I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
+    run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"/Wv:18 /DWIN32 /wd4201 /I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
 }
 
@@ -119,7 +119,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/libssl.a uWebSockets/uSockets/boringssl/%s/crypto/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
+        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
 }
 
@@ -140,7 +140,7 @@ void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *o
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -Itargets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -Itargets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-        run("%s -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, arch, arch, versions[i].name, arch, versions[i].abi);
+        run("%s -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, arch, arch, versions[i].name, arch, versions[i].abi);
     }
 }
 

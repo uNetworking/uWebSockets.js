@@ -66,7 +66,6 @@ module.exports.DeclarativeResponse = class DeclarativeResponse {
   writeHeaderValue(key) { return this._appendInstruction(4, key), this; }
   write(value) { return this._appendInstructionWithLength(5, value), this; }
   writeParameterValue(key) { return this._appendInstruction(6, key), this; }
-  writeStatus(status) { return this._appendInstruction(7, status), this; }
 
   end(value) {
     this._appendInstructionWithLength(0, value);

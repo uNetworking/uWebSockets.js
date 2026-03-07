@@ -1,0 +1,14 @@
+{
+  "name": "uWebSockets.js",
+  "version": "20.61.0",
+  "main": "uws.js",
+  "optionalDependencies": {
+    "@uws/uws_linux_x64": "github:uNetworking/uWebSockets.js#uws_linux_x64",
+    "@uws/uws_linux_arm64": "github:uNetworking/uWebSockets.js#uws_linux_arm64"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uNetworking/uWebSockets.js.git"
+  },
+  "license": "Apache-2.0"
+}

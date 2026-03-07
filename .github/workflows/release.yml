@@ -55,7 +55,7 @@ jobs:
             git add -A
             git commit -m "Released @uws/$binary with version $version"
             git tag "v${version}-$binary"
-            git push "https://x-access-token:${{ secrets.SECRET }}@github.com/${{ github.repository }}" "v${version}-$binary"
+            git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "v${version}-$binary"
             git checkout binaries
           done
 
@@ -77,4 +77,4 @@ jobs:
           git commit -m "Release $version"
 
           git tag "v$version"
-          git push "https://x-access-token:${{ secrets.SECRET }}@github.com/${{ github.repository }}" "v$version"
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "v$version"

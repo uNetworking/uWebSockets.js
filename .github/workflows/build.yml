@@ -23,7 +23,7 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated windows-latest binaries"
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" binaries
           git checkout master -- tests/smoke.js
           npm install ws
           node tests/smoke.js || true
@@ -55,7 +55,7 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" binaries
           git checkout master -- tests/smoke.js
           npm install ws
           node tests/smoke.js
@@ -97,4 +97,4 @@ jobs:
           git config --global user.name "Alex Hultman"
           git add *.node *.js
           git commit -a -m "[GitHub Actions] Updated linux-${{ matrix.arch }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/${{ github.repository }}" binaries
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" binaries

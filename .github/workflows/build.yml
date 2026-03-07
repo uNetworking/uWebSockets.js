@@ -64,7 +64,7 @@ jobs:
             echo "Updating $BRANCH..."
 
             # 1. Fetch the existing platform branch or create it if it doesn't exist
-            git fetch origin $BRANCH:$BRANCH || git checkout -b $BRANCH
+            git fetch origin $BRANCH:$BRANCH || git checkout --orphan $BRANCH
             
             # 2. Switch to the platform branch
             git checkout $BRANCH

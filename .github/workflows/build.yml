@@ -40,3 +40,17 @@ jobs:
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+
+  split-binaries:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout binaries branch
+        uses: actions/checkout@v4
+        with:
+          ref: binaries # Explicitly switch to the binaries branch
+
+      - name: List files
+        run: |
+          echo "Listing all compiled binaries and files:"
+          ls -R

@@ -72,7 +72,7 @@ jobs:
             fi
             
             # 2. Sync files for this platform
-            git checkout binaries -- "*${PLATFORM}*" "*.js" "source_commit"
+            git checkout binaries -- "*${PLATFORM}*" "source_commit"
             
             # 3. Read the SHA for the commit message
             SOURCE_SHA=$(cat source_commit | tr -d '\n\r')

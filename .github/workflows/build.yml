@@ -42,40 +42,45 @@ jobs:
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
   
   split-binaries:
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout binaries branch
-          uses: actions/checkout@v4
-          with:
-            ref: binaries
-            fetch-depth: 0
-  
-        - name: Split and Push to Platform Branches
-          run: |
-            git config --global user.email "alexhultman@gmail.com"
-            git config --global user.name "Alex Hultman"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout binaries branch
+        uses: actions/checkout@v4
+        with:
+          ref: binaries
+          fetch-depth: 0
+
+      - name: Split and Push to Platform Branches
+        run: |
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
+          
+          # Platform patterns to match your filenames
+          PLATFORMS=("win32_x64" "linux_x64" "linux_arm64" "darwin_x64" "darwin_arm64")
+
+          for PLATFORM in "${PLATFORMS[@]}"; do
+            BRANCH="${PLATFORM}_binaries"
+            echo "Updating $BRANCH..."
+
+            # 1. Fetch the existing platform branch or create it if it doesn't exist
+            git fetch origin $BRANCH:$BRANCH || git branch $BRANCH
             
-            # Define the mapping of filename patterns to target branches
-            # Pattern: <filename_part>:<target_branch>
-            PLATFORMS=("win32_x64:win32_x64_binaries" "linux_x64:linux_x64_binaries" "linux_arm64:linux_arm64_binaries" "darwin_x64:darwin_x64_binaries" "darwin_arm64:darwin_arm64_binaries")
-  
-            for entry in "${PLATFORMS[@]}"; do
-              PATTERN="${entry%%:*}"
-              BRANCH="${entry#*:}"
-              
-              echo "Processing $PATTERN for branch $BRANCH..."
-  
-              # Create/Reset the target branch based on current binaries state
-              git checkout -B $BRANCH
-              
-              # Remove files that don't match this platform (keep only the relevant .node and .js)
-              # This keeps the branch clean of other platforms' binaries
-              find . -maxdepth 1 -type f ! -name "*${PATTERN}*" ! -name "*.js" ! -name "source_commit" -exec git rm {} \;
-              
-              git commit -m "Update $BRANCH binaries" || true
-              git push -f "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" $BRANCH
-              
-              # Switch back to binaries to process the next platform
-              git checkout binaries
-            done
+            # 2. Switch to the platform branch
+            git checkout $BRANCH
+            
+            # 3. Sync files from the 'binaries' branch (only files matching this platform)
+            # This brings in new .node files and updates .js/source_commit
+            git checkout binaries -- "*${PLATFORM}*" "*.js" "source_commit"
+            
+            # 4. Commit and push normally
+            git add .
+            if git commit -m "[GitHub Actions] Sync $PLATFORM binaries"; then
+              git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" $BRANCH
+            else
+              echo "No changes for $PLATFORM, skipping push."
+            fi
+            
+            # 5. Move back to binaries branch for the next loop iteration
+            git checkout binaries
+          done

@@ -1,0 +1,6 @@
+{
+"name": "@uws/uws_linux_x64",
+"version": "20.61.0",
+"os": ["linux"],
+"cpu": ["x64"]
+}

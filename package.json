@@ -3,8 +3,8 @@
   "version": "20.61.0",
   "main": "uws.js",
   "optionalDependencies": {
-    "@uws/uws_linux_x64": "github:uNetworking/uWebSockets.js#uws_linux_x64",
-    "@uws/uws_linux_arm64": "github:uNetworking/uWebSockets.js#uws_linux_arm64"
+    "@uws/uws_linux_x64": "github:uNetworking/uWebSockets.js#linux_x64_binaries",
+    "@uws/uws_linux_arm64": "github:uNetworking/uWebSockets.js#linux_arm64_binaries"
   },
   "repository": {
     "type": "git",

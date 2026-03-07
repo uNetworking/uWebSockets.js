@@ -287,6 +287,8 @@ export enum ListenOptions {
 export interface TemplatedApp {
     /** Listens to hostname & port. Callback hands either false or a listen socket. */
     listen(host: RecognizedString, port: number, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
+    /** Listens to hostname & port and sets Listen Options. Callback hands either false or a listen socket. */
+    listen(host: RecognizedString, port: number, options: ListenOptions, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
     /** Listens to port. Callback hands either false or a listen socket. */
     listen(port: number, cb: (listenSocket: us_listen_socket | false) => void | Promise<void>) : TemplatedApp;
     /** Listens to port and sets Listen Options. Callback hands either false or a listen socket. */

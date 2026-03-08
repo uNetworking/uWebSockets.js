@@ -106,6 +106,21 @@ export interface WebSocket<UserData> {
 
     /** Returns the UserData object. */
     getUserData() : UserData;
+
+    /** Sends the first fragment of a fragmented message. Use for sending large messages in chunks.
+     * Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure.
+     */
+    sendFirstFragment(message: RecognizedString, isBinary?: boolean, compress?: boolean) : number;
+
+    /** Sends a middle fragment of a fragmented message.
+     * Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure.
+     */
+    sendFragment(message: RecognizedString, compress?: boolean) : number;
+
+    /** Sends the last fragment of a fragmented message.
+     * Returns 1 for success, 2 for dropped due to backpressure limit, and 0 for built up backpressure.
+     */
+    sendLastFragment(message: RecognizedString, compress?: boolean) : number;
 }
 
 /** An HttpResponse is valid until either onAborted callback or any of the .end/.tryEnd calls succeed. You may attach user data to this object. */

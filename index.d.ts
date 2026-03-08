@@ -139,6 +139,7 @@ export interface HttpResponse {
      * buffer, not in a hash table. You can read about this in
      * the user manual under "corking".
     */
+    writeStatus(status: RecognizedString) : HttpResponse;
 
     /** Pause http body streaming (throttle) */
     pause() : void;
@@ -146,7 +147,6 @@ export interface HttpResponse {
     /** Resume http body streaming (unthrottle) */
     resume() : void;
 
-    writeStatus(status: RecognizedString) : HttpResponse;
     /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */

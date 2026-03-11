@@ -1,0 +1,6 @@
+a.out
+build.exe
+*.o
+*.tar.gz
+dist/
+targets/

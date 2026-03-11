@@ -441,3 +441,15 @@ export var DEDICATED_DECOMPRESSOR_1KB: CompressOptions;
 export var DEDICATED_DECOMPRESSOR_512B: CompressOptions;
 /** Sliding dedicated decompress window, requires 32KB of memory per socket (plus about 23KB) */
 export var DEDICATED_DECOMPRESSOR: CompressOptions;
+
+/**
+ * Environment variables recognized by uWebSockets.js.
+ *
+ * These can be set in the process environment before starting the server.
+ */
+export namespace EnvironmentVariables {
+    /** Maximum total byte size of HTTP request headers. This is a runtime env variable. Default: 4096. */
+    declare const UWS_HTTP_MAX_HEADERS_SIZE: string | undefined;
+    /** Maximum number of HTTP request headers. This is a compile-time define, not a runtime env variable. Default: 100. */
+    declare const UWS_HTTP_MAX_HEADERS_COUNT: string | undefined;
+}

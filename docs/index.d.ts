@@ -140,13 +140,6 @@ export interface HttpResponse {
      * the user manual under "corking".
     */
     writeStatus(status: RecognizedString) : HttpResponse;
-
-    /** Pause http body streaming (throttle) */
-    pause() : void;
-
-    /** Resume http body streaming (unthrottle) */
-    resume() : void;
-
     /** Writes key and value to HTTP response.
      * See writeStatus and corking.
     */
@@ -178,8 +171,15 @@ export interface HttpResponse {
      * When this event emits, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
 
-    /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
+    /** Handler for reading HTTP request body data.
+     * Must be attached before performing any asynchronous operation, otherwise data may be lost.
+     * You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making them zero length. */
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
+    /** Pause HTTP request body streaming (throttle).
+     * Some buffered data may still be sent to onData. */
+    pause() : void;
+    /** Resume HTTP request body streaming (unthrottle). */
+    resume() : void;
 
     /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */

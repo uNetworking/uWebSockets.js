@@ -17,6 +17,22 @@
 #define IS_MACOS
 #endif
 
+/* ASAN vs. optimized build flags (used via C string literal concatenation).
+ * OPT_FLAGS / LINK_FLAGS: inserted mid-string, so each definition starts with a space.
+ * LINUX_LINK_EXTRAS: passed as a standalone argument, so no leading space.
+ * MACOS_LINK_EXTRAS: appended after "-undefined dynamic_lookup", so ASAN variant starts with a space. */
+#ifdef WITH_ASAN
+#define OPT_FLAGS " -fsanitize=address -fno-omit-frame-pointer -g -O1"
+#define LINK_FLAGS " -fsanitize=address"
+#define LINUX_LINK_EXTRAS "-fsanitize=address"
+#define MACOS_LINK_EXTRAS " -fsanitize=address"
+#else
+#define OPT_FLAGS " -flto -O3"
+#define LINK_FLAGS " -flto -O3"
+#define LINUX_LINK_EXTRAS "-static-libstdc++ -static-libgcc -s"
+#define MACOS_LINK_EXTRAS ""
+#endif
+
 const char *ARM = "arm";
 const char *ARM64 = "arm64";
 const char *X64 = "x64";
@@ -113,22 +129,13 @@ void build_boringssl(const char *arch) {
 /* Build for Unix systems */
 void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const char *arch) {
 
-#ifdef WITH_ASAN
-    char *c_shared = "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL -fsanitize=address -fno-omit-frame-pointer -g -O1 -c -fPIC -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c";
-    char *cpp_shared = "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL -fsanitize=address -fno-omit-frame-pointer -g -O1 -c -fPIC -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp";
-#else
-    char *c_shared = "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL -flto -O3 -c -fPIC -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c";
-    char *cpp_shared = "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL -flto -O3 -c -fPIC -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp";
-#endif
+    char *c_shared = "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL" OPT_FLAGS " -c -fPIC -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c";
+    char *cpp_shared = "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL" OPT_FLAGS " -c -fPIC -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp";
 
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
-#ifdef WITH_ASAN
-        run("%s -pthread -fsanitize=address *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
-#else
-        run("%s -pthread -flto -O3 *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
-#endif
+        run("%s -pthread" LINK_FLAGS " *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
 }
 
@@ -190,49 +197,26 @@ int main() {
 #ifdef IS_MACOS
 
     /* Apple special case */
-#ifdef WITH_ASAN
     build("clang -target x86_64-apple-macos12",
           "clang++ -stdlib=libc++ -target x86_64-apple-macos12",
-          "-undefined dynamic_lookup -fsanitize=address",
+          "-undefined dynamic_lookup" MACOS_LINK_EXTRAS,
           OS,
           X64);
 
     /* Try and build for arm64 macOS 12 */
     build("clang -target arm64-apple-macos12",
           "clang++ -stdlib=libc++ -target arm64-apple-macos12",
-          "-undefined dynamic_lookup -fsanitize=address",
+          "-undefined dynamic_lookup" MACOS_LINK_EXTRAS,
           OS,
           ARM64);
-#else
-    build("clang -target x86_64-apple-macos12",
-          "clang++ -stdlib=libc++ -target x86_64-apple-macos12",
-          "-undefined dynamic_lookup",
-          OS,
-          X64);
-
-    /* Try and build for arm64 macOS 12 */
-    build("clang -target arm64-apple-macos12",
-          "clang++ -stdlib=libc++ -target arm64-apple-macos12",
-          "-undefined dynamic_lookup",
-          OS,
-          ARM64);
-#endif
 
 #else
     /* Linux does not cross-compile but picks whatever arch the host is on (we run on both x64 and ARM64) */
-#ifdef WITH_ASAN
     build("clang-18",
           "clang++-18",
-          "-fsanitize=address",
+          LINUX_LINK_EXTRAS,
           OS,
           arch);
-#else
-    build("clang-18",
-          "clang++-18",
-          "-static-libstdc++ -static-libgcc -s",
-          OS,
-          arch);
-#endif
 #endif
 #endif
 

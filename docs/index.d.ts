@@ -379,7 +379,7 @@ export function SSLApp(options: AppOptions) : TemplatedApp;
 export function us_listen_socket_close(listenSocket: us_listen_socket) : void;
 
 /** Gets local port of socket (or listenSocket) or -1. */
-export function us_socket_local_port(socket: us_socket) : number;
+export function us_socket_local_port(socket: us_socket | us_listen_socket) : number;
 
 export interface MultipartField {
     data: ArrayBuffer;

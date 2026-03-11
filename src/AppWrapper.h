@@ -71,7 +71,8 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         /* maxLifetime or default */
         MaybeLocal<Value> maybeMaxLifetime = behaviorObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "maxLifetime", NewStringType::kNormal).ToLocalChecked());
         if (!maybeMaxLifetime.IsEmpty() && !maybeMaxLifetime.ToLocalChecked()->IsUndefined()) {
-            behavior.maxLifetime = maybeMaxLifetime.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked();
+            /* Cap at 239 to avoid modulo wraparound in uSockets (240 % 240 == 0 == current timestamp, causing immediate timeout), and ensure non-negative */
+            behavior.maxLifetime = std::max(0, std::min<int>(maybeMaxLifetime.ToLocalChecked()->Int32Value(isolate->GetCurrentContext()).ToChecked(), 239));
         }
 
         /* closeOnBackpressureLimit or default */

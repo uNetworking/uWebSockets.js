@@ -270,7 +270,7 @@ export interface WebSocketBehavior<UserData> {
     maxPayloadLength?: number;
     /** Whether or not we should automatically close the socket when a message is dropped due to backpressure. Defaults to false. */
     closeOnBackpressureLimit?: boolean;
-    /** Maximum number of minutes a WebSocket may be connected before being closed by the server. 0 disables the feature. */
+    /** Maximum number of minutes a WebSocket may be connected before being closed by the server. 0 disables the feature. Valid values are 0 and 1-239. */
     maxLifetime?: number;
     /** Maximum amount of seconds that may pass without sending or getting a message. Connection is closed if this timeout passes. Resolution (granularity) for timeouts are typically 4 seconds, rounded to closest.
      * Disable by using 0. Defaults to 120.

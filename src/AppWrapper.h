@@ -170,6 +170,17 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
                         ).ToChecked();
                 }
             }
+
+            /* Also copy symbol properties */
+            Local<Array> symbols;
+            if (userData->GetOwnPropertyNames(isolate->GetCurrentContext(), static_cast<PropertyFilter>(SKIP_STRINGS)).ToLocal(&symbols)) {
+                for (int i = 0; i < symbols->Length(); i++) {
+                    wsObject->Set(isolate->GetCurrentContext(),
+                        symbols->Get(isolate->GetCurrentContext(), i).ToLocalChecked(),
+                        userData->Get(isolate->GetCurrentContext(), symbols->Get(isolate->GetCurrentContext(), i).ToLocalChecked()).ToLocalChecked()
+                        ).ToChecked();
+                }
+            }
         }
 
         /* Attach a new V8 object with pointer to us, to it */

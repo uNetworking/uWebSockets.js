@@ -18,6 +18,13 @@ We aren't in the NPM registry but you can easily install it with the NPM client:
 
 ![Untitled](https://github.com/user-attachments/assets/c887f49f-5e7a-446e-970d-f66b4d03cf4a)
 
+### :gear: Environment variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `UWS_HTTP_MAX_HEADERS_SIZE` | Maximum total byte size of HTTP request headers (runtime env variable). | `4096` |
+| `UWS_HTTP_MAX_HEADERS_COUNT` | Maximum number of HTTP request headers (compile-time define, not a runtime env variable). | `100` |
+
 ### :handshake: Permissively licensed
 Intellectual property, all rights reserved.
 

@@ -111,6 +111,45 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes integer maxSize and function of fullData. Accumulates all data chunks and calls handler with the complete
+     * body as an ArrayBuffer once all data has arrived. If the body exceeds maxSize bytes, handler is called with
+     * null instead. Returns this */
+    template <int SSL>
+    static void res_onFullData(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            size_t maxSize = (size_t) args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked();
+
+            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
+            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[1]));
+
+            /* Use unique_ptr to accumulate chunks; null signals maxSize was exceeded */
+            auto buffer = std::make_unique<std::vector<char>>();
+
+            res->onData([p = std::move(p), buffer = std::move(buffer), maxSize, isolate](std::string_view data, bool last) mutable {
+                HandleScope hs(isolate);
+
+                /* Accumulate data only if within size limit; use subtraction to avoid overflow */
+                if (buffer && data.size() <= maxSize - buffer->size()) {
+                    buffer->insert(buffer->end(), data.begin(), data.end());
+                } else if (buffer) {
+                    /* Release buffer to free memory and use nullptr as overflow sentinel */
+                    buffer.reset();
+                }
+
+                if (last) {
+                    Local<Value> arg = buffer
+                        ? Local<Value>(ArrayBuffer_NewCopy(isolate, buffer->data(), buffer->size()))
+                        : Local<Value>(Null(isolate));
+                    CallJS(isolate, Local<Function>::New(isolate, p), 1, &arg);
+                }
+            });
+
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* Takes nothing, returns nothing. Cb wants nothing returned. */
     template <int SSL>
     static void res_onAborted(const FunctionCallbackInfo<Value> &args) {
@@ -463,6 +502,7 @@ struct HttpResponseWrapper {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
+            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
 
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {

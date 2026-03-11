@@ -22,6 +22,7 @@ jobs:
           cd uWebSockets.js
           cc build.c -DWITH_ASAN && ./a.out
           ls dist
+          cd tests && npm install ws && LD_PRELOAD=$(gcc -print-file-name=libasan.so) node smoke.js && cd ..
           # On first run, binaries-asan doesn't exist yet; seed it from binaries so git history is preserved
           git fetch origin binaries-asan:binaries-asan 2>/dev/null || git fetch origin binaries:binaries-asan
           git checkout binaries-asan

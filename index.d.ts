@@ -144,6 +144,10 @@ export interface HttpResponse {
      * See writeStatus and corking.
     */
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
+    /** Writes all key/value pairs of the provided object as HTTP response headers.
+     * See writeStatus and corking.
+    */
+    writeHeaders(headers: Record<string, RecognizedString>) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
     /** Ends this response by copying the contents of body. */

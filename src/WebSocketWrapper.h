@@ -161,6 +161,17 @@ struct WebSocketWrapper {
 
     /* Takes nothing, returns integer */
     template <bool SSL>
+    static void uWS_WebSocket_getRemotePort(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            unsigned int port = ws->getRemotePort();
+            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, port));
+        }
+    }
+
+    /* Takes nothing, returns integer */
+    template <bool SSL>
     static void uWS_WebSocket_getBufferedAmount(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
@@ -335,6 +346,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddressAsText<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemotePort<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "isSubscribed", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_isSubscribed<SSL>));
 
         /* This one does not exist in C++ */

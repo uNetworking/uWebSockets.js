@@ -113,7 +113,10 @@ struct HttpResponseWrapper {
 
     /* Takes integer maxSize and function of fullData. Accumulates all data chunks and calls handler with the complete
      * body as an ArrayBuffer once all data has arrived. If the body exceeds maxSize bytes, handler is called with
-     * null instead. Returns this */
+     * null instead. Fast path: if all data arrives in a single chunk no allocation is made and the ArrayBuffer is
+     * zero-copy (backed directly by the incoming data, detached after the call). Slow path: chunks are lazily
+     * accumulated into a std::vector whose memory is transferred zero-copy into the ArrayBuffer backing store.
+     * Returns this */
     template <int SSL>
     static void res_onFullData(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
@@ -124,25 +127,65 @@ struct HttpResponseWrapper {
             /* This thing perfectly fits in with unique_function, and will Reset on destructor */
             UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[1]));
 
-            /* Use unique_ptr to accumulate chunks; null signals maxSize was exceeded */
-            auto buffer = std::make_unique<std::vector<char>>();
+            /* Lazily allocated; nullptr means not yet started. Separate overflow flag distinguishes
+             * the "not started" state from the "exceeded maxSize" state. */
+            std::unique_ptr<std::vector<char>> buffer;
+            bool overflow = false;
 
-            res->onData([p = std::move(p), buffer = std::move(buffer), maxSize, isolate](std::string_view data, bool last) mutable {
+            res->onData([p = std::move(p), buffer = std::move(buffer), overflow, maxSize, isolate](std::string_view data, bool last) mutable {
                 HandleScope hs(isolate);
 
-                /* Accumulate data only if within size limit; use subtraction to avoid overflow */
-                if (buffer && data.size() <= maxSize - buffer->size()) {
-                    buffer->insert(buffer->end(), data.begin(), data.end());
-                } else if (buffer) {
-                    /* Release buffer to free memory and use nullptr as overflow sentinel */
-                    buffer.reset();
+                if (!overflow) {
+                    if (!buffer) {
+                        /* Fast path: this is the very first (and possibly only) chunk */
+                        if (last) {
+                            if (data.size() <= maxSize) {
+                                /* Single-chunk zero-copy: wrap data directly, detach after call like onData */
+                                Local<ArrayBuffer> ab = ArrayBuffer_New(isolate, (void *) data.data(), data.size());
+                                Local<Value> argv[] = {ab};
+                                CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                                ab->Detach();
+                            } else {
+                                Local<Value> argv[] = {Null(isolate)};
+                                CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                            }
+                            return;
+                        }
+                        /* Slow path begins: allocate buffer lazily for first non-terminal chunk */
+                        if (data.size() <= maxSize) {
+                            buffer = std::make_unique<std::vector<char>>(data.begin(), data.end());
+                        } else {
+                            overflow = true;
+                        }
+                    } else {
+                        /* Subsequent chunks: accumulate or mark overflow; guard both sides of subtraction */
+                        if (buffer->size() <= maxSize && data.size() <= maxSize - buffer->size()) {
+                            buffer->insert(buffer->end(), data.begin(), data.end());
+                        } else {
+                            buffer.reset();
+                            overflow = true;
+                        }
+                    }
                 }
 
                 if (last) {
-                    Local<Value> arg = buffer
-                        ? Local<Value>(ArrayBuffer_NewCopy(isolate, buffer->data(), buffer->size()))
-                        : Local<Value>(Null(isolate));
-                    CallJS(isolate, Local<Function>::New(isolate, p), 1, &arg);
+                    if (!overflow) {
+                        /* Zero-copy: hand V8 the vector's own memory via a custom deleter */
+                        auto *rawBuffer = buffer.release();
+                        auto backingStore = ArrayBuffer::NewBackingStore(
+                            rawBuffer->data(), rawBuffer->size(),
+                            [](void *, size_t, void *deleter_data) {
+                                delete static_cast<std::vector<char> *>(deleter_data);
+                            },
+                            rawBuffer
+                        );
+                        Local<ArrayBuffer> ab = ArrayBuffer::New(isolate, std::move(backingStore));
+                        Local<Value> argv[] = {ab};
+                        CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                    } else {
+                        Local<Value> argv[] = {Null(isolate)};
+                        CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                    }
                 }
             });
 

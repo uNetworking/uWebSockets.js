@@ -181,6 +181,10 @@ export interface HttpResponse {
     /** Handler for reading data from POST and such requests. You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making it zero length.*/
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
 
+    /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
+     * If the total body size exceeds maxSize bytes, handler is called with null instead. */
+    onFullData(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
+
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;
 

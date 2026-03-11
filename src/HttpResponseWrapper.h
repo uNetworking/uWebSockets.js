@@ -477,49 +477,6 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* Takes object of key/value pairs. Returns this */
-    template <int PROTOCOL>
-    static void res_writeHeaders(const FunctionCallbackInfo<Value> &args) {
-        Isolate *isolate = args.GetIsolate();
-        auto *res = getHttpResponse<PROTOCOL>(args);
-        if (res) {
-            if (!args[0]->IsObject()) {
-                args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::TypeError(String::NewFromUtf8(isolate, "writeHeaders requires an object of key/value pairs.", NewStringType::kNormal).ToLocalChecked())));
-                return;
-            }
-
-            Local<Context> context = isolate->GetCurrentContext();
-            Local<Object> headersObj = Local<Object>::Cast(args[0]);
-
-            Local<Array> propertyNames;
-            if (!headersObj->GetOwnPropertyNames(context).ToLocal(&propertyNames)) {
-                return;
-            }
-
-            assumeCorked();
-
-            for (uint32_t i = 0; i < propertyNames->Length(); i++) {
-                Local<Value> key;
-                Local<Value> value;
-                if (!propertyNames->Get(context, i).ToLocal(&key) || !headersObj->Get(context, key).ToLocal(&value)) {
-                    return;
-                }
-
-                NativeString header(isolate, key);
-                if (header.isInvalid(args)) {
-                    return;
-                }
-                NativeString headerValue(isolate, value);
-                if (headerValue.isInvalid(args)) {
-                    return;
-                }
-                res->writeHeader(header.getString(), headerValue.getString());
-            }
-
-            args.GetReturnValue().Set(args.This());
-        }
-    }
-
     /* Takes function, returns this */
     template <int SSL>
     static void res_cork(const FunctionCallbackInfo<Value> &args) {
@@ -608,7 +565,6 @@ struct HttpResponseWrapper {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeaders", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeaders<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_close<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));

@@ -132,7 +132,7 @@ struct HttpResponseWrapper {
             std::unique_ptr<std::vector<char>> buffer;
             bool overflow = false;
 
-            res->onData([p = std::move(p), buffer = std::move(buffer), overflow, maxSize, isolate](std::string_view data, bool last) mutable {
+            res->onData([res, p = std::move(p), buffer = std::move(buffer), overflow, maxSize, isolate](std::string_view data, bool last) mutable {
                 HandleScope hs(isolate);
 
                 if (!overflow) {
@@ -153,7 +153,12 @@ struct HttpResponseWrapper {
                         }
                         /* Slow path begins: allocate buffer lazily for first non-terminal chunk */
                         if (data.size() <= maxSize) {
-                            buffer = std::make_unique<std::vector<char>>(data.begin(), data.end());
+                            buffer = std::make_unique<std::vector<char>>();
+                            /* Preallocate with hint */
+                            if (res.maxRemainingBodyLength() <= maxSize) {
+                                buffer->reserve(res.maxRemainingBodyLength()); // this includes the total size on first call (look over this)
+                            }
+                            buffer->assign(data.begin(), data.end());
                         } else {
                             overflow = true;
                         }

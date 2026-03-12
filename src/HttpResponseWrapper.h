@@ -584,10 +584,10 @@ struct HttpResponseWrapper {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
-
+            
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "maxRemainingBodyLength", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_maxRemainingBodyLength<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));

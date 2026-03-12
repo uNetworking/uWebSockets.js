@@ -170,6 +170,9 @@ export interface HttpResponse {
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
 
+    /** Returns the max remaining body length of the currently read HTTP body. */
+    maxRemainingBodyLength() : bigint;
+
     /** Registers a handler for writable events. Continue failed write attempts in here.
      * You MUST return true for success, false for failure.
      * Writing nothing is always success, so by default you must return true.

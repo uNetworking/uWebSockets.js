@@ -155,8 +155,8 @@ struct HttpResponseWrapper {
                         if (data.size() <= maxSize) {
                             buffer = std::make_unique<std::vector<char>>();
                             /* Preallocate with hint */
-                            if (res.maxRemainingBodyLength() <= maxSize) {
-                                buffer->reserve(res.maxRemainingBodyLength()); // this includes the total size on first call (look over this)
+                            if (res->maxRemainingBodyLength() <= maxSize) {
+                                buffer->reserve(res->maxRemainingBodyLength()); // this includes the total size on first call (look over this)
                             }
                             buffer->assign(data.begin(), data.end());
                         } else {

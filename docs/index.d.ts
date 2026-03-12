@@ -197,7 +197,7 @@ export interface HttpResponse {
 
     /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
-    onFullData(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
+    accumulateBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;

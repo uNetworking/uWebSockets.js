@@ -111,14 +111,14 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* Takes integer maxSize and function of fullData. Accumulates all data chunks and calls handler with the complete
+    /* Takes integer maxSize and a handler function. Accumulates all data chunks and calls handler with the complete
      * body as an ArrayBuffer once all data has arrived. If the body exceeds maxSize bytes, handler is called with
      * null instead. Fast path: if all data arrives in a single chunk no allocation is made and the ArrayBuffer is
      * zero-copy (backed directly by the incoming data, detached after the call). Slow path: chunks are lazily
      * accumulated into a std::vector whose memory is transferred zero-copy into the ArrayBuffer backing store.
      * Returns this */
     template <int SSL>
-    static void res_onFullData(const FunctionCallbackInfo<Value> &args) {
+    static void res_accumulateBody(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -587,7 +587,7 @@ struct HttpResponseWrapper {
             
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "accumulateBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_accumulateBody<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "maxRemainingBodyLength", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_maxRemainingBodyLength<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));

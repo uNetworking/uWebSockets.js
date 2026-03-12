@@ -22,7 +22,6 @@ jobs:
           cd uWebSockets.js
           cc build.c -DWITH_ASAN && ./a.out
           ls dist
-          cd tests && npm install ws && export ASAN_PATH=$(gcc -print-file-name=libasan.so 2>/dev/null || clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) && LD_PRELOAD="$ASAN_PATH" DYLD_INSERT_LIBRARIES="$ASAN_PATH" node smoke.js && cd ..
           # On first run, binaries-asan doesn't exist yet; seed it from binaries so git history is preserved
           git fetch origin binaries-asan:binaries-asan 2>/dev/null || git fetch origin binaries:binaries-asan
           git checkout binaries-asan

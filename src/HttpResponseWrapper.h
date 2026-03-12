@@ -122,6 +122,16 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
+
+            /* This is how we capture res (C++ this in invocation of this function) */
+            UniquePersistent<Object> resObject(isolate, args.This());
+
+            res->onAborted([resObject = std::move(resObject), isolate]() {
+                HandleScope hs(isolate);
+                /* Mark this resObject invalid */
+                Local<Object>::New(isolate, resObject)->SetAlignedPointerInInternalField(0, nullptr);
+            });
+            
             size_t maxSize = (size_t) args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked();
 
             /* This thing perfectly fits in with unique_function, and will Reset on destructor */

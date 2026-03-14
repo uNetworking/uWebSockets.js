@@ -349,7 +349,7 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendLastFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendLastFragment<SSL>));
 
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUserData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getUserData<SSL>));
-        static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast<SSL>);
+        static v8::CFunction fast_send = v8::CFunction::MakeWithFallbackSupport(uWS_WebSocket_send_fast<SSL>);
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasSideEffect, &fast_send));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));

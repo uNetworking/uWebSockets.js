@@ -19,7 +19,6 @@
 #include "Utilities.h"
 
 #include <v8.h>
-#include "v8-fast-api-calls.h"
 using namespace v8;
 
 thread_local int insideCorkCallback = 0;
@@ -566,46 +565,6 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* V8 fast call fast paths - called directly from JIT-optimised code.
-     * Requirements: no JS heap allocation, no JS execution, POD or ArrayBuffer args only.
-     * A null internal-field pointer (closed/invalid response) sets options.fallback = true so V8
-     * re-invokes the slow path which throws the proper exception. */
-
-    template <int PROTOCOL>
-    static uint32_t res_getRemotePort_fast(v8::Local<v8::Object> receiver, v8::FastApiCallbackOptions& options) {
-        void *ptr = receiver->GetAlignedPointerFromInternalField(0);
-        if (!ptr) { options.fallback = true; return 0; }
-        return ((uWS::HttpResponse<PROTOCOL != 0> *) ptr)->getRemotePort();
-    }
-
-    template <int PROTOCOL>
-    static uint32_t res_getProxiedRemotePort_fast(v8::Local<v8::Object> receiver, v8::FastApiCallbackOptions& options) {
-        void *ptr = receiver->GetAlignedPointerFromInternalField(0);
-        if (!ptr) { options.fallback = true; return 0; }
-        return ((uWS::HttpResponse<PROTOCOL != 0> *) ptr)->getProxiedRemotePort();
-    }
-
-    template <int PROTOCOL>
-    static double res_getWriteOffset_fast(v8::Local<v8::Object> receiver, v8::FastApiCallbackOptions& options) {
-        void *ptr = receiver->GetAlignedPointerFromInternalField(0);
-        if (!ptr) { options.fallback = true; return 0.0; }
-        return (double) ((uWS::HttpResponse<PROTOCOL != 0> *) ptr)->getWriteOffset();
-    }
-
-    /* write() returns bool (true = success, false = backpressure). Handles TCP, TLS, and QUIC. */
-    template <int PROTOCOL>
-    static bool res_write_fast(v8::Local<v8::Object> receiver, const v8::FastApiTypedArray<uint8_t>& data, v8::FastApiCallbackOptions& options) {
-        void *ptr = receiver->GetAlignedPointerFromInternalField(0);
-        if (!ptr) { options.fallback = true; return false; }
-        uint8_t *buf = nullptr;
-        if (!data.getStorageIfAligned(&buf)) { options.fallback = true; return false; }
-        if constexpr (PROTOCOL == 2) {
-            return ((uWS::Http3Response *) ptr)->write(std::string_view((char *) buf, data.length()));
-        } else {
-            return ((uWS::HttpResponse<PROTOCOL != 0> *) ptr)->write(std::string_view((char *) buf, data.length()));
-        }
-    }
-
     /* 0 = TCP, 1 = TLS, 2 = QUIC, 3 = CACHE */
     template <int SSL>
     static Local<Object> init(Isolate *isolate) {
@@ -621,9 +580,7 @@ struct HttpResponseWrapper {
         }
         resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
-        /* Register our functions.
-         * Static CFunction descriptors are per template specialisation (SSL 0/1/2/3)
-         * and are initialised once because the addon is a single translation unit. */
+        /* Register our functions */
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));
         
         /* Cache has almost nothing wrapped yet */
@@ -631,8 +588,7 @@ struct HttpResponseWrapper {
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeStatus", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeStatus<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "endWithoutBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_endWithoutBody<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
-            static v8::CFunction fast_write = v8::CFunction::Make(res_write_fast<SSL>);
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasSideEffect, &fast_write));
+            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_close<SSL>));
             resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
@@ -642,20 +598,17 @@ struct HttpResponseWrapper {
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
-                static v8::CFunction fast_getWriteOffset = v8::CFunction::Make(res_getWriteOffset_fast<SSL>);
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasNoSideEffect, &fast_getWriteOffset));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "maxRemainingBodyLength", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_maxRemainingBodyLength<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddressAsText<SSL>));
-                static v8::CFunction fast_getRemotePort = v8::CFunction::Make(res_getRemotePort_fast<SSL>);
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemotePort<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasNoSideEffect, &fast_getRemotePort));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemotePort<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddress<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddressAsText<SSL>));
-                static v8::CFunction fast_getProxiedRemotePort = v8::CFunction::Make(res_getProxiedRemotePort_fast<SSL>);
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemotePort<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasNoSideEffect, &fast_getProxiedRemotePort));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemotePort<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "pause", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_pause<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "resume", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_resume<SSL>));
             }

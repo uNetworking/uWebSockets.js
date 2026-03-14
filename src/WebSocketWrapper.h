@@ -326,12 +326,10 @@ struct WebSocketWrapper {
      * re-invokes the slow path which throws the proper exception. */
 
     template <bool SSL>
-    static uint32_t uWS_WebSocket_send_fast(v8::Local<v8::Object> receiver, const v8::FastApiTypedArray<uint8_t>& message, bool isBinary, bool compress, v8::FastApiCallbackOptions& options) {
+    static uint32_t uWS_WebSocket_send_fast(v8::Local<v8::Object> receiver, const v8::FastOneByteString& message, bool isBinary, bool compress, v8::FastApiCallbackOptions& options) {
         auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
         if (!ws) { options.fallback = true; return 0; }
-        uint8_t *data = nullptr;
-        if (!message.getStorageIfAligned(&data)) { options.fallback = true; return 0; }
-        return ws->send(std::string_view((char *) data, message.length()),
+        return ws->send(std::string_view((char *) message.data, message.length),
                         isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
     }
 

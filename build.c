@@ -70,6 +70,8 @@ void prepare() {
         run("curl -OJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz", versions[i].name, versions[i].name);
         run("tar xzf node-%s-headers.tar.gz -C targets", versions[i].name);
         run("curl https://nodejs.org/dist/%s/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
+        /* v8-fast-api-calls.h is missing from the Node.js header distribution; fetch the correct major version from the Node.js source tree */
+        run("curl -fL https://raw.githubusercontent.com/nodejs/node/%s/deps/v8/include/v8-fast-api-calls.h > targets/node-%s/include/node/v8-fast-api-calls.h", versions[i].name, versions[i].name);
     }
 }
 

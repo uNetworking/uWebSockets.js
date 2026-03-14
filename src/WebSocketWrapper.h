@@ -20,6 +20,7 @@
 
 #include <v8.h>
 #include "v8-fast-api-calls.h"
+#include "node_version.h"
 using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
@@ -323,8 +324,11 @@ struct WebSocketWrapper {
     /* V8 fast call fast path for send - called directly from JIT-optimised code.
      * Requirements: no JS heap allocation, no JS execution, Uint8Array arg only.
      * A null internal-field pointer (closed socket) sets options.fallback = true so V8
-     * re-invokes the slow path which throws the proper exception. */
-
+     * re-invokes the slow path which throws the proper exception.
+     * Only supported on Node.js v22 and earlier: v8::FastApiTypedArray and
+     * FastApiCallbackOptions::fallback were removed from V8 in Node.js v24
+     * (NODE_MODULE_VERSION 127 = v22, 137 = v24, 141 = v25). */
+#if NODE_MODULE_VERSION <= 127
     template <bool SSL>
     static uint32_t uWS_WebSocket_send_fast(v8::Local<v8::Object> receiver, const v8::FastApiTypedArray<uint8_t>& message, bool isBinary, bool compress, v8::FastApiCallbackOptions& options) {
         auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
@@ -334,6 +338,7 @@ struct WebSocketWrapper {
         return ws->send(std::string_view((char *) data, message.length()),
                         isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
     }
+#endif
 
     template <bool SSL>
     static Local<Object> init(Isolate *isolate) {
@@ -351,8 +356,12 @@ struct WebSocketWrapper {
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendLastFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendLastFragment<SSL>));
 
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUserData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getUserData<SSL>));
+#if NODE_MODULE_VERSION <= 127
         static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast<SSL>);
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kAllow, SideEffectType::kHasSideEffect, &fast_send));
+#else
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>));
+#endif
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));

@@ -347,6 +347,8 @@ static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver,
     auto array = message.As<v8::ArrayBufferView>();
     auto contents = array->Buffer()->GetBackingStore();
     char* data = static_cast<char*>(contents->Data()) + array->ByteOffset();
+
+    printf("Hitting fast buffer path\n");
     
     return ws->send(std::string_view(data, array->ByteLength()),
                     uWS::OpCode::BINARY, compress);

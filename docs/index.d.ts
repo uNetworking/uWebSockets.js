@@ -100,6 +100,14 @@ export interface WebSocket<UserData> {
     /** See HttpResponse.cork. Takes a function in which the socket is corked (packing many sends into one single syscall/SSL block) */
     cork(cb: () => void) : WebSocket<UserData>;
 
+    /** Corks the socket without a callback. Must always be paired with a subsequent call to _uncorkUnsafe.
+     * Unsafe: failing to call _uncorkUnsafe will leave the socket in a permanently corked state, preventing data from being flushed. */
+    _corkUnsafe() : WebSocket<UserData>;
+
+    /** Uncorks and flushes the socket previously corked with _corkUnsafe.
+     * Must be called exactly once for every call to _corkUnsafe. */
+    _uncorkUnsafe() : WebSocket<UserData>;
+
     /** Returns the remote IP address. Note that the returned IP is binary, not text.
      *
      * IPv4 is 4 byte long and can be converted to text by printing every byte as a digit between 0 and 255.
@@ -233,6 +241,14 @@ export interface HttpResponse {
      * ```
      */
     cork(cb: () => void) : HttpResponse;
+
+    /** Corks the socket without a callback. Must always be paired with a subsequent call to _uncorkUnsafe.
+     * Unsafe: failing to call _uncorkUnsafe will leave the socket in a permanently corked state, preventing data from being flushed. */
+    _corkUnsafe() : HttpResponse;
+
+    /** Uncorks and flushes the socket previously corked with _corkUnsafe.
+     * Must be called exactly once for every call to _corkUnsafe. */
+    _uncorkUnsafe() : HttpResponse;
 
     /** Upgrades a HttpResponse to a WebSocket. See UpgradeAsync, UpgradeSync example files. */
     upgrade<UserData>(userData : UserData, secWebSocketKey: RecognizedString, secWebSocketProtocol: RecognizedString, secWebSocketExtensions: RecognizedString, context: us_socket_context_t) : void;

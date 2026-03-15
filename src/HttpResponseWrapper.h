@@ -25,6 +25,16 @@ thread_local int insideCorkCallback = 0;
 
 /* PROTOCOL is 0 = TCP, 1 = TLS, 2 = QUIC, 3 = CACHE */
 
+/* Helper to access protected AsyncSocket::cork() and uncork() */
+#ifndef UWS_JS_ASYNC_SOCKET_CORK_HELPER_DEFINED
+#define UWS_JS_ASYNC_SOCKET_CORK_HELPER_DEFINED
+template <bool SSL>
+struct AsyncSocketCorkHelper : uWS::AsyncSocket<SSL> {
+    void callCork() { uWS::AsyncSocket<SSL>::cork(); }
+    std::pair<int, bool> callUncork() { return uWS::AsyncSocket<SSL>::uncork(); }
+};
+#endif
+
 struct HttpResponseWrapper {
 
     static void assumeCorked() {
@@ -520,6 +530,26 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes nothing, returns this */
+    template <int SSL>
+    static void res_corkUnsafe(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            ((AsyncSocketCorkHelper<SSL != 0> *) res)->callCork();
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
+    /* Takes nothing, returns this */
+    template <int SSL>
+    static void res_uncorkUnsafe(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            (void) ((AsyncSocketCorkHelper<SSL != 0> *) res)->callUncork();
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* Takes UserData, secKey, secProtocol, secExtensions, context. Returns nothing */
     template <int SSL>
     static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
@@ -602,6 +632,8 @@ struct HttpResponseWrapper {
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "maxRemainingBodyLength", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_maxRemainingBodyLength<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "_corkUnsafe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_corkUnsafe<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "_uncorkUnsafe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_uncorkUnsafe<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddressAsText<SSL>));

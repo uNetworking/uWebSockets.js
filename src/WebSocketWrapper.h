@@ -24,6 +24,16 @@ using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
 
+/* Helper to access protected AsyncSocket::cork() and uncork() */
+#ifndef UWS_JS_ASYNC_SOCKET_CORK_HELPER_DEFINED
+#define UWS_JS_ASYNC_SOCKET_CORK_HELPER_DEFINED
+template <bool SSL>
+struct AsyncSocketCorkHelper : uWS::AsyncSocket<SSL> {
+    void callCork() { uWS::AsyncSocket<SSL>::cork(); }
+    std::pair<int, bool> callUncork() { return uWS::AsyncSocket<SSL>::uncork(); }
+};
+#endif
+
 struct WebSocketWrapper {
 
     template <bool SSL>
@@ -301,6 +311,26 @@ struct WebSocketWrapper {
         }
     }
 
+    /* Takes nothing, returns this */
+    template <bool SSL>
+    static void uWS_WebSocket_corkUnsafe(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            ((AsyncSocketCorkHelper<SSL> *) ws)->callCork();
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
+    /* Takes nothing, returns this */
+    template <bool SSL>
+    static void uWS_WebSocket_uncorkUnsafe(const FunctionCallbackInfo<Value> &args) {
+        auto *ws = getWebSocket<SSL>(args);
+        if (ws) {
+            (void) ((AsyncSocketCorkHelper<SSL> *) ws)->callUncork();
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* This one is wrapped instead of iterateTopics as JS-people will put their hands in wood chipper for sure. */
     template <bool SSL>
     static void uWS_WebSocket_getTopics(const FunctionCallbackInfo<Value> &args) {
@@ -390,6 +420,8 @@ static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver,
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "_corkUnsafe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_corkUnsafe<SSL>));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "_uncorkUnsafe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_uncorkUnsafe<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddressAsText<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemotePort<SSL>));

@@ -325,13 +325,32 @@ struct WebSocketWrapper {
      * A null internal-field pointer (closed socket) sets options.fallback = true so V8
      * re-invokes the slow path which throws the proper exception. */
 
-    template <bool SSL>
-    static uint32_t uWS_WebSocket_send_fast(v8::Local<v8::Object> receiver, const v8::FastOneByteString& message, bool isBinary, bool compress, v8::FastApiCallbackOptions& options) {
-        auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
-        if (!ws) { return 0; }
-        return ws->send(std::string_view((char *) message.data, message.length),
-                        isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
-    }
+// Version A: Handles Strings
+template <bool SSL>
+static uint32_t uWS_WebSocket_send_fast_string(v8::Local<v8::Object> receiver, 
+                                               const v8::FastOneByteString& message, 
+                                               bool isBinary, bool compress) {
+    auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
+    if (!ws) return 0;
+    return ws->send(std::string_view(message.data, message.length),
+                    isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
+}
+
+// Version B: Handles ArrayBuffer/TypedArray
+template <bool SSL>
+static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver, 
+                                               v8::Local<v8::Value> message, 
+                                               bool isBinary, bool compress) {
+    auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
+    if (!ws || !message->IsArrayBufferView()) return 0;
+
+    auto array = message.As<v8::ArrayBufferView>();
+    auto contents = array->Buffer()->GetBackingStore();
+    char* data = static_cast<char*>(contents->Data()) + array->ByteOffset();
+    
+    return ws->send(std::string_view(data, array->ByteLength()),
+                    uWS::OpCode::BINARY, compress);
+}
 
     template <bool SSL>
     static Local<Object> init(Isolate *isolate) {
@@ -350,7 +369,7 @@ struct WebSocketWrapper {
 
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUserData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getUserData<SSL>));
         static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast<SSL>);
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect, &fast_send));
+        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect, &uWS_WebSocket_send_fast_buffer));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));

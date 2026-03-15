@@ -197,7 +197,7 @@ export interface HttpResponse {
 
     /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
-    onFullData(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
+    collectBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
     /** Combined handler for HTTP request body streaming and connection abort events.
      * If chunk is null, the connection was aborted. If maxRemainingBodyLength is 0n, the last chunk has arrived.

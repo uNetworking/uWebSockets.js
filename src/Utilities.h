@@ -20,6 +20,7 @@
 
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+#include <string>
 #include <v8.h>
 using namespace v8;
 
@@ -50,6 +51,8 @@ Local<v8::ArrayBuffer> ArrayBuffer_NewCopy(Isolate *isolate, void *data, size_t 
 
 struct PerSocketData {
     UniquePersistent<Object> socketPf;
+    std::string remoteAddress;
+    std::string remoteAddressAsText;
 };
 
 struct PerContextData {

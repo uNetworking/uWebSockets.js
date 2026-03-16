@@ -298,6 +298,10 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         /* This should technically not be required */
         perSocketData->socketPf.Reset();
 
+        /* Clear remote address cache entries for this socket */
+        perSocketData->remoteAddress.clear();
+        perSocketData->remoteAddressAsText.clear();
+
         /* Again, here we clear the buffer to avoid strange bugs */
         messageArrayBuffer->Detach();
     };

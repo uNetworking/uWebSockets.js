@@ -142,9 +142,12 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            std::string_view ip = ws->getRemoteAddress();
-
-            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) ip.data(), ip.length()));
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            if (perSocketData->remoteAddress.empty()) {
+                std::string_view ip = ws->getRemoteAddress();
+                perSocketData->remoteAddress.assign(ip.data(), ip.length());
+            }
+            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) perSocketData->remoteAddress.data(), perSocketData->remoteAddress.length()));
         }
     }
 
@@ -154,9 +157,12 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            std::string_view ip = ws->getRemoteAddressAsText();
-
-            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) ip.data(), ip.length()));
+            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+            if (perSocketData->remoteAddressAsText.empty()) {
+                std::string_view ip = ws->getRemoteAddressAsText();
+                perSocketData->remoteAddressAsText.assign(ip.data(), ip.length());
+            }
+            args.GetReturnValue().Set(ArrayBuffer_NewCopy(isolate, (void *) perSocketData->remoteAddressAsText.data(), perSocketData->remoteAddressAsText.length()));
         }
     }
 

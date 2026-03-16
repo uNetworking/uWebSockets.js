@@ -6,6 +6,8 @@
 This repository is for the fork of µWebSockets.js used by [Akeno](https://github.com/the-lstv/akeno), used for building and including the µWebSockets as a module.
 It moves a bunch of the JavaScript logic to C++ for slightly better performance (though it's not an enormous difference), eliminate calls to JavaScript where possible, and for the future low level cache implementation.
 
+> [!NOTE] This fork will not be updated from upstream anymore. The last version of uWebSockets is the version that it will stay on, and all features will be added & built on top by Akeno maintainers. So it is safe to say the library is independent now. The reason is that the recent versions of uWebSockets include a lot of AI-generated code, which is against my values & against the standards of this library. I want to make sure that the current code is gone through in its entirety, rewritten where needed, verified, and stable. It is irresponsible for a critical component of this scale to include AI code in production, especially given that the library & it's developer doesn't have the best track record, and for that reason I want to ensure we aren't blindly including such code in this library. It's a low-quality supply chain risk I am not willing to take as I stand for software quality. This equally applies to any dependency of Akeno.
+
 #### This is *not* the main repository for Akeno - please [go there instead](https://github.com/the-lstv/akeno).
 
 ## Warning

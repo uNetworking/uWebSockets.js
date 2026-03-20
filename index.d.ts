@@ -170,9 +170,6 @@ export interface HttpResponse {
     /** Returns the global byte write offset for this response. Use with onWritable. */
     getWriteOffset() : number;
 
-    /** Returns the max remaining body length of the currently read HTTP body. */
-    maxRemainingBodyLength() : bigint;
-
     /** Registers a handler for writable events. Continue failed write attempts in here.
      * You MUST return true for success, false for failure.
      * Writing nothing is always success, so by default you must return true.
@@ -189,21 +186,25 @@ export interface HttpResponse {
      * Must be attached before performing any asynchronous operation, otherwise data may be lost.
      * You MUST copy the data of chunk if isLast is not true. We Neuter ArrayBuffers on return, making them zero length. */
     onData(handler: (chunk: ArrayBuffer, isLast: boolean) => void) : HttpResponse;
+    
     /** Pause HTTP request body streaming (throttle).
      * Some buffered data may still be sent to onData. */
     pause() : void;
+    
     /** Resume HTTP request body streaming (unthrottle). */
     resume() : void;
 
     /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
-    onFullData(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
+    collectBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
-    /** Combined handler for HTTP request body streaming and connection abort events.
-     * If chunk is null, the connection was aborted. If maxRemainingBodyLength is 0n, the last chunk has arrived.
-     * You can safely preallocate using maxRemainingBodyLength (it is very large for chunked transfer encoding).
-     * You MUST copy the data of chunk if maxRemainingBodyLength is not 0n. We Neuter ArrayBuffers on return, making them zero length. */
-    onStream(handler: (chunk: ArrayBuffer | null, maxRemainingBodyLength: bigint) => void) : HttpResponse;
+    /** Handler for reading HTTP request body data. V2.
+     * Must be attached before performing any asynchronous operation, otherwise data may be lost.
+     * You MUST copy the data of chunk if maxRemainingBodyLength is not 0. We Neuter ArrayBuffers on return, making them zero length.
+     *
+     * maxRemainingBodyLength is the known maximum of the remaining body length. Can be used to preallocate a receive buffer.
+     */
+    onDataV2(handler: (chunk: ArrayBuffer | null, maxRemainingBodyLength: bigint) => void) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;

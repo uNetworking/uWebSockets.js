@@ -459,7 +459,7 @@ export var DEDICATED_DECOMPRESSOR: CompressOptions;
  */
 export namespace EnvironmentVariables {
     /** Maximum total byte size of HTTP request headers. This is a runtime env variable. Default: 4096. */
-    declare const UWS_HTTP_MAX_HEADERS_SIZE: string | undefined;
+    const UWS_HTTP_MAX_HEADERS_SIZE: string | undefined;
     /** Maximum number of HTTP request headers. This is a compile-time define, not a runtime env variable. Default: 100. */
-    declare const UWS_HTTP_MAX_HEADERS_COUNT: string | undefined;
+    const UWS_HTTP_MAX_HEADERS_COUNT: string | undefined;
 }

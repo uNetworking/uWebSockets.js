@@ -1,0 +1,8 @@
+dist/
+targets/
+node_modules/
+package.json
+package-lock.json
+*.o
+a.out
+*.tar.gz

@@ -118,7 +118,7 @@ struct HttpResponseWrapper {
      * accumulated into a std::vector whose memory is transferred zero-copy into the ArrayBuffer backing store.
      * Returns this */
     template <int SSL>
-    static void res_onFullData(const FunctionCallbackInfo<Value> &args) {
+    static void res_collectBody(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -142,13 +142,13 @@ struct HttpResponseWrapper {
             std::unique_ptr<std::vector<char>> buffer;
             bool overflow = false;
 
-            res->onData([res, p = std::move(p), buffer = std::move(buffer), overflow, maxSize, isolate](std::string_view data, bool last) mutable {
+            res->onDataV2([res, p = std::move(p), buffer = std::move(buffer), overflow, maxSize, isolate](std::string_view data, uint64_t maxRemainingBodyLength) mutable {
                 HandleScope hs(isolate);
 
                 if (!overflow) {
                     if (!buffer) {
                         /* Fast path: this is the very first (and possibly only) chunk */
-                        if (last) {
+                        if (maxRemainingBodyLength == 0) {
                             if (data.size() <= maxSize) {
                                 /* Single-chunk zero-copy: wrap data directly, detach after call like onData */
                                 Local<ArrayBuffer> ab = ArrayBuffer_New(isolate, (void *) data.data(), data.size());
@@ -165,8 +165,8 @@ struct HttpResponseWrapper {
                         if (data.size() <= maxSize) {
                             buffer = std::make_unique<std::vector<char>>();
                             /* Preallocate with hint */
-                            if (res->maxRemainingBodyLength() <= maxSize) {
-                                buffer->reserve(res->maxRemainingBodyLength()); // this includes the total size on first call (look over this)
+                            if (maxRemainingBodyLength <= maxSize) {
+                                buffer->reserve(maxRemainingBodyLength); // this includes the total size on first call (look over this)
                             }
                             buffer->assign(data.begin(), data.end());
                         } else {
@@ -183,7 +183,7 @@ struct HttpResponseWrapper {
                     }
                 }
 
-                if (last) {
+                if (maxRemainingBodyLength == 0) {
                     if (!overflow) {
                         /* Zero-copy: hand V8 the vector's own memory via a custom deleter */
                         auto *rawBuffer = buffer.release();
@@ -212,7 +212,7 @@ struct HttpResponseWrapper {
      * If chunk is null, the connection was aborted. If maxRemainingBodyLength is 0, the last chunk has arrived.
      * The JS object is invalidated before the abort callback is called. Returns this. */
     template <int SSL>
-    static void res_onStream(const FunctionCallbackInfo<Value> &args) {
+    static void res_onDataV2(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -222,24 +222,13 @@ struct HttpResponseWrapper {
             /* This is how we capture res (C++ this in invocation of this function) */
             UniquePersistent<Object> resObject(isolate, args.This());
 
-            res->onAborted([resObject = std::move(resObject), sharedP, isolate]() {
-                HandleScope hs(isolate);
-
-                /* Mark this resObject invalid */
-                Local<Object>::New(isolate, resObject)->SetAlignedPointerInInternalField(0, nullptr);
-
-                /* Call handler with (null, 0n) to signal abort */
-                Local<Value> argv[] = {Null(isolate), BigInt::NewFromUnsigned(isolate, 0)};
-                CallJS(isolate, Local<Function>::New(isolate, *sharedP), 2, argv);
-            });
-
-            res->onData([res, sharedP, isolate](std::string_view data, bool last) {
+            res->onDataV2([res, sharedP, isolate](std::string_view data, uint64_t maxRemainingBodyLength) {
                 HandleScope hs(isolate);
 
                 Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer_New(isolate, (void *) data.data(), data.length());
 
                 /* Pass maxRemainingBodyLength so user can preallocate; 0 signals the last chunk */
-                Local<Value> argv[] = {dataArrayBuffer, BigInt::NewFromUnsigned(isolate, res->maxRemainingBodyLength())};
+                Local<Value> argv[] = {dataArrayBuffer, BigInt::NewFromUnsigned(isolate, maxRemainingBodyLength)};
                 CallJS(isolate, Local<Function>::New(isolate, *sharedP), 2, argv);
 
                 dataArrayBuffer->Detach();
@@ -365,16 +354,6 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             args.GetReturnValue().Set(Number::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
-        }
-    }
-
-    /* Returns the max remaining body length */
-    template <int SSL>
-    static void res_maxRemainingBodyLength(const FunctionCallbackInfo<Value> &args) {
-        Isolate *isolate = args.GetIsolate();
-        auto *res = getHttpResponse<SSL>(args);
-        if (res) {
-            args.GetReturnValue().Set(BigInt::NewFromUnsigned(isolate, res->maxRemainingBodyLength()));
         }
     }
 
@@ -638,10 +617,9 @@ struct HttpResponseWrapper {
             
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onStream", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onStream<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onFullData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onFullData<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataV2", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataV2<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectBody<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "maxRemainingBodyLength", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_maxRemainingBodyLength<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));

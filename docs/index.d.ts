@@ -196,8 +196,9 @@ export interface HttpResponse {
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
     collectBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
-    /** Combined handler for HTTP request body streaming and connection abort events.
-     * If chunk is null, the connection was aborted. If maxRemainingBodyLength is 0n, the last chunk has arrived.
+    /** Combines onAborted and onData into a single callback.
+     * If chunk is null, the connection was aborted. The HttpResponse object is invalidated before the abort callback fires.
+     * If maxRemainingBodyLength is 0n, the last chunk has arrived.
      * You can safely preallocate using maxRemainingBodyLength (it is very large for chunked transfer encoding).
      * You MUST copy the data of chunk if maxRemainingBodyLength is not 0n. We Neuter ArrayBuffers on return, making them zero length. */
     onDataV2(handler: (chunk: ArrayBuffer | null, maxRemainingBodyLength: bigint) => void) : HttpResponse;

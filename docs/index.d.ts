@@ -194,17 +194,18 @@ export interface HttpResponse {
     /** Resume HTTP request body streaming (unthrottle). */
     resume() : void;
 
-    /** Accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
+    /** collectBody is a helper function making optimal use of the new onDataV2.
+     * It allows efficient and easy collection of smallish HTTP request body data into RAM.
+     * It accumulates all data chunks and calls handler with the complete body as an ArrayBuffer once all data has arrived.
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
     collectBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
     /** Handler for reading HTTP request body data. V2.
      * Must be attached before performing any asynchronous operation, otherwise data may be lost.
-     * You MUST copy the data of chunk if maxRemainingBodyLength is not 0. We Neuter ArrayBuffers on return, making them zero length.
-     *
+     * You MUST copy the data of chunk if maxRemainingBodyLength is not 0n. We Neuter ArrayBuffers on return, making them zero length.
      * maxRemainingBodyLength is the known maximum of the remaining body length. Can be used to preallocate a receive buffer.
      */
-    onDataV2(handler: (chunk: ArrayBuffer | null, maxRemainingBodyLength: bigint) => void) : HttpResponse;
+    onDataV2(handler: (chunk: ArrayBuffer, maxRemainingBodyLength: bigint) => void) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;

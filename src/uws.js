@@ -35,6 +35,7 @@ const toUint8Array = (value) => {
   if (value === undefined) return new Uint8Array(0);
   else if (typeof value === 'string') return textEncoder.encode(value);
   else if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  else if (value instanceof SharedArrayBuffer) return new Uint8Array(value);
   else return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
 };
 

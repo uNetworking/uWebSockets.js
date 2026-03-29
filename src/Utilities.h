@@ -121,8 +121,7 @@ struct Callback {
 class NativeString {
     char *data;
     size_t length;
-    char utf8ValueMemory[sizeof(String::Utf8Value)];
-    String::Utf8Value *utf8Value = nullptr;
+    bool strAllocated = false;
     bool invalid = false;
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
@@ -130,9 +129,26 @@ public:
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
-            utf8Value = new (utf8ValueMemory) String::Utf8Value(isolate, value);
-            data = (**utf8Value);
-            length = utf8Value->length();
+            Local<String> string = Local<String>::Cast(value);
+            #if NODE_MODULE_VERSION >= 137 // Node.js >= 24
+                if (string->IsOneByte()) {
+                    // utf8: direct access using ValueView
+                    String::ValueView strView(isolate, string);
+                    length = strView.length();
+                    data = (char *) strView.data8();
+                } else {
+                    // utf16: copy and convert to utf8
+                    strAllocated = true;
+                    length = string->Utf8LengthV2(isolate);
+                    data = new char[length];
+                    string->WriteUtf8V2(isolate, data, length);
+                }
+            #else // Fallback Node.js < 24
+                strAllocated = true;
+                length = string->Utf8Length(isolate);
+                data = new char[length];
+                string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
+            #endif
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();
@@ -165,8 +181,8 @@ public:
     }
 
     ~NativeString() {
-        if (utf8Value) {
-            utf8Value->~Utf8Value();
+        if (strAllocated) {
+            delete[] data;
         }
     }
 };

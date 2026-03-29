@@ -21,6 +21,7 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <v8.h>
+#include <vector>
 using namespace v8;
 
 /* Unfortunately we _have_ to depend on Node.js crap */
@@ -118,13 +119,26 @@ struct Callback {
     }
 };
 
+class NativeStringContext {
+    inline static thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
+    size_t pool_offset = 0;
+public:
+    char *alloc(size_t size) {
+        if (pool_offset + size > pool.size()) {
+            pool.resize(pool_offset + size);
+        }
+        char *ptr = pool.data() + pool_offset;
+        pool_offset += size;
+        return ptr;
+    }
+};
+
 class NativeString {
     char *data;
     size_t length;
-    bool strAllocated = false;
     bool invalid = false;
 public:
-    NativeString(Isolate *isolate, const Local<Value> &value) {
+    NativeString(NativeStringContext &ctx, Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
@@ -138,15 +152,13 @@ public:
                     data = (char *) strView.data8();
                 } else {
                     // utf16: copy and convert to utf8
-                    strAllocated = true;
                     length = string->Utf8LengthV2(isolate);
-                    data = new char[length];
+                    data = ctx.alloc(length);
                     string->WriteUtf8V2(isolate, data, length);
                 }
             #else // Fallback Node.js < 24
-                strAllocated = true;
                 length = string->Utf8Length(isolate);
-                data = new char[length];
+                data = ctx.alloc(length);
                 string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
             #endif
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
@@ -178,12 +190,6 @@ public:
 
     std::string_view getString() {
         return {data, length};
-    }
-
-    ~NativeString() {
-        if (strAllocated) {
-            delete[] data;
-        }
     }
 };
 

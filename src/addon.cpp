@@ -46,14 +46,15 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
     /* Because we mutate the strings, it is important that we get mutable input like
      * ArrayBuffer or Buffer, not String! */
+    NativeStringContext nativeStringContext;
     Isolate *isolate = args.GetIsolate();
 
-    NativeString body(args.GetIsolate(), args[0]);
+    NativeString body(nativeStringContext, args.GetIsolate(), args[0]);
     if (body.isInvalid(args)) {
         return;
     }
 
-    NativeString contentType(args.GetIsolate(), args[1]);
+    NativeString contentType(nativeStringContext, args.GetIsolate(), args[1]);
     if (contentType.isInvalid(args)) {
         return;
     }
@@ -149,7 +150,8 @@ void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
 
 /* Pass various undocumented configs */
 void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
@@ -183,12 +185,13 @@ std::mutex kvMutex;
 
 // getString(key, collection)
 void uWS_getString(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[1]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[1]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -199,16 +202,17 @@ void uWS_getString(const FunctionCallbackInfo<Value> &args) {
 }
 
 void uWS_setString(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
-    NativeString value(args.GetIsolate(), args[1]);
+    NativeString value(nativeStringContext, args.GetIsolate(), args[1]);
     if (value.isInvalid(args)) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[2]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[2]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -217,12 +221,13 @@ void uWS_setString(const FunctionCallbackInfo<Value> &args) {
 }
 
 void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[1]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[1]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -233,14 +238,15 @@ void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
 }
 
 void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
     uint32_t value = Local<Integer>::Cast(args[1])->Value();
 
-    NativeString collection(args.GetIsolate(), args[2]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[2]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -249,14 +255,15 @@ void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
 }
 
 void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
     uint32_t change = Local<Integer>::Cast(args[1])->Value();
 
-    NativeString collection(args.GetIsolate(), args[2]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[2]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -269,7 +276,8 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 /* This one will spike memory usage for large stores */
 void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString collection(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[0]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -287,7 +295,8 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString collection(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[0]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -305,12 +314,13 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[1]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[1]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -322,12 +332,13 @@ void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString key(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString key(nativeStringContext, args.GetIsolate(), args[0]);
     if (key.isInvalid(args)) {
         return;
     }
 
-    NativeString collection(args.GetIsolate(), args[1]);
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[1]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -339,7 +350,8 @@ void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString collection(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[0]);
     if (collection.isInvalid(args)) {
         return;
     }
@@ -351,7 +363,8 @@ void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_deleteIntegerCollection(const FunctionCallbackInfo<Value> &args) {
 
-    NativeString collection(args.GetIsolate(), args[0]);
+    NativeStringContext nativeStringContext;
+    NativeString collection(nativeStringContext, args.GetIsolate(), args[0]);
     if (collection.isInvalid(args)) {
         return;
     }

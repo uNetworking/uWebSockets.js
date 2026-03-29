@@ -369,7 +369,8 @@ struct HttpResponseWrapper {
     static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
         auto *res = getHttpResponse<SSL>(args);
             if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeStringContext nativeStringContext;
+            NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -409,7 +410,8 @@ struct HttpResponseWrapper {
     static void res_end(const FunctionCallbackInfo<Value> &args) {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeStringContext nativeStringContext;
+            NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -432,9 +434,10 @@ struct HttpResponseWrapper {
     template <int PROTOCOL>
     static void res_tryEnd(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
+        NativeStringContext nativeStringContext;
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -465,9 +468,10 @@ struct HttpResponseWrapper {
     template <int PROTOCOL>
     static void res_write(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
+        NativeStringContext nativeStringContext;
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -482,13 +486,14 @@ struct HttpResponseWrapper {
     template <int PROTOCOL>
     static void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
+        NativeStringContext nativeStringContext;
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString header(args.GetIsolate(), args[0]);
+            NativeString header(nativeStringContext, args.GetIsolate(), args[0]);
             if (header.isInvalid(args)) {
                 return;
             }
-            NativeString value(args.GetIsolate(), args[1]);
+            NativeString value(nativeStringContext, args.GetIsolate(), args[1]);
             if (value.isInvalid(args)) {
                 return;
             }
@@ -521,6 +526,7 @@ struct HttpResponseWrapper {
     template <int SSL>
     static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
+        NativeStringContext nativeStringContext;
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             /* We require exactly 5 arguments */
@@ -528,17 +534,17 @@ struct HttpResponseWrapper {
                 return;
             }
 
-            NativeString secWebSocketKey(args.GetIsolate(), args[1]);
+            NativeString secWebSocketKey(nativeStringContext, args.GetIsolate(), args[1]);
             if (secWebSocketKey.isInvalid(args)) {
                 return;
             }
 
-            NativeString secWebSocketProtocol(args.GetIsolate(), args[2]);
+            NativeString secWebSocketProtocol(nativeStringContext, args.GetIsolate(), args[2]);
             if (secWebSocketProtocol.isInvalid(args)) {
                 return;
             }
 
-            NativeString secWebSocketExtensions(args.GetIsolate(), args[3]);
+            NativeString secWebSocketExtensions(nativeStringContext, args.GetIsolate(), args[3]);
             if (secWebSocketExtensions.isInvalid(args)) {
                 return;
             }

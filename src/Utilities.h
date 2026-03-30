@@ -141,6 +141,46 @@ public:
     }
 };
 
+/**
+ * Converts a UTF-16 string to UTF-8.
+ * @param out Pointer to the destination buffer.
+ * @param in  Pointer to the source UTF-16 buffer.
+ * @param len Number of UTF-16 elements to process.
+ */
+static inline void utf16_to_utf8(char *out, const uint16_t *in, uint32_t len) {
+    unsigned char *out_ptr = (unsigned char *) out;
+    const uint16_t *in_end = in + len;
+    while (in < in_end) {
+        uint32_t cp = *in++;
+
+        // Handle Surrogate Pairs
+        if (cp >= 0xD800 && cp <= 0xDBFF) {
+            if (in < in_end && *in >= 0xDC00 && *in <= 0xDFFF) {
+                cp = 0x10000 + ((cp & 0x3FF) << 10) + ((*in++) & 0x3FF);
+            } else cp = 0xFFFD; // Unpaired high surrogate
+        } else if (cp >= 0xDC00 && cp <= 0xDFFF) {
+            cp = 0xFFFD; // Unpaired low surrogate
+        }
+
+        // Encode Code Point into UTF-8 bytes
+        if (cp <= 0x7F) {
+            *out_ptr++ = (unsigned char) cp;
+        } else if (cp <= 0x7FF) {
+            *out_ptr++ = (unsigned char) ((cp >> 6) | 0xC0);
+            *out_ptr++ = (unsigned char) ((cp & 0x3F) | 0x80);
+        } else if (cp <= 0xFFFF) {
+            *out_ptr++ = (unsigned char) ((cp >> 12) | 0xE0);
+            *out_ptr++ = (unsigned char) (((cp >> 6) & 0x3F) | 0x80);
+            *out_ptr++ = (unsigned char) ((cp & 0x3F) | 0x80);
+        } else { // cp <= 0x10FFFF
+            *out_ptr++ = (unsigned char) ((cp >> 18) | 0xF0);
+            *out_ptr++ = (unsigned char) (((cp >> 12) & 0x3F) | 0x80);
+            *out_ptr++ = (unsigned char) (((cp >> 6) & 0x3F) | 0x80);
+            *out_ptr++ = (unsigned char) ((cp & 0x3F) | 0x80);
+        }
+    }
+}
+
 class NativeString {
     char *data;
     size_t length;
@@ -155,17 +195,17 @@ public:
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
             #if NODE_MODULE_VERSION >= 137 // Node.js >= 24
-                if (string->IsOneByte()) {
+                String::ValueView strView(isolate, string);
+                if (strView.is_one_byte()) {
                     // utf8: direct access using ValueView
-                    String::ValueView strView(isolate, string);
                     length = strView.length();
                     data = (char *) strView.data8();
                 } else {
-                    // utf16: copy and convert to utf8
+                    // utf16: convert and write to utf8
                     length = string->Utf8LengthV2(isolate);
                     data = ctx.alloc(length);
                     allocated = true;
-                    string->WriteUtf8V2(isolate, data, length);
+                    utf16_to_utf8(data, strView.data16(), strView.length());
                 }
             #else // Fallback Node.js < 24
                 length = string->Utf8Length(isolate);

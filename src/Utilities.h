@@ -21,8 +21,6 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <v8.h>
-#include <vector>
-#include <cstdlib>
 using namespace v8;
 
 /* Unfortunately we _have_ to depend on Node.js crap */
@@ -120,60 +118,22 @@ struct Callback {
     }
 };
 
-class NativeStringContext {
-    inline static thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
-    size_t pool_offset = 0;
-public:
-    char *alloc(size_t size) {
-        if (pool_offset + size > pool.size()) {
-            return (char *) malloc(size);
-        }
-        char *ptr = pool.data() + pool_offset;
-        pool_offset += size;
-        return ptr;
-    }
-
-    void free(char *ptr) {
-        if (ptr >= pool.data() && ptr < pool.data() + pool.size()) {
-            return;
-        }
-        ::free(ptr);
-    }
-};
-
 class NativeString {
     char *data;
     size_t length;
+    char utf8ValueMemory[sizeof(String::Utf8Value)];
+    String::Utf8Value *utf8Value = nullptr;
     bool invalid = false;
-    bool allocated = false;
-    NativeStringContext *ctx = nullptr;
 public:
-    NativeString(NativeStringContext &ctx, Isolate *isolate, const Local<Value> &value) : ctx(&ctx) {
+    NativeString(Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
-            Local<String> string = Local<String>::Cast(value);
-            #if NODE_MODULE_VERSION >= 137 // Node.js >= 24
-                if (string->IsOneByte()) {
-                    // utf8: direct access using ValueView
-                    String::ValueView strView(isolate, string);
-                    length = strView.length();
-                    data = (char *) strView.data8();
-                } else {
-                    // utf16: copy and convert to utf8
-                    length = string->Utf8LengthV2(isolate);
-                    data = ctx.alloc(length);
-                    allocated = true;
-                    string->WriteUtf8V2(isolate, data, length);
-                }
-            #else // Fallback Node.js < 24
-                length = string->Utf8Length(isolate);
-                data = ctx.alloc(length);
-                allocated = true;
-                string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
-            #endif
-        } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
+            utf8Value = new (utf8ValueMemory) String::Utf8Value(isolate, value);
+            data = (**utf8Value);
+            length = utf8Value->length();
+        } else if (value->IsTypedArray()) {
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();
             length = arrayBufferView->ByteLength();
@@ -193,24 +153,21 @@ public:
         }
     }
 
-    ~NativeString() noexcept {
-        if (allocated) {
-            ctx->free(data);
-        }
-    }
-
-    NativeString(const NativeString &) = delete;
-    NativeString &operator=(const NativeString &) = delete;
-
     bool isInvalid(const FunctionCallbackInfo<Value> &args) {
         if (invalid) {
-            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Text and data can only be passed by String, ArrayBuffer, SharedArrayBuffer or ArrayBufferView.", NewStringType::kNormal).ToLocalChecked())));
+            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Text and data can only be passed by String, ArrayBuffer or TypedArray.", NewStringType::kNormal).ToLocalChecked())));
         }
         return invalid;
     }
 
     std::string_view getString() {
         return {data, length};
+    }
+
+    ~NativeString() {
+        if (utf8Value) {
+            utf8Value->~Utf8Value();
+        }
     }
 };
 

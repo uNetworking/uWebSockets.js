@@ -62,7 +62,6 @@ struct HttpRequestWrapper {
     template <int QUIC>
     static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
 
@@ -72,7 +71,7 @@ struct HttpRequestWrapper {
                 int index = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 parameter = req->getParameter(index);
             } else {
-                NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
+                NativeString data(args.GetIsolate(), args[0]);
                 if (data.isInvalid(args)) {
                     return;
                 }
@@ -99,10 +98,9 @@ struct HttpRequestWrapper {
     template <int QUIC>
     static void req_getHeader(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
-            NativeString data(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -154,14 +152,13 @@ struct HttpRequestWrapper {
     template <int QUIC>
     static void req_getQuery(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
             std::string_view query;
 
             /* Do we have a key argument? */
             if (args.Length() == 1) {
-                NativeString keyString(nativeStringContext, isolate, args[0]);
+                NativeString keyString(isolate, args[0]);
                 if (keyString.isInvalid(args)) {
                     return;
                 }

@@ -50,10 +50,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_subscribe(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(nativeStringContext, isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -67,10 +66,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_unsubscribe(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(nativeStringContext, isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -84,18 +82,17 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_publish(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             if (missingArguments(2, args)) {
                 return;
             }
 
-            NativeString topic(nativeStringContext, isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
-            NativeString message(nativeStringContext, isolate, args[1]);
+            NativeString message(isolate, args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -122,7 +119,6 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_end(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             int code = 0;
@@ -130,7 +126,7 @@ struct WebSocketWrapper {
                 code = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
 
-            NativeString message(nativeStringContext, args.GetIsolate(), args[1]);
+            NativeString message(args.GetIsolate(), args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -190,10 +186,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_sendFirstFragment(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -208,10 +203,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_sendFragment(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -226,10 +220,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_sendLastFragment(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -244,10 +237,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -262,10 +254,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_isSubscribed(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString topic(args.GetIsolate(), args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -280,10 +271,9 @@ struct WebSocketWrapper {
     template <bool SSL>
     static void uWS_WebSocket_ping(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
-        NativeStringContext nativeStringContext;
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(nativeStringContext, args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }

@@ -37,8 +37,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     /* This one is default constructed with defaults */
     typename APP::template WebSocketBehavior<PerSocketData> behavior = {};
 
-    NativeStringContext nativeStringContext;
-    NativeString pattern(nativeStringContext, args.GetIsolate(), args[0]);
+    NativeString pattern(args.GetIsolate(), args[0]);
     if (pattern.isInvalid(args)) {
         return;
     }
@@ -314,9 +313,8 @@ template <typename APP, typename F>
 void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
-    NativeStringContext nativeStringContext;
     /* Pattern */
-    NativeString pattern(nativeStringContext, args.GetIsolate(), args[0]);
+    NativeString pattern(args.GetIsolate(), args[0]);
     if (pattern.isInvalid(args)) {
         return;
     }
@@ -330,7 +328,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
     /* If the handler is String */
     if (args[1]->IsArrayBuffer()) {
-        NativeString constantString(nativeStringContext, args.GetIsolate(), args[1]);
+        NativeString constantString(args.GetIsolate(), args[1]);
         if (constantString.isInvalid(args)) {
             return;
         }
@@ -515,8 +513,7 @@ void uWS_App_listen_unix(const FunctionCallbackInfo<Value> &args) {
 
     /* Path is last */
     std::string path;
-    NativeStringContext nativeStringContext;
-    NativeString h(nativeStringContext, isolate, args[args.Length() - 1]);
+    NativeString h(isolate, args[args.Length() - 1]);
     if (h.isInvalid(args)) {
         return;
     }
@@ -548,9 +545,8 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
 
     /* Host is first, if present */
     std::string host;
-    NativeStringContext nativeStringContext;
     if (!args[0]->IsNumber()) {
-        NativeString h(nativeStringContext, isolate, args[0]);
+        NativeString h(isolate, args[0]);
         if (h.isInvalid(args)) {
             return;
         }
@@ -609,8 +605,7 @@ void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    NativeStringContext nativeStringContext;
-    NativeString serverName(nativeStringContext, isolate, args[0]);
+    NativeString serverName(isolate, args[0]);
     if (serverName.isInvalid(args)) {
         return;
     }
@@ -631,13 +626,12 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    NativeStringContext nativeStringContext;
-    NativeString topic(nativeStringContext, isolate, args[0]);
+    NativeString topic(isolate, args[0]);
     if (topic.isInvalid(args)) {
         return;
     }
 
-    NativeString message(nativeStringContext, isolate, args[1]);
+    NativeString message(isolate, args[1]);
     if (message.isInvalid(args)) {
         return;
     }
@@ -658,8 +652,7 @@ void uWS_App_numSubscribers(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    NativeStringContext nativeStringContext;
-    NativeString topic(nativeStringContext, isolate, args[0]);
+    NativeString topic(isolate, args[0]);
     if (topic.isInvalid(args)) {
         return;
     }
@@ -682,9 +675,8 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         Local<Object> optionsObject = Local<Object>::Cast(args[index]);
 
-        NativeStringContext nativeStringContext;
         /* Key file name */
-        NativeString keyFileNameValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (keyFileNameValue.isInvalid(args)) {
             return {};
         }
@@ -694,7 +686,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         }
 
         /* Cert file name */
-        NativeString certFileNameValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (certFileNameValue.isInvalid(args)) {
             return {};
         }
@@ -704,7 +696,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         }
 
         /* Passphrase */
-        NativeString passphraseValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (passphraseValue.isInvalid(args)) {
             return {};
         }
@@ -714,7 +706,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         }
 
         /* DH params file name */
-        NativeString dhParamsFileNameValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (dhParamsFileNameValue.isInvalid(args)) {
             return {};
         }
@@ -724,7 +716,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         }
 
         /* CA file name */
-        NativeString caFileNameValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ca_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString caFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ca_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (caFileNameValue.isInvalid(args)) {
             return {};
         }
@@ -737,7 +729,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
         options.ssl_prefer_low_memory_usage = optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_prefer_low_memory_usage", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked()->BooleanValue(isolate);
 
         /* ssl_ciphers */
-        NativeString sslCiphersValue(nativeStringContext, isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_ciphers", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
+        NativeString sslCiphersValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_ciphers", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
         if (sslCiphersValue.isInvalid(args)) {
             return {};
         }
@@ -832,8 +824,7 @@ void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
-    NativeStringContext nativeStringContext;
-    NativeString hostnamePatternValue(nativeStringContext, isolate, args[0]);
+    NativeString hostnamePatternValue(isolate, args[0]);
     if (hostnamePatternValue.isInvalid(args)) {
         return;
     }
@@ -857,8 +848,7 @@ void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
     Isolate *isolate = args.GetIsolate();
-    NativeStringContext nativeStringContext;
-    NativeString hostnamePatternValue(nativeStringContext, isolate, args[0]);
+    NativeString hostnamePatternValue(isolate, args[0]);
     if (hostnamePatternValue.isInvalid(args)) {
         return;
     }
@@ -940,9 +930,8 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                 APP *app = (APP *) args.This()->GetAlignedPointerFromInternalField(0);
 
-                NativeStringContext nativeStringContext;
                 /* Pattern */
-                NativeString pattern(nativeStringContext, args.GetIsolate(), args[0]);
+                NativeString pattern(args.GetIsolate(), args[0]);
                 if (pattern.isInvalid(args)) {
                     return;
                 }

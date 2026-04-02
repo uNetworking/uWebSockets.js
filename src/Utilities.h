@@ -22,7 +22,6 @@
 #include <openssl/x509.h>
 #include <v8.h>
 #include <vector>
-#include <cstdlib>
 using namespace v8;
 
 /* Unfortunately we _have_ to depend on Node.js crap */
@@ -126,18 +125,11 @@ class NativeStringContext {
 public:
     char *alloc(size_t size) {
         if (pool_offset + size > pool.size()) {
-            return (char *) malloc(size);
+            pool.resize(pool_offset + size);
         }
         char *ptr = pool.data() + pool_offset;
         pool_offset += size;
         return ptr;
-    }
-
-    void free(char *ptr) {
-        if (ptr >= pool.data() && ptr < pool.data() + pool.size()) {
-            return;
-        }
-        ::free(ptr);
     }
 };
 
@@ -145,10 +137,8 @@ class NativeString {
     char *data;
     size_t length;
     bool invalid = false;
-    bool allocated = false;
-    NativeStringContext *ctx = nullptr;
 public:
-    NativeString(NativeStringContext &ctx, Isolate *isolate, const Local<Value> &value) : ctx(&ctx) {
+    NativeString(NativeStringContext &ctx, Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
@@ -164,13 +154,11 @@ public:
                     // utf16: copy and convert to utf8
                     length = string->Utf8LengthV2(isolate);
                     data = ctx.alloc(length);
-                    allocated = true;
                     string->WriteUtf8V2(isolate, data, length);
                 }
             #else // Fallback Node.js < 24
                 length = string->Utf8Length(isolate);
                 data = ctx.alloc(length);
-                allocated = true;
                 string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
             #endif
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
@@ -192,15 +180,6 @@ public:
             invalid = true;
         }
     }
-
-    ~NativeString() noexcept {
-        if (allocated) {
-            ctx->free(data);
-        }
-    }
-
-    NativeString(const NativeString &) = delete;
-    NativeString &operator=(const NativeString &) = delete;
 
     bool isInvalid(const FunctionCallbackInfo<Value> &args) {
         if (invalid) {

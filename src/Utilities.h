@@ -120,35 +120,31 @@ struct Callback {
     }
 };
 
-class NativeStringContext {
-    inline static thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
-    size_t pool_offset = 0;
-public:
-    char *alloc(size_t size) {
-        if (pool_offset + size > pool.size()) {
-            return (char *) malloc(size);
-        }
-        char *ptr = pool.data() + pool_offset;
-        pool_offset += size;
-        return ptr;
-    }
-
-    void free(char *ptr) {
-        if (ptr >= pool.data() && ptr < pool.data() + pool.size()) {
-            return;
-        }
-        ::free(ptr);
-    }
-};
-
 class NativeString {
     char *data;
     size_t length;
     bool invalid = false;
-    bool allocated = false;
-    NativeStringContext *ctx = nullptr;
+
+    static inline thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
+    static inline thread_local size_t pool_offset = 0;
+    static inline thread_local size_t pool_freed = 0;
+    bool poolAllocated = false;
+    bool selfAllocated = false;
+    void allocData(size_t size) {
+        length = size;
+        if (!size) {
+            data = nullptr;
+        } else if (size <= pool.size() - pool_offset) {
+            data = pool.data() + pool_offset;
+            pool_offset += size;
+            poolAllocated = true;
+        } else {
+            data = (char *) malloc(size);
+            selfAllocated = true;
+        }
+    }
 public:
-    NativeString(NativeStringContext &ctx, Isolate *isolate, const Local<Value> &value) : ctx(&ctx) {
+    NativeString(Isolate *isolate, const Local<Value> &value) {
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
@@ -162,15 +158,11 @@ public:
                     data = (char *) strView.data8();
                 } else {
                     // utf16: copy and convert to utf8
-                    length = string->Utf8LengthV2(isolate);
-                    data = ctx.alloc(length);
-                    allocated = true;
+                    allocData(string->Utf8LengthV2(isolate));
                     string->WriteUtf8V2(isolate, data, length);
                 }
             #else // Fallback Node.js < 24
-                length = string->Utf8Length(isolate);
-                data = ctx.alloc(length);
-                allocated = true;
+                allocData(string->Utf8Length(isolate));
                 string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
             #endif
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
@@ -194,8 +186,13 @@ public:
     }
 
     ~NativeString() noexcept {
-        if (allocated) {
-            ctx->free(data);
+        if (poolAllocated) {
+            pool_freed += length;
+            if (pool_freed == pool_offset) {
+                pool_offset = pool_freed = 0;
+            }
+        } else if (selfAllocated) {
+            ::free(data);
         }
     }
 

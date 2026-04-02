@@ -1,8 +1,5 @@
 {
 	"files": [ "index.d.ts" ],
-	"compilerOptions": {
-		"lib": [ "es2017" ]
-	},
 	"typedocOptions": {
 		"name":"uWebSockets.js v20.61.0 documentation",
 		"entryPoints": [ "index.d.ts" ],

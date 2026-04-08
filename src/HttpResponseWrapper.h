@@ -369,7 +369,7 @@ struct HttpResponseWrapper {
     static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
         auto *res = getHttpResponse<SSL>(args);
             if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString<true> data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -409,7 +409,7 @@ struct HttpResponseWrapper {
     static void res_end(const FunctionCallbackInfo<Value> &args) {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString<true> data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -434,7 +434,7 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString<true> data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }
@@ -467,7 +467,7 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString data(args.GetIsolate(), args[0]);
+            NativeString<true> data(args.GetIsolate(), args[0]);
             if (data.isInvalid(args)) {
                 return;
             }

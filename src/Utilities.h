@@ -121,18 +121,53 @@ struct Callback {
 class NativeString {
     char *data;
     size_t length;
-    char utf8ValueMemory[sizeof(String::Utf8Value)];
-    String::Utf8Value *utf8Value = nullptr;
+    bool allocated = false;
     bool invalid = false;
+
+    // Static thread-local state shared by all NativeString instances on this thread
+    inline static thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
+    inline static thread_local size_t pool_offset = 0;
+    inline static thread_local int ref_count = 0;
+
+    static char* alloc(size_t size) {
+        // Ensure size is a multiple of 8
+        size = (size + 7) & ~7;
+
+        // Fallback for allocations larger than the remaining pool space
+        if (pool_offset + size > pool.size()) {
+            // Mark for external cleanup if using instance-based logic
+            // (Note: In a pure static alloc, you'd need a way to track this)
+            return (char*)std::malloc(size);
+        }
+
+        char* ptr = pool.data() + pool_offset;
+        pool_offset += size;
+        return ptr;
+    }
+
+    // Provided for completeness, though the "pool" doesn't actually free individual slices
+    static void free(char* ptr) {
+        if (ptr < pool.data() || ptr >= pool.data() + pool.size()) {
+            ::free(ptr);
+        }
+    }
+
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
+        if (ref_count == 0) {
+            pool_offset = 0; // Reset the "stack" when entering the first scope
+        }
+        ref_count++;
+
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
-            utf8Value = new (utf8ValueMemory) String::Utf8Value(isolate, value);
-            data = (**utf8Value);
-            length = utf8Value->length();
+            Local<String> string = Local<String>::Cast(value);
+            length = string->Utf8Length(isolate);
+            data = alloc(length);
+            allocated = true;
+            string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
         } else if (value->IsTypedArray()) {
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();
@@ -165,8 +200,9 @@ public:
     }
 
     ~NativeString() {
-        if (utf8Value) {
-            utf8Value->~Utf8Value();
+        ref_count--;
+        if (allocated) {
+            free(data);
         }
     }
 };

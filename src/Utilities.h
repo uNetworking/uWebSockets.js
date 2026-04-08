@@ -118,6 +118,7 @@ struct Callback {
     }
 };
 
+template <bool AllowStringView = false>
 class NativeString {
     char *data;
     size_t length;
@@ -164,10 +165,26 @@ public:
             length = 0;
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
+
+            #if NODE_MODULE_VERSION >= 137
+            if constexpr (AllowStringView) {
+
+                String::ValueView strView(isolate, string);
+                if (strView.is_one_byte()) {
+                    length = strView.length();
+                    data = (char *) strView.data8();
+                    
+                    return;
+                }
+            }
+            #endif
+
+            // Fallback
             length = string->Utf8Length(isolate);
             data = alloc(length);
             allocated = true;
             string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
+
         } else if (value->IsTypedArray()) {
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();

@@ -484,11 +484,13 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
-            NativeString header(args.GetIsolate(), args[0]);
+            // Optimization: writeHeader never calls JS or allocated on the GC
+            // use zero copy string view in best case
+            NativeString<true> header(args.GetIsolate(), args[0]);
             if (header.isInvalid(args)) {
                 return;
             }
-            NativeString value(args.GetIsolate(), args[1]);
+            NativeString<true> value(args.GetIsolate(), args[1]);
             if (value.isInvalid(args)) {
                 return;
             }

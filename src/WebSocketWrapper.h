@@ -52,12 +52,11 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(isolate, args[0]);
+            NativeString<true> topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
-            bool nonStrict = args.Length() > 1 && args[1]->BooleanValue(isolate);
-            bool success = ws->subscribe(topic.getString(), nonStrict);
+            bool success = ws->subscribe(topic.getString());
             args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }
@@ -68,12 +67,11 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(isolate, args[0]);
+            NativeString<true> topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
-            bool nonStrict = args.Length() > 1 && args[1]->BooleanValue(isolate);
-            bool success = ws->unsubscribe(topic.getString(), nonStrict);
+            bool success = ws->unsubscribe(topic.getString());
             args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }
@@ -88,16 +86,19 @@ struct WebSocketWrapper {
                 return;
             }
 
-            NativeString topic(isolate, args[0]);
+            bool isBinary = args[2]->BooleanValue(isolate);
+            bool compress = args[3]->BooleanValue(isolate);
+
+            NativeString<true> topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
-            NativeString message(isolate, args[1]);
+            NativeString<true> message(isolate, args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
 
-            bool success = ws->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
+            bool success = ws->publish(topic.getString(), message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
             args.GetReturnValue().Set(Boolean::New(isolate, success));
         }
     }
@@ -126,7 +127,7 @@ struct WebSocketWrapper {
                 code = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
 
-            NativeString message(args.GetIsolate(), args[1]);
+            NativeString<true> message(args.GetIsolate(), args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -239,12 +240,16 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(args.GetIsolate(), args[0]);
+
+            bool isBinary = args[1]->BooleanValue(isolate);
+            bool compress = args[2]->BooleanValue(isolate)
+
+            NativeString<true> message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
 
-            unsigned int sendStatus = ws->send(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
+            unsigned int sendStatus = ws->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
 
             args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
         }
@@ -256,7 +261,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString topic(args.GetIsolate(), args[0]);
+            NativeString<true> topic(args.GetIsolate(), args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -273,7 +278,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString message(args.GetIsolate(), args[0]);
+            NativeString<true> message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }

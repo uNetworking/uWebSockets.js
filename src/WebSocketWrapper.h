@@ -242,7 +242,7 @@ struct WebSocketWrapper {
         if (ws) {
 
             bool isBinary = args[1]->BooleanValue(isolate);
-            bool compress = args[2]->BooleanValue(isolate)
+            bool compress = args[2]->BooleanValue(isolate);
 
             NativeString<true> message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {

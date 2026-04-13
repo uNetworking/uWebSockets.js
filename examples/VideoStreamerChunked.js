@@ -1,34 +1,32 @@
-/* This is an example of sync copying of large files.
- * NEVER DO THIS; ONLY FOR TESTING PURPOSES. WILL CAUSE
- * SEVERE BACKPRESSURE AND HORRIBLE PERFORMANCE.
- * Try navigating to the adderss with Chrome and see the video
- * in real time. */
-
 const uWS = require('uWebSockets.js');
 const fs = require('fs');
 
 const port = 9001;
-const fileName = 'spritefright.mp4';
-const videoFile = toArrayBuffer(fs.readFileSync(fileName));
-const totalSize = videoFile.byteLength;
+const fileName = 'Sintel.2010.1080p.mkv';
+
+/**
+ * Optimized to return a Uint8Array view of the Node.js Buffer 
+ * without creating a new ArrayBuffer copy.
+ */
+function getFileView(name) {
+    const buffer = fs.readFileSync(name);
+    // This creates a Uint8Array pointing to the EXACT same memory Node.js allocated
+    return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+}
+
+const videoView = getFileView(fileName);
+const totalSize = videoView.byteLength;
 
 console.log('WARNING: NEVER DO LIKE THIS; WILL CAUSE HORRIBLE BACKPRESSURE!');
 console.log('Video size is: ' + totalSize + ' bytes');
 
-const CHUNK_SIZE = 1024 * 64;
+const CHUNK_SIZE = 1024 * 256;
 
-/* Helper function converting Node.js buffer to ArrayBuffer */
-function toArrayBuffer(buffer) {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-}
-
-/* Yes, you can easily swap to SSL streaming by uncommenting here */
 const app = uWS.App({
-  key_file_name: 'misc/key.pem',
-  cert_file_name: 'misc/cert.pem',
-  passphrase: '1234'
-
-}).get('/spritefright.mp4', (res, req) => {
+    key_file_name: 'misc/key.pem',
+    cert_file_name: 'misc/cert.pem',
+    passphrase: '1234'
+}).get('/spritefright.mkv', (res, req) => {
     let aborted = false;
     let written = 0;
 
@@ -39,19 +37,24 @@ const app = uWS.App({
     const stream = () => {
         let ok = true;
 
-        // Use res.cork to pack multiple small writes into one syscall
         res.cork(() => {
-            while (ok && written < videoFile.byteLength) {
-                let chunk = videoFile.slice(written, Math.min(written + CHUNK_SIZE, videoFile.byteLength));
+            while (ok && written < totalSize) {
+                const end = Math.min(written + CHUNK_SIZE, totalSize);
                 
-                // If this is the last chunk, use end() instead of write()
-                if (written + chunk.byteLength === videoFile.byteLength) {
-                    res.end(chunk);
-                    written += chunk.byteLength;
-                    ok = false; // Stop the loop
+                /**
+                 * .subarray() is a PURE VIEW. 
+                 * No new memory is allocated for the file data here.
+                 */
+                const chunk = videoView.subarray(written, end);
+                
+                if (end === totalSize) {
+                    res.write(chunk);
+                    res.end();
+                    written = totalSize;
+                    ok = false;
                 } else {
                     ok = res.write(chunk);
-                    written += chunk.byteLength;
+                    written = end;
                 }
             }
         });
@@ -59,22 +62,19 @@ const app = uWS.App({
         return ok;
     };
 
-    // Initial attempt to stream
     let ok = stream();
 
-    // If we hit backpressure, set up the drain handler
-    if (!ok && !aborted && written < videoFile.byteLength) {
+    if (!ok && !aborted && written < totalSize) {
         res.onWritable((offset) => {
             return stream();
         });
     }
 }).get('/*', (res, req) => {
-  /* Make sure to always handle every route */
-  res.end('Nothing to see here!');
+    res.end('Nothing to see here!');
 }).listen(port, (token) => {
-  if (token) {
-    console.log('Listening to port ' + port);
-  } else {
-    console.log('Failed to listen to port ' + port);
-  }
+    if (token) {
+        console.log('Listening to port ' + port);
+    } else {
+        console.log('Failed to listen to port ' + port);
+    }
 });

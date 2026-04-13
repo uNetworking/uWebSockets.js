@@ -126,7 +126,7 @@ class NativeString {
     bool invalid = false;
 
     // Static thread-local state shared by all NativeString instances on this thread
-    inline static thread_local std::vector<char> pool = std::vector<char>(8 * 1024 * 1024);
+    inline static thread_local std::vector<char> pool = std::vector<char>(128 * 1024);
     inline static thread_local size_t pool_offset = 0;
     inline static thread_local int ref_count = 0;
 

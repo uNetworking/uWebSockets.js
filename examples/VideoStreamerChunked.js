@@ -1,3 +1,11 @@
+/* This is an example stressing the Chunked transfer mode */
+/* It is not the most optimal way to send lots of data, tryEnd is */
+/* If you do not know the size of the file, this Chunked transfer mode
+ * is necessary. We send 256kb chunks and wait for them to drain. The 
+ * max backpressure is thus 256 kb. Again, tryEnd is more efficient if
+ * you know the file size. The call "end" with a huge file is the worst
+ * possible way, as it copies the entire file to backpressure. */
+
 const uWS = require('uWebSockets.js');
 const fs = require('fs');
 
@@ -17,7 +25,6 @@ function getFileView(name) {
 const videoView = getFileView(fileName);
 const totalSize = videoView.byteLength;
 
-console.log('WARNING: NEVER DO LIKE THIS; WILL CAUSE HORRIBLE BACKPRESSURE!');
 console.log('Video size is: ' + totalSize + ' bytes');
 
 const CHUNK_SIZE = 1024 * 256;

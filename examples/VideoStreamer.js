@@ -2,11 +2,11 @@
  * Try navigating to the adderss with Chrome and see the video
  * in real time. */
 
-const uWS = require('../dist/uws.js');
+const uWS = require('uWebSockets.js');
 const fs = require('fs');
 
 const port = 9001;
-const fileName = 'C:\\Users\\Alex\\Downloads\\Sintel.2010.720p.mkv';
+const fileName = 'spritefright.mp4';
 const totalSize = fs.statSync(fileName).size;
 
 let openStreams = 0;
@@ -46,7 +46,10 @@ function pipeStreamOverResponse(res, readStream, totalSize) {
     let lastOffset = res.getWriteOffset();
 
     /* Streaming a chunk returns whether that chunk was sent, and if that chunk was last */
-    let [ok, done] = res.tryEnd(ab, totalSize);
+    let ok, done;
+    res.cork(() => {
+      [ok, done] = res.tryEnd(ab, totalSize);
+    });
 
     /* Did we successfully send last chunk? */
     if (done) {
@@ -96,7 +99,7 @@ const app = uWS./*SSL*/App({
   key_file_name: 'misc/key.pem',
   cert_file_name: 'misc/cert.pem',
   passphrase: '1234'
-}).get('/sintel.mkv', (res, req) => {
+}).get('/spritefright.mp4', (res, req) => {
   /* Log */
   console.time(res.id = ++streamIndex);
   console.log('Stream was opened, openStreams: ' + ++openStreams);

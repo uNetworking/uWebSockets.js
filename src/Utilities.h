@@ -185,7 +185,7 @@ public:
             allocated = true;
             string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
 
-        } else if (value->IsTypedArray()) {
+        } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();
             length = arrayBufferView->ByteLength();
@@ -207,7 +207,7 @@ public:
 
     bool isInvalid(const FunctionCallbackInfo<Value> &args) {
         if (invalid) {
-            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Text and data can only be passed by String, ArrayBuffer or TypedArray.", NewStringType::kNormal).ToLocalChecked())));
+            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Text and data can only be passed by String, ArrayBuffer or ArrayBufferView.", NewStringType::kNormal).ToLocalChecked())));
         }
         return invalid;
     }

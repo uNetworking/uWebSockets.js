@@ -1,0 +1,7 @@
+*.o
+a.out
+build.exe
+node_modules
+tmp
+targets
+dist

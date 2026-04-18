@@ -11,14 +11,15 @@
 int get_cpu_count(void) {
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
+    // fallback for Github Actions
     return (int)sysinfo.dwNumberOfProcessors || 1;
 }
 #else // POSIX systems
 
 #include <unistd.h>
+#include <sys/wait.h>
 int get_cpu_count(void) {
     long n = sysconf(_SC_NPROCESSORS_ONLN);
-    printf("<-- [Parallel threads to be used in Make: %i] -->\n", (int)n);
     return (n > 0) ? (int)n : 1;
 }
 

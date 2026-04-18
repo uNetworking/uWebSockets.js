@@ -1,7 +1,7 @@
 name: Build
 on:
   push:
-    branches: [ master ]
+    branches: [ slight-refactor ]
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -13,30 +13,108 @@ jobs:
       - name: Setup Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup NASM for Windows
+      - name: Setup Make fo Windows
         if: matrix.os == 'windows-latest'
         run: choco install make
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 25
-      - name: Update binaries
+          node-version: '25.0.0'
+
+      - name: Export submodules.txt as a state for cached dependencies
         run: |
-          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
-          cd uWebSockets.js
+          git clone --depth=1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+          git submodule status > submodules.txt
+
+      - name: Restore submodule build cache
+        id: submodules
+        uses: actions/cache@v5
+        with:
+          path: uWebSockets
+          key: sub-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('submodules.txt') }}
+      
+
+      - name: Build submodules
+        if: steps.submodules.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          git submodule update --init --recursive
+      - name: Compile uWebSockets.js (and if nothing cached - deps)
+        run: |
           make
           ls dist
           cd tests && npm install ws && node smoke.js && cd ..
           ls dist
-          git fetch origin binaries:binaries
-          git checkout binaries
-          cp dist/*.node .
-          cp dist/*.js .
-          git rev-parse master > source_commit
-          ls
-          ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
-          git status
+      - name: Save results
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*.node
+      - name: Compile ASAN binaries
+        if: matrix.os != 'windows-latest'
+        run: |
+
+          make prebuilt-asan
+          ls dist
+          # cd tests && node smoke.js && cd ..
+          # ls dist
+      - name: Save ASAN Binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries-asan-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*.node
+  update:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      - run: ls artifacts
+      - name: Configure actions
+        run: |
+
+          git clone --depth=1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git ./repo
+          mkdir changes
+          cd repo
+          git rev-parse HEAD > ../changes/source_commit
+          cp docs/index.d.ts src/uws.js ../changes
           git config --global user.email "alexhultman@gmail.com"
-          git config --global user.name "Alex Hultman"
-          git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
+          git config --global user.name "Alex Hultman"      
+      - name: Commit binaries
+        run: |
+
+          cd repo
+          git fetch --depth=1 origin binaries:binaries
+          git checkout binaries
+          cp ../artifacts/binaries-Linux-ARM64/* .
+          cp ../artifacts/binaries-Linux-X64/* .
+          cp ../artifacts/binaries-Windows-X64/* .
+          cp ../artifacts/binaries-macOS-ARM64/* .
+          cp ../changes/* .
+          echo '<-- [What files are in this directory?] -->'
+          ls .
+          echo 'git status'
+          git status
+          git commit -a -m "[GitHub Actions] Updated all binaries" || true
           git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+      - name: Commit ASAN binaries
+        run: |
+
+          # On first run, binaries-asan doesn't exist yet; seed it from binaries so git history is preserved
+          cd repo
+          git fetch --depth=1 origin binaries-asan:binaries-asan 2>/dev/null || git fetch --depth=1 origin binaries:binaries-asan
+          git checkout binaries-asan
+          cp ../artifacts/binaries-asan-Linux-ARM64/* .
+          cp ../artifacts/binaries-asan-Linux-X64/* .
+          cp ../artifacts/binaries-asan-Windows-X64/* .
+          cp ../artifacts/binaries-asan-macOS-ARM64/* .
+          cp ../changes/* .
+          echo '<-- [What files are in this directory?] -->'
+          ls .
+          echo 'git status'
+          git status
+          git commit -a -m "[GitHub Actions] Updated all ASAN binaries" || true
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries-asan

@@ -20,7 +20,7 @@ jobs:
         run: |
           git clone --recursive https://github.com/uNetworking/uWebSockets.js.git
           cd uWebSockets.js
-          cc build.c -DWITH_ASAN && ./a.out
+          cc build.c -DWITH_ASAN && ./build.exe
           ls dist
           # On first run, binaries-asan doesn't exist yet; seed it from binaries so git history is preserved
           git fetch origin binaries-asan:binaries-asan 2>/dev/null || git fetch origin binaries:binaries-asan

@@ -1,3 +1,5 @@
 [submodule "uWebSockets"]
 	path = uWebSockets
 	url = https://github.com/uNetworking/uWebSockets
+  # Any compiled *.o files within uWebSockets will be ignored by git
+  ignore = dirty

@@ -13,9 +13,11 @@ jobs:
       - name: Setup Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
+
       - name: Setup NASM for Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1.2.1
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

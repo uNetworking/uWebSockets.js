@@ -1,6 +1,6 @@
 default:
-	$(CC) build.c
-	./a.out || build.exe
+	gcc build.c -o build.exe
+	./build.exe || .\build.exe
 upload_host:
 	git fetch origin binaries:binaries
 	git checkout binaries

@@ -59,23 +59,34 @@ struct node_version {
     {"v25.0.0", "141"}
 };
 
-/* Downloads headers, creates folders */
+#define LOG_SECTION(message) printf("\n<-- [" message "] -->\n");
+#define LOG_INFO(message) printf("\n[" message "]\n");
+
+/* Downloads headers, creates folders, remove buffering for logging */
 void prepare() {
+    LOG_SECTION("Preparing")
+    // see console output IMMEDIATELY for debugging purposes
+    setbuf(stdout, 0);
     if (run("mkdir dist") || run("mkdir targets")) {
+        LOG_INFO("Finished preparing")
         return;
     }
 
-    /* For all versions */
+    /* For all versions. Logging is silenced, but errors are shown */
+    LOG_SECTION("Installing NodeJS headers")
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
-        run("curl -OJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz", versions[i].name, versions[i].name);
+        run("curl -sSOJ https://nodejs.org/dist/%s/node-%s-headers.tar.gz", versions[i].name, versions[i].name);
         run("tar xzf node-%s-headers.tar.gz -C targets", versions[i].name);
-        run("curl https://nodejs.org/dist/%s/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
+        run("curl -sS https://nodejs.org/dist/%s/win-x64/node.lib > targets/node-%s/node.lib", versions[i].name, versions[i].name);
         /* v8-fast-api-calls.h is missing from the Node.js header distribution; fetch the correct major version from the Node.js source tree */
-        run("curl -fL https://raw.githubusercontent.com/nodejs/node/%s/deps/v8/include/v8-fast-api-calls.h > targets/node-%s/include/node/v8-fast-api-calls.h", versions[i].name, versions[i].name);
+        run("curl -sSL https://raw.githubusercontent.com/nodejs/node/%s/deps/v8/include/v8-fast-api-calls.h > targets/node-%s/include/node/v8-fast-api-calls.h", versions[i].name, versions[i].name);
     }
+    LOG_INFO("Fetched NodeJS headers v20,v22,v24,v25")
+    LOG_INFO("Finished preparing")
 }
 
 void build_lsquic(const char *arch) {
+    LOG_SECTION("Building lsquic")
 #ifndef IS_WINDOWS
     /* Build for arm64 and x64 for macOS */
 
@@ -97,16 +108,17 @@ void build_lsquic(const char *arch) {
     /* Windows */
 
     /* Download zlib */
-    run("curl -OL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz");
+    run("curl -sSOL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz");
     run("tar xzf zlib-1.3.1.tar.gz");
     
     run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"/Wv:18 /DWIN32 /wd4201 /I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
+    LOG_INFO("Finished building lsquic")
 }
 
 /* Build boringssl */
 void build_boringssl(const char *arch) {
-
+    LOG_SECTION("Started building boringssl")
 #ifdef IS_MACOS
     /* Only macOS uses cross-compilation */
     if (arch == X64) {
@@ -125,20 +137,27 @@ void build_boringssl(const char *arch) {
     /* Build for x64 (the host) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
 #endif
-
+    LOG_INFO("Finished building boringssl")
 }
 
 /* Build for Unix systems */
 void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const char *arch) {
+    LOG_SECTION("Started building uWebSockets.js")
 
     char *c_shared = "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/lsquic/include -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL" OPT_FLAGS " -c -fPIC -I uWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c";
     char *cpp_shared = "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -I uWebSockets/uSockets/boringssl/include -pthread -DLIBUS_USE_OPENSSL" OPT_FLAGS " -c -fPIC -std=c++20 -I uWebSockets/uSockets/src -I uWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp";
 
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
+        printf("[Compile C core: NodeJS %s]", versions[i].name);
         run("%s %s -I targets/node-%s/include/node", compiler, c_shared, versions[i].name);
+
+        printf("[Compile uWebSockets.js: NodeJS %s]", versions[i].name);
         run("%s %s -I targets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
+
+        printf("[Link libraries: NodeJS %s]", versions[i].name);
         run("%s -pthread" LINK_FLAGS " *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
+    LOG_INFO("Finished building uWebSockets.js")
 }
 
 void copy_files() {
@@ -151,22 +170,28 @@ void copy_files() {
 
 /* Special case for windows */
 void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const char *arch) {
+    LOG_SECTION("Started building uWebSockets.js")
 
     char *c_shared = "-DWIN32_LEAN_AND_MEAN -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -IuWebSockets/uSockets/lsquic/include -IuWebSockets/uSockets/lsquic/wincompat -IuWebSockets/uSockets/boringssl/include -DLIBUS_USE_OPENSSL -O3 -c -IuWebSockets/uSockets/src uWebSockets/uSockets/src/*.c uWebSockets/uSockets/src/eventing/*.c uWebSockets/uSockets/src/crypto/*.c";
     char *cpp_shared = "-DWIN32_LEAN_AND_MEAN -DUWS_WITH_PROXY -DLIBUS_USE_LIBUV -DLIBUS_USE_QUIC -IuWebSockets/uSockets/lsquic/include -IuWebSockets/uSockets/lsquic/wincompat -IuWebSockets/uSockets/boringssl/include -DLIBUS_USE_OPENSSL -O3 -c -std=c++20 -IuWebSockets/uSockets/src -IuWebSockets/src src/addon.cpp uWebSockets/uSockets/src/crypto/sni_tree.cpp";
 
     for (unsigned int i = 0; i < sizeof(versions) / sizeof(struct node_version); i++) {
+        printf("[Compile C core: NodeJS %s]", versions[i].name);
         run("%s %s -Itargets/node-%s/include/node", compiler, c_shared, versions[i].name);
+
+        printf("[Compile uWebSockets.js: NodeJS %s]", versions[i].name);
         run("%s %s -Itargets/node-%s/include/node", cpp_compiler, cpp_shared, versions[i].name);
+
+        printf("[Link libraries: NodeJS %s]", versions[i].name);
         run("%s -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, arch, arch, versions[i].name, arch, versions[i].abi);
     }
+    LOG_INFO("Finished building uWebSockets.js")
 }
 
 int main() {
-    printf("[Preparing]\n");
     prepare();
-    printf("\n[Building]\n");
-    
+
+    LOG_SECTION("Building");
     const char *arch = X64;
 #ifdef __arm__
     arch = ARM;
@@ -177,9 +202,12 @@ int main() {
 
 #ifdef IS_MACOS
     /* If we are macOS, build both arm64 and x64 */
+    LOG_SECTION("Build X64");
     build_boringssl(X64);
-    build_boringssl(ARM64);
     build_lsquic(X64);
+
+    LOG_SECTION("Build ARM64");
+    build_boringssl(ARM64);
     build_lsquic(ARM64);
 #else
     /* For other platforms we simply compile the host */
@@ -199,6 +227,7 @@ int main() {
 #ifdef IS_MACOS
 
     /* Apple special case */
+    LOG_SECTION("Build X64");
     build("clang -target x86_64-apple-macos12",
           "clang++ -stdlib=libc++ -target x86_64-apple-macos12",
           "-undefined dynamic_lookup" MACOS_LINK_EXTRAS,
@@ -206,6 +235,7 @@ int main() {
           X64);
 
     /* Try and build for arm64 macOS 12 */
+    LOG_SECTION("Build ARM64");
     build("clang -target arm64-apple-macos12",
           "clang++ -stdlib=libc++ -target arm64-apple-macos12",
           "-undefined dynamic_lookup" MACOS_LINK_EXTRAS,

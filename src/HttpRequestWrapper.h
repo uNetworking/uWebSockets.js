@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
 
-#include <v8.h>
-using namespace v8;
-
 /* This one is the same for SSL and non-SSL */
-struct HttpRequestWrapper {
+namespace HttpRequestWrapper {
 
     /* Unwraps the HttpRequest from V8 object */
     template <int QUIC>
-    static inline constexpr decltype(auto) getHttpRequest(const FunctionCallbackInfo<Value> &args) {
+    inline constexpr decltype(auto) getHttpRequest(args_t args) {
         Isolate *isolate = args.GetIsolate();
         /* Thow on deleted request */
         auto *req = (uWS::HttpRequest *) args.This()->GetAlignedPointerFromInternalField(0);
@@ -43,7 +39,7 @@ struct HttpRequestWrapper {
 
     /* Takes function of string, string. Returns this (doesn't really but should) */
     template <int QUIC>
-    static void req_forEach(const FunctionCallbackInfo<Value> &args) {
+    void req_forEach(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -60,7 +56,7 @@ struct HttpRequestWrapper {
 
     /* Takes int or string, returns string (must be in bounds) */
     template <int QUIC>
-    static void req_getParameter(const FunctionCallbackInfo<Value> &args) {
+    void req_getParameter(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -84,7 +80,7 @@ struct HttpRequestWrapper {
 
     /* Takes nothing, returns string */
     template <int QUIC>
-    static void req_getUrl(const FunctionCallbackInfo<Value> &args) {
+    void req_getUrl(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -96,7 +92,7 @@ struct HttpRequestWrapper {
 
     /* Takes String, returns String */
     template <int QUIC>
-    static void req_getHeader(const FunctionCallbackInfo<Value> &args) {
+    void req_getHeader(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -114,7 +110,7 @@ struct HttpRequestWrapper {
 
     /* Takes boolean, returns this */
     template <int QUIC>
-    static void req_setYield(const FunctionCallbackInfo<Value> &args) {
+    void req_setYield(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -127,7 +123,7 @@ struct HttpRequestWrapper {
 
     /* Takes nothing, returns string */
     template <int QUIC>
-    static void req_getMethod(const FunctionCallbackInfo<Value> &args) {
+    void req_getMethod(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -139,7 +135,7 @@ struct HttpRequestWrapper {
 
     /* Takes nothing, returns string */
     template <int QUIC>
-    static void req_getCaseSensitiveMethod(const FunctionCallbackInfo<Value> &args) {
+    void req_getCaseSensitiveMethod(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -150,7 +146,7 @@ struct HttpRequestWrapper {
     }
 
     template <int QUIC>
-    static void req_getQuery(const FunctionCallbackInfo<Value> &args) {
+    void req_getQuery(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
@@ -177,30 +173,42 @@ struct HttpRequestWrapper {
         }
     }
 
-    /* Returns a clonable object wrapping an HttpRequest */
+ /* Returns a clonable object wrapping an HttpRequest */
     template <int QUIC>
-    static Local<Object> init(Isolate *isolate) {
+    Local<Object> init(Isolate *isolate) {
         /* We do clone every request object, we could share them, they are illegal to use outside the function anyways */
         Local<FunctionTemplate> reqTemplateLocal = FunctionTemplate::New(isolate);
-        reqTemplateLocal->SetClassName(String::NewFromUtf8(isolate, QUIC ? "uWS.Http3Request" : "uWS.HttpRequest", NewStringType::kNormal).ToLocalChecked());
+        reqTemplateLocal->SetClassName(String::NewFromUtf8(isolate, QUIC == 2 ? "uWS.Http3Request" : "uWS.HttpRequest", NewStringType::kNormal).ToLocalChecked());
         reqTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
+        /* helper */
+          auto regFn = [reqTemplateObject = reqTemplateLocal->PrototypeTemplate(), isolate]<size_t N>(
+            const char (&str)[N],
+            void(*cb)(args_t)
+          ){
+            reqTemplateObject->Set(
+              String::NewFromUtf8(isolate, str, NewStringType::kNormal, N-1).ToLocalChecked(),
+              FunctionTemplate::New(isolate, cb)
+            );
+          };
+
         /* Register our functions */
-        reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getHeader<QUIC>));
+        regFn("getHeader", req_getHeader<QUIC>);
         
-        if constexpr (!QUIC) {
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getParameter", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getParameter<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUrl", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getUrl<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getMethod", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getMethod<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getCaseSensitiveMethod", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getCaseSensitiveMethod<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getQuery", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_getQuery<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "forEach", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_forEach<QUIC>));
-            reqTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "setYield", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, req_setYield<QUIC>));
+        if constexpr (QUIC == 0) {
+          regFn("getParameter", req_getParameter<QUIC>);
+          regFn("getUrl", req_getUrl<QUIC>);
+          regFn("getMethod", req_getMethod<QUIC>);
+          regFn("getCaseSensitiveMethod", req_getCaseSensitiveMethod<QUIC>);
+          regFn("getQuery", req_getQuery<QUIC>);
+          regFn("forEach", req_forEach<QUIC>);
+          regFn("setYield", req_setYield<QUIC>);
         }
 
 
         /* Create the template */
-        Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+        Local<Context> context = isolate->GetCurrentContext();
+        Local<Object> reqObjectLocal = reqTemplateLocal->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
 
         return reqObjectLocal;
     }

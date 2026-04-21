@@ -17,11 +17,16 @@
 
 #ifndef ADDON_UTILITIES_H
 #define ADDON_UTILITIES_H
+// this header file contains utilities and is used almost everywhere, so let it be central header-file
+#include "App.h"
+#include "Http3App.h"
 
+// helper to make life easier
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <v8.h>
 using namespace v8;
+using args_t = const FunctionCallbackInfo<Value>&;
 
 /* Unfortunately we _have_ to depend on Node.js crap */
 #include <node.h>
@@ -52,7 +57,7 @@ struct PerSocketData {
     UniquePersistent<Object> socketPf;
 };
 
-struct PerContextData {
+struct PerIsolateData {
     Isolate *isolate;
     UniquePersistent<Object> reqTemplate[2]; // 0 = non-SSL/SSL, 1 = Http3
     UniquePersistent<Object> resTemplate[4]; // 0 = non-SSL, 1 = SSL, 2 = Http3

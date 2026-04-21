@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
 
-#include <v8.h>
 #include "v8-fast-api-calls.h"
-using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
 
-struct WebSocketWrapper {
+namespace WebSocketWrapper {
 
     template <bool SSL>
-    static inline uWS::WebSocket<SSL, true, PerSocketData> *getWebSocket(const FunctionCallbackInfo<Value> &args) {
+    inline uWS::WebSocket<SSL, true, PerSocketData> *getWebSocket(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) args.This()->GetAlignedPointerFromInternalField(0);
         if (!ws) {
@@ -36,19 +33,18 @@ struct WebSocketWrapper {
         return ws;
     }
 
-    static inline void invalidateWsObject(const FunctionCallbackInfo<Value> &args) {
+    inline void invalidateWsObject(args_t args) {
         args.This()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes nothing returns holder (only used to fool TypeScript, as a conversion from WS to UserData) */
-    template <bool SSL>
-    static void uWS_WebSocket_getUserData(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getUserData(args_t args) {
         args.GetReturnValue().Set(args.This());
     }
 
     /* Takes string topic */
     template <bool SSL>
-    static void uWS_WebSocket_subscribe(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_subscribe(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -63,7 +59,7 @@ struct WebSocketWrapper {
 
     /* Takes string topic, returns boolean success */
     template <bool SSL>
-    static void uWS_WebSocket_unsubscribe(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_unsubscribe(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -78,7 +74,7 @@ struct WebSocketWrapper {
 
     /* Takes string topic, message, returns boolean success */
     template <bool SSL>
-    static void uWS_WebSocket_publish(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_publish(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -108,7 +104,7 @@ struct WebSocketWrapper {
 
     /* Takes nothing returns nothing */
     template <bool SSL>
-    static void uWS_WebSocket_close(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_close(args_t args) {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             invalidateWsObject(args);
@@ -118,7 +114,7 @@ struct WebSocketWrapper {
 
     /* Takes code, message, returns undefined */
     template <bool SSL>
-    static void uWS_WebSocket_end(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_end(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -139,7 +135,7 @@ struct WebSocketWrapper {
 
     /* Takes nothing returns arraybuffer */
     template <bool SSL>
-    static void uWS_WebSocket_getRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getRemoteAddress(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -151,7 +147,7 @@ struct WebSocketWrapper {
 
     /* Takes nothing returns arraybuffer */
     template <bool SSL>
-    static void uWS_WebSocket_getRemoteAddressAsText(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getRemoteAddressAsText(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -163,7 +159,7 @@ struct WebSocketWrapper {
 
     /* Takes nothing, returns integer */
     template <bool SSL>
-    static void uWS_WebSocket_getRemotePort(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getRemotePort(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -174,7 +170,7 @@ struct WebSocketWrapper {
 
     /* Takes nothing, returns integer */
     template <bool SSL>
-    static void uWS_WebSocket_getBufferedAmount(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getBufferedAmount(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -185,7 +181,7 @@ struct WebSocketWrapper {
 
     /* Takes message, isBinary, compressed. Returns true on success, false otherwise */
     template <bool SSL>
-    static void uWS_WebSocket_sendFirstFragment(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_sendFirstFragment(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -202,7 +198,7 @@ struct WebSocketWrapper {
 
     /* Takes message, compressed. Returns true on success, false otherwise */
     template <bool SSL>
-    static void uWS_WebSocket_sendFragment(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_sendFragment(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -219,7 +215,7 @@ struct WebSocketWrapper {
 
     /* Takes message, compressed. Returns true on success, false otherwise */
     template <bool SSL>
-    static void uWS_WebSocket_sendLastFragment(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_sendLastFragment(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -236,7 +232,7 @@ struct WebSocketWrapper {
 
     /* Takes message, isBinary, compressed. Returns true on success, false otherwise */
     template <bool SSL>
-    static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_send(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -257,7 +253,7 @@ struct WebSocketWrapper {
 
     /* Takes topic string, returns bool */
     template <bool SSL>
-    static void uWS_WebSocket_isSubscribed(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_isSubscribed(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -274,7 +270,7 @@ struct WebSocketWrapper {
 
     /* Takes message. Returns true on success, false otherwise */
     template <bool SSL>
-    static void uWS_WebSocket_ping(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_ping(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -292,7 +288,7 @@ struct WebSocketWrapper {
 
     /* Takes function, returns this */
     template <bool SSL>
-    static void uWS_WebSocket_cork(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_cork(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -308,7 +304,7 @@ struct WebSocketWrapper {
 
     /* This one is wrapped instead of iterateTopics as JS-people will put their hands in wood chipper for sure. */
     template <bool SSL>
-    static void uWS_WebSocket_getTopics(const FunctionCallbackInfo<Value> &args) {
+    void uWS_WebSocket_getTopics(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
@@ -332,7 +328,7 @@ struct WebSocketWrapper {
 
 // Version A: Handles Strings
 template <bool SSL>
-static uint32_t uWS_WebSocket_send_fast_string(v8::Local<v8::Object> receiver, 
+uint32_t uWS_WebSocket_send_fast_string(v8::Local<v8::Object> receiver, 
                                                const v8::FastOneByteString& message, 
                                                bool isBinary, bool compress) {
     auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
@@ -343,7 +339,7 @@ static uint32_t uWS_WebSocket_send_fast_string(v8::Local<v8::Object> receiver,
 
 // Version B: Handles ArrayBuffer/TypedArray
 template <bool SSL>
-static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver, 
+uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver, 
                                                v8::Local<v8::Value> message, 
                                                bool isBinary, bool compress) {
     auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) receiver->GetAlignedPointerFromInternalField(0);
@@ -369,39 +365,50 @@ static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver,
                     isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
 }
 
-    template <bool SSL>
-    static Local<Object> init(Isolate *isolate) {
+    template <bool SSLOption>
+    Local<Object> init(Isolate *isolate) {
         Local<FunctionTemplate> wsTemplateLocal = FunctionTemplate::New(isolate);
-        if (SSL) {
-            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLWebSocket", NewStringType::kNormal).ToLocalChecked());
-        } else {
-            wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.WebSocket", NewStringType::kNormal).ToLocalChecked());
-        }
+        
+        wsTemplateLocal->SetClassName(String::NewFromUtf8(isolate, SSLOption == 1 ? "uWS.SSLWebSocket" : "uWS.WebSocket", NewStringType::kNormal).ToLocalChecked());
+
         wsTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
-        /* Register our functions */
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendFirstFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendFirstFragment<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendFragment<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendLastFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendLastFragment<SSL>));
+        /* helper */
+        auto regFn = [wsObjectTemplate = wsTemplateLocal->PrototypeTemplate(), isolate]<size_t N>(
+          const char (&str)[N],
+          void(*cb)(args_t)
+        ){
+          wsObjectTemplate->Set(
+            String::NewFromUtf8(isolate, str, NewStringType::kNormal, N-1).ToLocalChecked(),
+            FunctionTemplate::New(isolate, cb)
+          );
+        };
 
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUserData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getUserData<SSL>));
-        static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast_buffer<SSL>);
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>/*, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect, &fast_send*/));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getBufferedAmount", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getBufferedAmount<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddress<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "subscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_subscribe<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "unsubscribe", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_unsubscribe<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "publish", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_publish<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_cork<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "ping", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_ping<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemoteAddressAsText<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getRemotePort<SSL>));
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "isSubscribed", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_isSubscribed<SSL>));
+        /* Register our functions */
+        regFn("sendFirstFragment", uWS_WebSocket_sendFirstFragment<SSLOption>);
+        regFn("sendFragment", uWS_WebSocket_sendFragment<SSLOption>);
+        regFn("sendLastFragment", uWS_WebSocket_sendLastFragment<SSLOption>);
+
+        regFn("getUserData", uWS_WebSocket_getUserData);
+
+        static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast_buffer<SSLOption>);
+
+        regFn("send", uWS_WebSocket_send<SSLOption>/*, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect, &fast_send*/);
+        regFn("end", uWS_WebSocket_end<SSLOption>);
+        regFn("close", uWS_WebSocket_close<SSLOption>);
+        regFn("getBufferedAmount", uWS_WebSocket_getBufferedAmount<SSLOption>);
+        regFn("getRemoteAddress", uWS_WebSocket_getRemoteAddress<SSLOption>);
+        regFn("subscribe", uWS_WebSocket_subscribe<SSLOption>);
+        regFn("unsubscribe", uWS_WebSocket_unsubscribe<SSLOption>);
+        regFn("publish", uWS_WebSocket_publish<SSLOption>);
+        regFn("cork", uWS_WebSocket_cork<SSLOption>);
+        regFn("ping", uWS_WebSocket_ping<SSLOption>);
+        regFn("getRemoteAddressAsText", uWS_WebSocket_getRemoteAddressAsText<SSLOption>);
+        regFn("getRemotePort", uWS_WebSocket_getRemotePort<SSLOption>);
+        regFn("isSubscribed", uWS_WebSocket_isSubscribed<SSLOption>);
 
         /* This one does not exist in C++ */
-        wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getTopics", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getTopics<SSL>));
+        regFn("getTopics", uWS_WebSocket_getTopics<SSLOption>);
 
         /* Create the template */
         Local<Object> wsObjectLocal = wsTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();

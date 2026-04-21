@@ -15,26 +15,22 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
-
-#include <v8.h>
-using namespace v8;
 
 thread_local int insideCorkCallback = 0;
 
 /* PROTOCOL is 0 = TCP, 1 = TLS, 2 = QUIC, 3 = CACHE */
 
-struct HttpResponseWrapper {
+namespace HttpResponseWrapper {
 
-    static void assumeCorked() {
+    void assumeCorked() {
         if (!insideCorkCallback) {
             std::cerr << "Warning: uWS.HttpResponse writes must be made from within a corked callback. See documentation for uWS.HttpResponse.cork and consult the user manual." << std::endl;
         }
     }
 
     template <int PROTOCOL>
-    static inline constexpr decltype(auto) getHttpResponse(const FunctionCallbackInfo<Value> &args) {
+    inline constexpr decltype(auto) getHttpResponse(args_t args) {
         Isolate *isolate = args.GetIsolate();
         void *res = args.This()->GetAlignedPointerFromInternalField(0);
         if (!res) {
@@ -52,13 +48,13 @@ struct HttpResponseWrapper {
     }
 
     /* Marks this JS object invalid */
-    static inline void invalidateResObject(const FunctionCallbackInfo<Value> &args) {
+    inline void invalidateResObject(args_t args) {
         args.This()->SetAlignedPointerInInternalField(0, nullptr);
     }
 
     /* Takes nothing, returns this */
     template <int SSL>
-    static void res_pause(const FunctionCallbackInfo<Value> &args) {
+    void res_pause(args_t args) {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             res->pause();
@@ -68,7 +64,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns this */
     template <int SSL>
-    static void res_resume(const FunctionCallbackInfo<Value> &args) {
+    void res_resume(args_t args) {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             res->resume();
@@ -78,7 +74,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, kills the connection */
     template <int SSL>
-    static void res_close(const FunctionCallbackInfo<Value> &args) {
+    void res_close(args_t args) {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             invalidateResObject(args);
@@ -89,7 +85,7 @@ struct HttpResponseWrapper {
 
     /* Takes function of data and isLast. Expects nothing from callback, returns this */
     template <int SSL>
-    static void res_onData(const FunctionCallbackInfo<Value> &args) {
+    void res_onData(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -118,7 +114,7 @@ struct HttpResponseWrapper {
      * accumulated into a std::vector whose memory is transferred zero-copy into the ArrayBuffer backing store.
      * Returns this */
     template <int SSL>
-    static void res_collectBody(const FunctionCallbackInfo<Value> &args) {
+    void res_collectBody(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -192,7 +188,7 @@ struct HttpResponseWrapper {
     /* Takes function of chunk and maxRemainingBodyLength. Returns this.
      * If maxRemainingBodyLength is 0, the last chunk has arrived. */
     template <int SSL>
-    static void res_onDataV2(const FunctionCallbackInfo<Value> &args) {
+    void res_onDataV2(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -217,7 +213,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns nothing. Cb wants nothing returned. */
     template <int SSL>
-    static void res_onAborted(const FunctionCallbackInfo<Value> &args) {
+    void res_onAborted(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -242,7 +238,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns arraybuffer */
     template <int SSL>
-    static void res_getRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+    void res_getRemoteAddress(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -254,7 +250,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns arraybuffer */
     template <int SSL>
-    static void res_getRemoteAddressAsText(const FunctionCallbackInfo<Value> &args) {
+    void res_getRemoteAddressAsText(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -266,7 +262,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns integer */
     template <int SSL>
-    static void res_getRemotePort(const FunctionCallbackInfo<Value> &args) {
+    void res_getRemotePort(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -278,7 +274,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns arraybuffer */
     template <int SSL>
-    static void res_getProxiedRemoteAddress(const FunctionCallbackInfo<Value> &args) {
+    void res_getProxiedRemoteAddress(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -290,7 +286,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns arraybuffer */
     template <int SSL>
-    static void res_getProxiedRemoteAddressAsText(const FunctionCallbackInfo<Value> &args) {
+    void res_getProxiedRemoteAddressAsText(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -302,7 +298,7 @@ struct HttpResponseWrapper {
 
     /* Takes nothing, returns number */
     template <int SSL>
-    static void res_getProxiedRemotePort(const FunctionCallbackInfo<Value> &args) {
+    void res_getProxiedRemotePort(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -313,7 +309,7 @@ struct HttpResponseWrapper {
     }
 
     template <int PROTOCOL>
-    static void res_getX509Certificate(const FunctionCallbackInfo<Value> &args) {
+    void res_getX509Certificate(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
@@ -326,7 +322,7 @@ struct HttpResponseWrapper {
 
     /* Returns the current write offset */
     template <int SSL>
-    static void res_getWriteOffset(const FunctionCallbackInfo<Value> &args) {
+    void res_getWriteOffset(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -336,7 +332,7 @@ struct HttpResponseWrapper {
 
     /* Takes function of bool(int), returns this */
     template <int SSL>
-    static void res_onWritable(const FunctionCallbackInfo<Value> &args) {
+    void res_onWritable(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -366,7 +362,7 @@ struct HttpResponseWrapper {
 
     /* Takes string or arraybuffer, returns this */
     template <int SSL>
-    static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
+    void res_writeStatus(args_t args) {
         auto *res = getHttpResponse<SSL>(args);
             if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
@@ -383,7 +379,7 @@ struct HttpResponseWrapper {
 
     /* Takes number, bool */
     template <int SSL>
-    static void res_endWithoutBody(const FunctionCallbackInfo<Value> &args) {
+    void res_endWithoutBody(args_t args) {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             std::optional<size_t> reportedContentLength;
@@ -406,7 +402,7 @@ struct HttpResponseWrapper {
 
     /* Takes string or arraybuffer, returns this */
     template <int PROTOCOL>
-    static void res_end(const FunctionCallbackInfo<Value> &args) {
+    void res_end(args_t args) {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
@@ -430,7 +426,7 @@ struct HttpResponseWrapper {
 
     /* Takes data and optionally totalLength, returns true for success, false for backpressure */
     template <int PROTOCOL>
-    static void res_tryEnd(const FunctionCallbackInfo<Value> &args) {
+    void res_tryEnd(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
@@ -463,7 +459,7 @@ struct HttpResponseWrapper {
 
     /* Takes data, returns true for success, false for backpressure */
     template <int PROTOCOL>
-    static void res_write(const FunctionCallbackInfo<Value> &args) {
+    void res_write(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
@@ -480,7 +476,7 @@ struct HttpResponseWrapper {
 
     /* Takes key, value. Returns this */
     template <int PROTOCOL>
-    static void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
+    void res_writeHeader(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
@@ -503,7 +499,7 @@ struct HttpResponseWrapper {
 
     /* Takes function, returns this */
     template <int SSL>
-    static void res_cork(const FunctionCallbackInfo<Value> &args) {
+    void res_cork(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -521,7 +517,7 @@ struct HttpResponseWrapper {
 
     /* Takes UserData, secKey, secProtocol, secExtensions, context. Returns nothing */
     template <int SSL>
-    static void res_upgrade(const FunctionCallbackInfo<Value> &args) {
+    void res_upgrade(args_t args) {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
@@ -565,61 +561,79 @@ struct HttpResponseWrapper {
     }
 
     /* 0 = TCP, 1 = TLS, 2 = QUIC, 3 = CACHE */
-    template <int SSL>
-    static Local<Object> init(Isolate *isolate) {
-        Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
-        if (SSL == 1) {
-            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.SSLHttpResponse", NewStringType::kNormal).ToLocalChecked());
-        } else if (SSL == 0) {
-            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpResponse", NewStringType::kNormal).ToLocalChecked());
-        } else if (SSL == 2) {
-            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.Http3Response", NewStringType::kNormal).ToLocalChecked());
-        } else if (SSL == 3) {
-            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.CachedHttpResponse", NewStringType::kNormal).ToLocalChecked());
-        }
-        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+    template <int Option>
+    Local<Object> init(Isolate *isolate) {
+        Local<FunctionTemplate> resTemplate = FunctionTemplate::New(isolate);
+
+        constexpr const char* classnames[4] = {
+          "uWS.HttpResponse",
+          "uWS.SSLHttpResponse", 
+          "uWS.Http3Response",
+          "uWS.CachedHttpResponse"
+        };
+        resTemplate->SetClassName(
+            String::NewFromUtf8(isolate, classnames[static_cast<uint32_t>(Option)], NewStringType::kNormal).ToLocalChecked()
+        );
+
+        resTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+        Local<ObjectTemplate> resObjectTemplate = resTemplate->PrototypeTemplate();
+        /* helper */
+        auto regFn = [resObjectTemplate, isolate]<size_t N>(
+          const char (&str)[N],
+          void(*cb)(args_t)
+        ){
+          resObjectTemplate->Set(
+            String::NewFromUtf8(isolate, str, NewStringType::kNormal, N-1).ToLocalChecked(),
+            FunctionTemplate::New(isolate, cb)
+          );
+        };
 
         /* Register our functions */
-        resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));
+        regFn("end", res_end<Option>);
         
         /* Cache has almost nothing wrapped yet */
-        if constexpr (SSL != 3) {
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeStatus", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeStatus<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "endWithoutBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_endWithoutBody<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "tryEnd", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_tryEnd<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "write", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_write<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "writeHeader", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_writeHeader<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_close<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritable", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritable<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onAborted<SSL>));
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onData<SSL>));
+        if constexpr (Option != 3) {
+            regFn("writeStatus", res_writeStatus<Option>);
+            regFn("endWithoutBody", res_endWithoutBody<Option>);
+            regFn("tryEnd", res_tryEnd<Option>);
+            regFn("write", res_write<Option>);
+            regFn("writeHeader", res_writeHeader<Option>);
+            regFn("close", res_close<Option>);
+            regFn("onWritable", res_onWritable<Option>);
+            regFn("onAborted", res_onAborted<Option>);
+            regFn("onData", res_onData<Option>);
             
             /* QUIC has a lot of functions unimplemented */
-            if constexpr (SSL != 2) {
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataV2", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataV2<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectBody<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "upgrade", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_upgrade<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddressAsText<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemotePort<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddress<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemoteAddressAsText", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemoteAddressAsText<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getProxiedRemotePort", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getProxiedRemotePort<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "pause", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_pause<SSL>));
-                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "resume", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_resume<SSL>));
+            if constexpr (Option != 2) {
+                regFn("onDataV2", res_onDataV2<Option>);
+                regFn("collectBody", res_collectBody<Option>);
+                regFn("getWriteOffset", res_getWriteOffset<Option>);
+                regFn("getRemoteAddress", res_getRemoteAddress<Option>);
+                regFn("cork", res_cork<Option>);
+
+                // hmmmm...
+                regFn("collect", res_cork<Option>);
+
+                regFn("upgrade", res_upgrade<Option>);
+                regFn("getRemoteAddressAsText", res_getRemoteAddressAsText<Option>);
+                regFn("getRemotePort", res_getRemotePort<Option>);
+                regFn("getProxiedRemoteAddress", res_getProxiedRemoteAddress<Option>);
+                regFn("getProxiedRemoteAddressAsText", res_getProxiedRemoteAddressAsText<Option>);
+                regFn("getProxiedRemotePort", res_getProxiedRemotePort<Option>);
+                regFn("pause", res_pause<Option>);
+                regFn("resume", res_resume<Option>);
+            }
+            if constexpr (Option == 1) {
+              regFn("getX509Certificate", res_getX509Certificate<Option>);
             }
         }
+        Local<FunctionTemplate> resTemplateLocal = FunctionTemplate::New(isolate);
+                resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
-        if constexpr (SSL == 1) {
-            resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getX509Certificate", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getX509Certificate<SSL>));
-        }
         
         /* Create our template */
         Local<Object> resObjectLocal = resTemplateLocal->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 
         return resObjectLocal;
-    }
-};
+    }};

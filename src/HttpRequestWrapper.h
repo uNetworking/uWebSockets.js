@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
 
-#include <v8.h>
-using namespace v8;
 
 /* This one is the same for SSL and non-SSL */
 struct HttpRequestWrapper {

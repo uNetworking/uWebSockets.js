@@ -15,17 +15,10 @@
  * limitations under the License.
  */
 
-/* We are only allowed to depend on µWS and V8 in this layer. */
-#include "App.h"
-#include "Http3App.h"
 
 #include <iostream>
 #include <vector>
 #include <type_traits>
-
-#include <v8.h>
-using namespace v8;
-
 #include "Utilities.h"
 #include "WebSocketWrapper.h"
 #include "HttpResponseWrapper.h"

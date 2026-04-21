@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-#include "App.h"
-#include <v8.h>
 #include "Utilities.h"
-using namespace v8;
 
 /* uWS.App.ws('/pattern', behavior) */
 template <typename APP>

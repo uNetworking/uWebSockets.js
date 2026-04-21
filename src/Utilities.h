@@ -23,6 +23,10 @@
 #include <v8.h>
 using namespace v8;
 
+// Utilities.h are included once due to ADDON_UTILITIES_H, so let it be a central header-file
+#include "App.h"
+#include "Http3App.h"
+
 /* Unfortunately we _have_ to depend on Node.js crap */
 #include <node.h>
 

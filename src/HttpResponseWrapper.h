@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
-
-#include <v8.h>
-using namespace v8;
 
 thread_local int insideCorkCallback = 0;
 

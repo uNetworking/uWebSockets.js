@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-#include "App.h"
 #include "Utilities.h"
 
-#include <v8.h>
 #include "v8-fast-api-calls.h"
-using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
 

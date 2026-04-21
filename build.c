@@ -60,7 +60,7 @@ struct node_version {
 };
 
 #define LOG_SECTION(message) printf("\n<-- [" message "] -->\n");
-#define LOG_INFO(message) printf("\n[" message "]\n");
+#define LOG_SECTION_END(message) printf("\n[" message "]\n");
 
 /* Downloads headers, creates folders, remove buffering for logging */
 void prepare() {
@@ -68,7 +68,7 @@ void prepare() {
     // see console output IMMEDIATELY for debugging purposes
     setbuf(stdout, 0);
     if (run("mkdir dist") || run("mkdir targets")) {
-        LOG_INFO("Finished preparing")
+        LOG_SECTION_END("Finished preparing")
         return;
     }
 
@@ -81,8 +81,8 @@ void prepare() {
         /* v8-fast-api-calls.h is missing from the Node.js header distribution; fetch the correct major version from the Node.js source tree */
         run("curl -sSL https://raw.githubusercontent.com/nodejs/node/%s/deps/v8/include/v8-fast-api-calls.h > targets/node-%s/include/node/v8-fast-api-calls.h", versions[i].name, versions[i].name);
     }
-    LOG_INFO("Fetched NodeJS headers v20,v22,v24,v25")
-    LOG_INFO("Finished preparing")
+    LOG_SECTION_END("Fetched NodeJS headers v20,v22,v24,v25")
+    LOG_SECTION_END("Finished preparing")
 }
 
 void build_lsquic(const char *arch) {
@@ -113,7 +113,7 @@ void build_lsquic(const char *arch) {
     
     run("cd uWebSockets/uSockets/lsquic && cmake -DCMAKE_C_FLAGS=\"/Wv:18 /DWIN32 /wd4201 /I..\\..\\..\\zlib-1.3.1\" -DZLIB_INCLUDE_DIR=..\\..\\..\\zlib-1.3.1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBORINGSSL_DIR=../boringssl -DCMAKE_BUILD_TYPE=Release -DLSQUIC_BIN=Off . && msbuild ALL_BUILD.vcxproj");
 #endif
-    LOG_INFO("Finished building lsquic")
+    LOG_SECTION_END("Finished building lsquic")
 }
 
 /* Build boringssl */
@@ -137,7 +137,7 @@ void build_boringssl(const char *arch) {
     /* Build for x64 (the host) */
     run("cd uWebSockets/uSockets/boringssl && mkdir -p x64 && cd x64 && cmake -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -GNinja .. && ninja crypto ssl");
 #endif
-    LOG_INFO("Finished building boringssl")
+    LOG_SECTION_END("Finished building boringssl")
 }
 
 /* Build for Unix systems */
@@ -157,7 +157,7 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
         printf("[Link libraries: NodeJS %s]", versions[i].name);
         run("%s -pthread" LINK_FLAGS " *.o uWebSockets/uSockets/boringssl/%s/libssl.a uWebSockets/uSockets/boringssl/%s/libcrypto.a uWebSockets/uSockets/lsquic/%s/src/liblsquic/liblsquic.a -std=c++20 -shared %s -o dist/uws_%s_%s_%s.node", cpp_compiler, arch, arch, arch, cpp_linker, os, arch, versions[i].abi);
     }
-    LOG_INFO("Finished building uWebSockets.js")
+    LOG_SECTION_END("Finished building uWebSockets.js")
 }
 
 void copy_files() {
@@ -185,7 +185,7 @@ void build_windows(char *compiler, char *cpp_compiler, char *cpp_linker, char *o
         printf("[Link libraries: NodeJS %s]", versions[i].name);
         run("%s -O3 *.o uWebSockets/uSockets/boringssl/%s/ssl.lib uWebSockets/uSockets/boringssl/%s/crypto.lib uWebSockets/uSockets/lsquic/src/liblsquic/Debug/lsquic.lib targets/node-%s/node.lib -ladvapi32 -std=c++20 -shared -o dist/uws_win32_%s_%s.node", cpp_compiler, arch, arch, versions[i].name, arch, versions[i].abi);
     }
-    LOG_INFO("Finished building uWebSockets.js")
+    LOG_SECTION_END("Finished building uWebSockets.js")
 }
 
 int main() {

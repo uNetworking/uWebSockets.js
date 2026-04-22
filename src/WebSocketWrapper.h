@@ -52,7 +52,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString<true> topic(isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -67,7 +67,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString<true> topic(isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -89,11 +89,11 @@ struct WebSocketWrapper {
             bool isBinary = args[2]->BooleanValue(isolate);
             bool compress = args[3]->BooleanValue(isolate);
 
-            NativeString<true> topic(isolate, args[0]);
+            NativeString topic(isolate, args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
-            NativeString<true> message(isolate, args[1]);
+            NativeString message(isolate, args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -127,7 +127,7 @@ struct WebSocketWrapper {
                 code = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
 
-            NativeString<true> message(args.GetIsolate(), args[1]);
+            NativeString message(args.GetIsolate(), args[1]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -244,7 +244,7 @@ struct WebSocketWrapper {
             bool isBinary = args[1]->BooleanValue(isolate);
             bool compress = args[2]->BooleanValue(isolate);
 
-            NativeString<true> message(args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }
@@ -261,7 +261,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString<true> topic(args.GetIsolate(), args[0]);
+            NativeString topic(args.GetIsolate(), args[0]);
             if (topic.isInvalid(args)) {
                 return;
             }
@@ -278,7 +278,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
-            NativeString<true> message(args.GetIsolate(), args[0]);
+            NativeString message(args.GetIsolate(), args[0]);
             if (message.isInvalid(args)) {
                 return;
             }

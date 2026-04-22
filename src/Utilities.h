@@ -118,7 +118,6 @@ struct Callback {
     }
 };
 
-template <bool AllowStringView = false>
 class NativeString {
     char *data;
     size_t length;
@@ -138,11 +137,12 @@ class NativeString {
         if (pool_offset + size > pool.size()) {
             // Mark for external cleanup if using instance-based logic
             // (Note: In a pure static alloc, you'd need a way to track this)
-            return (char*)std::malloc(size);
+            return (char*) std::malloc(size);
         }
 
         char* ptr = pool.data() + pool_offset;
         pool_offset += size;
+        ref_count++;
         return ptr;
     }
 
@@ -150,41 +150,30 @@ class NativeString {
     static void free(char* ptr) {
         if (ptr < pool.data() || ptr >= pool.data() + pool.size()) {
             ::free(ptr);
+        } else if (--ref_count == 0) {
+            // Reset the "stack" once no more reference
+            pool_offset = 0;
         }
     }
 
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
-        if (ref_count == 0) {
-            pool_offset = 0; // Reset the "stack" when entering the first scope
-        }
-        ref_count++;
-
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
-
-            #if NODE_MODULE_VERSION >= 137
-            if constexpr (AllowStringView) {
-
-                String::ValueView strView(isolate, string);
-                if (strView.is_one_byte()) {
-                    length = strView.length();
-                    data = (char *) strView.data8();
-                    
-                    return;
-                }
-            }
+            #if NODE_MODULE_VERSION >= 137 // node >= 24
+                length = string->Utf8LengthV2(isolate);
+                data = alloc(length);
+                allocated = true;
+                string->WriteUtf8V2(isolate, data, length);
+            #else
+                length = string->Utf8Length(isolate);
+                data = alloc(length);
+                allocated = true;
+                string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
             #endif
-
-            // Fallback
-            length = string->Utf8Length(isolate);
-            data = alloc(length);
-            allocated = true;
-            string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
-
         } else if (value->IsTypedArray()) {
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
             auto contents = arrayBufferView->Buffer()->GetBackingStore();
@@ -217,7 +206,6 @@ public:
     }
 
     ~NativeString() {
-        ref_count--;
         if (allocated) {
             free(data);
         }

@@ -750,7 +750,12 @@ void uWS_App_adoptSocket(const FunctionCallbackInfo<Value> &args) {
 
     int32_t fd = args[0]->Int32Value(isolate->GetCurrentContext()).ToChecked();
 
-    app->adoptSocket(fd);
+    NativeString ip(isolate, args[1]);
+    if (ip.isInvalid(args)) {
+        return;
+    }
+
+    app->adoptSocket(fd, ip.getString());
 
     args.GetReturnValue().Set(args.This());
 }

@@ -166,18 +166,7 @@ public:
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
 
-            #if NODE_MODULE_VERSION >= 137
-            if constexpr (AllowStringView) {
-
-                String::ValueView strView(isolate, string);
-                if (strView.is_one_byte()) {
-                    length = strView.length();
-                    data = (char *) strView.data8();
-                    
-                    return;
-                }
-            }
-            #endif
+            /* StringView path is Latin-1, not Utf-8 */
 
             // Fallback
             length = string->Utf8Length(isolate);

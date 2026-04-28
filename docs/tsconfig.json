@@ -1,6 +1,7 @@
 {
 	"files": [ "index.d.ts" ],
 	"compilerOptions": {
+		"strictNullChecks":true,
 		"lib": [ "es2017" ]
 	},
 	"typedocOptions": {

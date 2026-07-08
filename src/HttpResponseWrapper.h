@@ -479,6 +479,18 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes nothing, returns this */
+    template <int SSL>
+    static void res_beginWrite(const FunctionCallbackInfo<Value> &args) {
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            assumeCorked();
+            res->beginWrite();
+
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* Takes key, value. Returns this */
     template <int PROTOCOL>
     static void res_writeHeader(const FunctionCallbackInfo<Value> &args) {
@@ -600,6 +612,7 @@ struct HttpResponseWrapper {
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataV2", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataV2<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectBody<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "beginWrite", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_beginWrite<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "cork", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collect", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_cork<SSL>));

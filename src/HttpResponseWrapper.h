@@ -479,11 +479,12 @@ struct HttpResponseWrapper {
         }
     }
 
-    /* Takes nothing, returns this */
+    /* Begins chunked encoding mode and flushes headers immediately. Takes nothing, returns this */
     template <int SSL>
     static void res_beginWrite(const FunctionCallbackInfo<Value> &args) {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
+            /* We assume the user has called cork() or we are inside an implicit corked handler context */
             assumeCorked();
             res->beginWrite();
 

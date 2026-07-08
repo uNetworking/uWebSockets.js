@@ -157,6 +157,8 @@ export interface HttpResponse {
     writeHeader(key: RecognizedString, value: RecognizedString) : HttpResponse;
     /** Enters or continues chunked encoding mode. Writes part of the response. End with zero length write. Returns true if no backpressure was added. */
     write(chunk: RecognizedString) : boolean;
+    /** Begins chunked encoding mode and flushes headers immediately. */
+    beginWrite() : HttpResponse;
     /** Ends this response by copying the contents of body. */
     end(body?: RecognizedString, closeConnection?: boolean) : HttpResponse;
     /** Ends this response without a body. */

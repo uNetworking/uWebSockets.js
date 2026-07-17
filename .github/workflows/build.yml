@@ -12,14 +12,14 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        # - {
-        #     name: "Windows Latest",
-        #     os: windows-latest
-        #   }
-        # - {
-        #     name: "macOS 15",
-        #     os: macos-15
-        #   }
+        - {
+            name: "Windows Latest",
+            os: windows-latest
+          }
+        - {
+            name: "macOS 15",
+            os: macos-15
+          }
         # - {
         #     name: "Ubuntu 24.04",
         #     os: ubuntu-24.04
@@ -71,7 +71,7 @@ jobs:
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
-          git rev-parse master > source_commit
+          git rev-parse origin/dockerbuild > source_commit
           ls
           ${{ matrix.config.os != 'windows-latest' && 'git checkout dockerbuild docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status

@@ -49,8 +49,8 @@ jobs:
       - name: Setup build tools for containers
         if: matrix.config.container_image != null
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential git libssl-dev file zip curl jq
+          apt-get update
+          apt-get install -y build-essential git libssl-dev file zip curl jq
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

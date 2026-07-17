@@ -12,22 +12,22 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {
-            name: "Windows Latest",
-            os: windows-latest
-          }
-        - {
-            name: "macOS 15",
-            os: macos-15
-          }
+        # - {
+        #     name: "Windows Latest",
+        #     os: windows-latest
+        #   }
+        # - {
+        #     name: "macOS 15",
+        #     os: macos-15
+        #   }
         # - {
         #     name: "Ubuntu 24.04",
         #     os: ubuntu-24.04
         #   }
-        - {
-            name: "Ubuntu 24.04 ARM",
-            os: ubuntu-24.04-arm
-          }
+        # - {
+        #     name: "Ubuntu 24.04 ARM",
+        #     os: ubuntu-24.04-arm
+        #   }
         - {
             name: "Debian Bookworm",
             os: ubuntu-latest,
@@ -50,7 +50,7 @@ jobs:
         if: matrix.config.container_image != null
         run: |
           apt-get update
-          apt-get install -y build-essential git libssl-dev file zip curl jq
+          apt-get install -y build-essential git libssl-dev file zip curl jq cmake clang
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

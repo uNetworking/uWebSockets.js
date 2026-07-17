@@ -3,6 +3,9 @@ on:
   push:
     branches: [ dockerbuild ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -17,19 +20,19 @@ jobs:
             name: "macOS 15",
             os: macos-15
           }
-        - {
-            name: "Ubuntu 24.04",
-            os: ubuntu-24.04
-          }
+        # - {
+        #     name: "Ubuntu 24.04",
+        #     os: ubuntu-24.04
+        #   }
         - {
             name: "Ubuntu 24.04 ARM",
             os: ubuntu-24.04-arm
           }
-        # - {
-        #     name: "Debian Bookworm",
-        #     os: ubuntu-24.04,
-        #     container_image: "debian:bookworm-slim"
-        #   }
+        - {
+            name: "Debian Bookworm",
+            os: ubuntu-latest,
+            container_image: "debian:bookworm-slim"
+          }
 
     runs-on: ${{ matrix.config.os }}
     container:
@@ -43,6 +46,11 @@ jobs:
       - name: Setup NASM for Windows
         if: matrix.config.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1.2.1
+      - name: Setup build tools for containers
+        if: matrix.config.container_image != null
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git libssl-dev file zip curl jq
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -61,9 +69,9 @@ jobs:
           cp dist/*.js .
           git rev-parse master > source_commit
           ls
-          ${{ matrix.config.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
+          ${{ matrix.config.os != 'windows-latest' && 'git checkout dockerbuild docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status
           git config --global user.email "andreas@gruber.info"
           git config --global user.name "Andreas Gruber"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.config.os }} binaries" || true
-          git push "https://andygruber:${{ secrets.SECRET }}@github.com/andygruber/uWebSockets.js" binaries
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/andygruber/uWebSockets.js" binaries

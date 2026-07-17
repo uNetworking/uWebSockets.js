@@ -50,7 +50,11 @@ jobs:
         if: matrix.config.container_image != null
         run: |
           apt-get update
-          apt-get install -y build-essential git libssl-dev file zip curl jq cmake clang
+          apt-get install -y build-essential git libssl-dev zlib1g-dev file zip curl jq cmake clang-16
+          # Debian Bookworm's bare "clang" is clang-14, which lacks __builtin_source_location
+          # and cannot compile Node 26's V8 headers (std::source_location). Force clang-16.
+          update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
+          update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

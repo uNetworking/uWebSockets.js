@@ -21,14 +21,14 @@ jobs:
             os: macos-15
           }
         - {
-            name: "Ubuntu 22.04",
+            name: "Ubuntu 20.04",
             os: ubuntu-latest,
-            container_image: "ubuntu:22.04"
+            container_image: "ubuntu:20.04"
           }
         - {
-            name: "Ubuntu 22.04 ARM64",
+            name: "Ubuntu 20.04 ARM64",
             os: ubuntu-24.04-arm,
-            container_image: "ubuntu:22.04"
+            container_image: "ubuntu:20.04"
           }
 
     runs-on: ${{ matrix.config.os }}
@@ -45,6 +45,11 @@ jobs:
         uses: ilammy/setup-nasm@v1.2.1
       - name: Setup build tools for containers
         if: matrix.config.container_image != null
+        env:
+          # Prevent tzdata (pulled in by cmake/build-essential) from launching an
+          # interactive timezone prompt that hangs the build with no TTY attached.
+          DEBIAN_FRONTEND: noninteractive
+          TZ: Etc/UTC
         run: |
           apt-get update
           apt-get install -y build-essential git libssl-dev zlib1g-dev file zip curl jq cmake

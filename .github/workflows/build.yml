@@ -17,14 +17,14 @@ jobs:
             os: macos-15
           }
         - {
-            name: "Ubuntu 20.04",
+            name: "Ubuntu 22.04",
             os: ubuntu-latest,
-            container_image: "ubuntu:20.04"
+            container_image: "ubuntu:22.04"
           }
         - {
-            name: "Ubuntu 20.04 ARM64",
+            name: "Ubuntu 22.04 ARM64",
             os: ubuntu-24.04-arm,
-            container_image: "ubuntu:20.04"
+            container_image: "ubuntu:22.04"
           }
 
     runs-on: ${{ matrix.config.os }}

@@ -24,14 +24,19 @@ jobs:
         #     name: "Ubuntu 24.04",
         #     os: ubuntu-24.04
         #   }
+        # - {
+        #     name: "Ubuntu 24.04 ARM",
+        #     os: ubuntu-24.04-arm
+        #   }
         - {
-            name: "Ubuntu 24.04 ARM",
-            os: ubuntu-24.04-arm
+            name: "Ubuntu 22.04",
+            os: ubuntu-latest,
+            container_image: "ubuntu:22.04"
           }
         - {
-            name: "Debian Bookworm",
-            os: ubuntu-latest,
-            container_image: "debian:bookworm-slim"
+            name: "Ubuntu 22.04 ARM64",
+            os: ubuntu-latest-arm,
+            container_image: "ubuntu:22.04"
           }
 
     runs-on: ${{ matrix.config.os }}
@@ -50,11 +55,33 @@ jobs:
         if: matrix.config.container_image != null
         run: |
           apt-get update
-          apt-get install -y build-essential git libssl-dev zlib1g-dev file zip curl jq cmake clang-16
-          # Debian Bookworm's bare "clang" is clang-14, which lacks __builtin_source_location
+          apt-get install -y build-essential git libssl-dev zlib1g-dev file zip curl jq cmake
+          # clang-16 is not in Ubuntu 22.04 (jammy), whose newest is clang-15.
+          # Add the official LLVM apt repo to install it.
+          . /etc/os-release
+          apt-get install -y wget gnupg
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor -o /usr/share/keyrings/llvm.gpg
+          echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/$VERSION_CODENAME/ llvm-toolchain-$VERSION_CODENAME-16 main" > /etc/apt/sources.list.d/llvm.list
+          apt-get update
+          apt-get install -y clang-16
+          # Ubuntu 22.04's bare "clang" is clang-14, which lacks __builtin_source_location
           # and cannot compile Node 26's V8 headers (std::source_location). Force clang-16.
           update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
           update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100
+          echo "::group::Environment info"
+          echo "--- distro ---"
+          cat /etc/os-release
+          echo "--- architecture ---"
+          uname -a
+          dpkg --print-architecture
+          echo "--- glibc ---"
+          # ldd --version prints the glibc version on the first line; getconf gives it raw.
+          ldd --version | head -n 1
+          getconf GNU_LIBC_VERSION
+          echo "--- compiler ---"
+          clang --version
+          clang++ --version
+          echo "::endgroup::"
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

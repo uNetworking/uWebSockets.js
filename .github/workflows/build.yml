@@ -20,14 +20,6 @@ jobs:
             name: "macOS 15",
             os: macos-15
           }
-        # - {
-        #     name: "Ubuntu 24.04",
-        #     os: ubuntu-24.04
-        #   }
-        # - {
-        #     name: "Ubuntu 24.04 ARM",
-        #     os: ubuntu-24.04-arm
-        #   }
         - {
             name: "Ubuntu 22.04",
             os: ubuntu-latest,
@@ -35,7 +27,7 @@ jobs:
           }
         - {
             name: "Ubuntu 22.04 ARM64",
-            os: ubuntu-latest-arm,
+            os: ubuntu-24.04-arm,
             container_image: "ubuntu:22.04"
           }
 
@@ -102,7 +94,7 @@ jobs:
           ls
           ${{ matrix.config.os != 'windows-latest' && 'git checkout dockerbuild docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status
-          git config --global user.email "andreas@gruber.info"
-          git config --global user.name "Andreas Gruber"
+          git config --global user.email "alexhultman@gmail.com"
+          git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.config.os }} binaries" || true
-          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/andygruber/uWebSockets.js" binaries
+          git push "https://andygruber:${{ secrets.SECRET }}@github.com/andygruber/uWebSockets.js" binaries

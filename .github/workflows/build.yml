@@ -1,11 +1,7 @@
 name: Build
 on:
   push:
-    branches: [ dockerbuild ]
-
-permissions:
-  contents: write
-
+    branches: [ master ]
 jobs:
   build:
     strategy:
@@ -34,7 +30,6 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     container:
       image: ${{ matrix.config.container_image }}
-      options: --user root
 
     steps:
       - name: Setup Windows
@@ -85,7 +80,7 @@ jobs:
           node-version: 26
       - name: Update binaries
         run: |
-          git clone --recursive https://github.com/andygruber/uWebSockets.js.git -b dockerbuild
+          git clone --recursive https://github.com/uNetworking/uWebSockets.js.git -b master
           cd uWebSockets.js
           ${{ matrix.config.os == 'windows-latest' && 'nmake' || 'make' }}
           ls dist
@@ -95,11 +90,11 @@ jobs:
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
-          git rev-parse origin/dockerbuild > source_commit
+          git rev-parse origin/master > source_commit
           ls
-          ${{ matrix.config.os != 'windows-latest' && 'git checkout dockerbuild docs/index.d.ts && mv docs/index.d.ts .' || '' }}
+          ${{ matrix.config.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}
           git status
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.config.os }} binaries" || true
-          git push "https://andygruber:${{ secrets.SECRET }}@github.com/andygruber/uWebSockets.js" binaries
+          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries

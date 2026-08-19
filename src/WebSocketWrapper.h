@@ -19,7 +19,10 @@
 #include "Utilities.h"
 
 #include <v8.h>
+/* V8 14 (Node 26) removed the fast api calls header */
+#if V8_MAJOR_VERSION < 14
 #include "v8-fast-api-calls.h"
+#endif
 using namespace v8;
 
 /* todo: probably isCorked, cork should be exposed? */
@@ -331,6 +334,7 @@ struct WebSocketWrapper {
      * A null internal-field pointer (closed socket) sets options.fallback = true so V8
      * re-invokes the slow path which throws the proper exception. */
 
+#if V8_MAJOR_VERSION < 14
 // Version A: Handles Strings
 template <bool SSL>
 static uint32_t uWS_WebSocket_send_fast_string(v8::Local<v8::Object> receiver, 
@@ -369,6 +373,7 @@ static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver,
     return ws->send(std::string_view(data, length),
                     isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
 }
+#endif
 
     template <bool SSL>
     static Local<Object> init(Isolate *isolate) {
@@ -386,7 +391,9 @@ static uint32_t uWS_WebSocket_send_fast_buffer(v8::Local<v8::Object> receiver,
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "sendLastFragment", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_sendLastFragment<SSL>));
 
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getUserData", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_getUserData<SSL>));
+#if V8_MAJOR_VERSION < 14
         static v8::CFunction fast_send = v8::CFunction::Make(uWS_WebSocket_send_fast_buffer<SSL>);
+#endif
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "send", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_send<SSL>/*, Local<Value>(), Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect, &fast_send*/));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_end<SSL>));
         wsTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "close", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, uWS_WebSocket_close<SSL>));

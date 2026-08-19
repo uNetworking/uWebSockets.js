@@ -50,7 +50,9 @@ struct HttpRequestWrapper {
             Local<Function> cb = Local<Function>::Cast(args[0]);
 
             for (auto p : *req) {
-                Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked(),
+                /* Keys repeat on every request, kInternalized hits V8's string table
+                 * instead of allocating, and is already interned for JS property use */
+                Local<Value> argv[] = {String::NewFromUtf8(isolate, p.first.data(), NewStringType::kInternalized, p.first.length()).ToLocalChecked(),
                                        String::NewFromUtf8(isolate, p.second.data(), NewStringType::kNormal, p.second.length()).ToLocalChecked()};
                 /* This one is also called from JS so no need for CallJS */
                 cb->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 2, argv).IsEmpty();
@@ -133,7 +135,8 @@ struct HttpRequestWrapper {
         if (req) {
             std::string_view method = req->getMethod();
 
-            args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), NewStringType::kNormal, method.length()).ToLocalChecked());
+            /* Drawn from a fixed small set, kInternalized dedupes via V8's string table */
+            args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), NewStringType::kInternalized, method.length()).ToLocalChecked());
         }
     }
 
@@ -145,7 +148,7 @@ struct HttpRequestWrapper {
         if (req) {
             std::string_view method = req->getCaseSensitiveMethod();
 
-            args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), NewStringType::kNormal, method.length()).ToLocalChecked());
+            args.GetReturnValue().Set(String::NewFromUtf8(isolate, method.data(), NewStringType::kInternalized, method.length()).ToLocalChecked());
         }
     }
 

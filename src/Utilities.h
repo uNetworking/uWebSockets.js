@@ -141,41 +141,40 @@ template <bool AllowStringView = false>
 class NativeString {
     char *data;
     size_t length;
-    bool allocated = false;
+    bool needsFree = false;
     bool invalid = false;
 
     // Static thread-local state shared by all NativeString instances on this thread
+    // Pool size must be a multiple of 8 because pool_offset is 8-byte aligned
     inline static thread_local std::vector<char> pool = std::vector<char>(128 * 1024);
     inline static thread_local size_t pool_offset = 0;
     inline static thread_local int ref_count = 0;
 
-    static char* alloc(size_t size) {
-        // Ensure size is a multiple of 8
-        size = (size + 7) & ~7;
-
-        // Fallback for allocations larger than the remaining pool space
-        if (pool_offset + size > pool.size()) {
-            // Mark for external cleanup if using instance-based logic
-            // (Note: In a pure static alloc, you'd need a way to track this)
-            return (char*)std::malloc(size);
+    static char* getPoolPtr(size_t size) {
+        if (size > pool.size() - pool_offset) {
+            return nullptr;
         }
-
-        char* ptr = pool.data() + pool_offset;
-        pool_offset += size;
-        return ptr;
+        return pool.data() + pool_offset;
     }
 
-    // Provided for completeness, though the "pool" doesn't actually free individual slices
-    static void free(char* ptr) {
-        if (ptr < pool.data() || ptr >= pool.data() + pool.size()) {
-            ::free(ptr);
-        }
+    static void commitPool(size_t size) {
+        // pool_offset is 8-byte aligned for access performance
+        pool_offset += (size + 7) & ~size_t{7};
+    }
+
+    static void clearPool() {
+        pool_offset = 0;
     }
 
 public:
+    NativeString(const NativeString&) = delete;
+    NativeString& operator=(const NativeString&) = delete;
+    NativeString(NativeString&&) = delete;
+    NativeString& operator=(NativeString&&) = delete;
+
     NativeString(Isolate *isolate, const Local<Value> &value) {
         if (ref_count == 0) {
-            pool_offset = 0; // Reset the "stack" when entering the first scope
+            clearPool();
         }
         ref_count++;
 
@@ -184,39 +183,60 @@ public:
             length = 0;
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
+            const size_t stringLength = static_cast<size_t>(string->Length());
+            size_t allocSize;
 
-            /* StringView path is Latin-1, not Utf-8 */
+            // Get the worst-case allocation size
+            if (string->IsOneByte()) { // Latin-1 -> UTF-8
+                allocSize = 2 * stringLength;
+            } else { // UTF-16 -> UTF-8
+                allocSize = 3 * stringLength;
+            }
 
+            // Allocate data
+            data = getPoolPtr(allocSize);
+            if (data == nullptr) {
+                // Worst-case size can't be pooled: calculate the exact size
+                #if (V8_MAJOR_VERSION == 14)
+                    allocSize = string->Utf8LengthV2(isolate);
+                #else
+                    allocSize = string->Utf8Length(isolate);
+                #endif
+
+                data = getPoolPtr(allocSize);
+                if (data == nullptr) {
+                    // Still can't be pooled: heap allocate it
+                    data = static_cast<char*>(std::malloc(allocSize));
+                    if (data == nullptr) {
+                        invalid = true;
+                        return;
+                    }
+                    needsFree = true;
+                }
+            }
+
+            // Convert to UTF-8 into data and get the number of bytes written
             #if (V8_MAJOR_VERSION == 14)
-                // Fallback
-                length = string->Utf8LengthV2(isolate);
-                data = alloc(length);
-                allocated = true;
-                string->WriteUtf8V2(isolate, data, length);
+                length = string->WriteUtf8V2(isolate, data, allocSize);
             #else
-                // Fallback
-                length = string->Utf8Length(isolate);
-                data = alloc(length);
-                allocated = true;
-                string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
+                length = string->WriteUtf8(isolate, data, allocSize, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
             #endif
-
-
+            if (!needsFree) {
+                commitPool(length);
+            }
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
-            auto contents = arrayBufferView->Buffer()->GetBackingStore();
+            Local<ArrayBuffer> arrayBuffer = arrayBufferView->Buffer();
             length = arrayBufferView->ByteLength();
-            data = (char *) contents->Data() + arrayBufferView->ByteOffset();
+            data = (char *) arrayBuffer->Data() + arrayBufferView->ByteOffset();
         } else if (value->IsArrayBuffer()) {
             Local<ArrayBuffer> arrayBuffer = Local<ArrayBuffer>::Cast(value);
-            auto contents = arrayBuffer->GetBackingStore();
-            length = contents->ByteLength();
-            data = (char *) contents->Data();
+            length = arrayBuffer->ByteLength();
+            data = (char *) arrayBuffer->Data();
         } else if (value->IsSharedArrayBuffer()) {
             Local<SharedArrayBuffer> arrayBuffer = Local<SharedArrayBuffer>::Cast(value);
-            auto contents = arrayBuffer->GetBackingStore();
-            length = contents->ByteLength();
-            data = (char *) contents->Data();
+            length = arrayBuffer->ByteLength();
+            data = (char *) arrayBuffer->Data();
         } else {
             invalid = true;
         }
@@ -235,8 +255,8 @@ public:
 
     ~NativeString() {
         ref_count--;
-        if (allocated) {
-            free(data);
+        if (needsFree) {
+            ::free(data);
         }
     }
 };

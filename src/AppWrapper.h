@@ -983,7 +983,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                     /* µWS itself will terminate if not responded and not attached
                     * onAborted handler, so we can assume it's done */
-                }/*, 13*/);
+                }, 13);
 
                 args.GetReturnValue().Set(args.This());
 

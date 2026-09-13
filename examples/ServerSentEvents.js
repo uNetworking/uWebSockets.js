@@ -31,7 +31,10 @@ const app = uWS./*SSL*/App({
   res.writeStatus('200 OK')
 
   let intervalRef = setInterval(() => {
-    res.write(serializeData({ message: 'Hello world!' }))
+    /* Writes made outside of a uWS callback, like from a timer, must be corked */
+    res.cork(() => {
+      res.write(serializeData({ message: 'Hello world!' }))
+    })
   }, 1000)
 
   res.onAborted(() => {

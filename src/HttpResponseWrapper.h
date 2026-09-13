@@ -44,8 +44,8 @@ struct HttpResponseWrapper {
         if constexpr (PROTOCOL == 2) {
             return (uWS::Http3Response *) res;
         } else if constexpr (PROTOCOL == 3) {
-            //return (uWS::CachingHttpResponse *) res; // is correct
-            return (uWS::HttpResponse<PROTOCOL != 0> *) res; // not correct
+            return (uWS::HttpCacheResponse *) res; // is correct
+            //return (uWS::HttpResponse<PROTOCOL != 0> *) res; // not correct
         } else {
             return (uWS::HttpResponse<PROTOCOL != 0> *) res;
         }
@@ -589,11 +589,11 @@ struct HttpResponseWrapper {
         } else if (SSL == 2) {
             resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.Http3Response", NewStringType::kNormal).ToLocalChecked());
         } else if (SSL == 3) {
-            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.CachedHttpResponse", NewStringType::kNormal).ToLocalChecked());
+            resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpCacheResponse", NewStringType::kNormal).ToLocalChecked());
         }
         resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
 
-        /* Register our functions */
+        /* Register our functions (the most common go here) */
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));
         
         /* Cache has almost nothing wrapped yet */

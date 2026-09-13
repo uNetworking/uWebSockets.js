@@ -934,9 +934,10 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* All the http methods */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         
-        /* Add non-cached variants */
+        /* Is this non-SSL? */
         if constexpr (std::is_same<APP, uWS::App>::value) {
 
+            /* Did we get 3 arguments (cached registry)? */
             if (args.Length() == 3) {
 
                 /* Get secondsToExpiry */
@@ -993,11 +994,17 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
 
             } else {
-                uWS_App_get<APP>(&uWS::TemplatedApp<false>::get, args);
+                /* This is non-SSL but not using cache */
+                //uWS_App_get<APP>(&uWS::TemplatedApp<false>::get, args);
+
+                uWS_App_get<APP>(static_cast<APP && (APP::*)(std::string, uWS::MoveOnlyFunction<void(uWS::HttpResponse<false> *, uWS::HttpRequest *)> &&)>(&APP::get), args);
             }
 
         } else if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
-            uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
+            /* This is SSL and not using cache */
+            //uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
+
+            uWS_App_get<APP>(static_cast<APP && (APP::*)(std::string, uWS::MoveOnlyFunction<void(uWS::HttpResponse<true> *, uWS::HttpRequest *)> &&)>(&APP::get), args);
         }
        
     }, args.Data()));

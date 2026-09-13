@@ -1,15 +1,14 @@
 /* An example showing a short-interval Http cache for a finance service */
 
-/* Note: We do not have this NPM module name */
-const uWS = require('uWebSockets.js');
+const uWS = require('../dist/uws.js');
 const port = 9001;
 
 /* A cache of 1 second is enough to rate limit and speed up the performance by orders of magnitude */
-const secondsToExpiry = 1;
+const secondsToExpiry = 60;
 
-const app = uWS.App().get('/prices/gold', async (res, req) => {
-  /* Before going async we need to listen to socket abortions */
+uWS.App().get('/prices/gold', async (res, req) => {
   try {
+    /* Before going async we need to listen to socket abortions */
     res.onAborted(() => {
       throw "Socket Aborted";
     });

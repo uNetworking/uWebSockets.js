@@ -938,8 +938,12 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         if constexpr (std::is_same<APP, uWS::App>::value) {
 
             if (args.Length() == 3) {
+
+                /* Get secondsToExpiry */
+                unsigned int secondsToExpiry = args[2]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
+                
                 /* Use cached variant */
-                std::cout << "Registering cached get handler" << std::endl;
+                std::cout << "Registering cached get handler with expiry = " << secondsToExpiry << std::endl;
 
 
                 APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
@@ -983,7 +987,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                     /* µWS itself will terminate if not responded and not attached
                     * onAborted handler, so we can assume it's done */
-                }, 13);
+                }, secondsToExpiry);
 
                 args.GetReturnValue().Set(args.This());
 

@@ -94,8 +94,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onData([p = std::move(p), isolate](std::string_view data, bool last) {
                 HandleScope hs(isolate);
@@ -103,7 +103,7 @@ struct HttpResponseWrapper {
                 Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer_New(isolate, (void *) data.data(), data.length());
 
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
-                CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
+                CallJS(isolate, Local<Function>::New(isolate, p.p), 2, argv);
 
                 dataArrayBuffer->Detach();
             });
@@ -197,8 +197,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onDataV2([p = std::move(p), isolate](std::string_view data, uint64_t maxRemainingBodyLength) {
                 HandleScope hs(isolate);
@@ -207,7 +207,7 @@ struct HttpResponseWrapper {
 
                 /* Pass maxRemainingBodyLength so user can preallocate; 0 signals the last chunk */
                 Local<Value> argv[] = {dataArrayBuffer, BigInt::NewFromUnsigned(isolate, maxRemainingBodyLength)};
-                CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
+                CallJS(isolate, Local<Function>::New(isolate, p.p), 2, argv);
 
                 dataArrayBuffer->Detach();
             });
@@ -222,19 +222,22 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* The callback is kept alive by the res object itself (internal field 1):
+             * one global handle per request instead of two, and a 16 byte capture that
+             * fits MoveOnlyFunction's inline storage instead of heap-allocating */
+            args.This()->SetInternalField(1, args[0]);
 
-            /* This is how we capture res (C++ this in invocation of this function) */
-            UniquePersistent<Object> resObject(isolate, args.This());
+            NoexceptPersistent<Object> resObject(isolate, args.This());
 
-            res->onAborted([p = std::move(p), resObject = std::move(resObject), isolate]() {
+            res->onAborted([resObject = std::move(resObject), isolate]() {
                 HandleScope hs(isolate);
 
-                /* Mark this resObject invalid */
-                setInternalPointer(Local<Object>::New(isolate, resObject), nullptr);//->SetAlignedPointerInInternalField(0, nullptr);
+                Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);
 
-                CallJS(isolate, Local<Function>::New(isolate, p), 0, nullptr);
+                /* Mark this resObject invalid */
+                setInternalPointer(resLocal, nullptr);
+
+                CallJS(isolate, Local<Function>::Cast(resLocal->GetInternalField(1).As<Value>()), 0, nullptr);
             });
 
             args.GetReturnValue().Set(args.This());
@@ -341,8 +344,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onWritable([p = std::move(p), isolate](size_t offset) -> bool {
                 HandleScope hs(isolate);
@@ -350,7 +353,7 @@ struct HttpResponseWrapper {
                 Local<Value> argv[] = {Number::New(isolate, offset)};
 
                 /* We should check if this is really here! */
-                MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p.p), 1, argv);
                 if (maybeBoolean.IsEmpty()) {
                     std::cerr << "Warning: uWS.HttpResponse.onWritable callback should return Boolean. See documentation for uWS.HttpResponse.onWritable and consult the user manual." << std::endl;
                     /* The default should be true, as it only adds a potential extra send, rather than erroneously avoid it */
@@ -454,11 +457,8 @@ struct HttpResponseWrapper {
             }
 
             /* This is a quick fix, it will need updating in µWS later on */
-            Local<Array> array = Array::New(isolate, 2);
-            array->Set(isolate->GetCurrentContext(), 0, Boolean::New(isolate, ok)).ToChecked();
-            array->Set(isolate->GetCurrentContext(), 1, Boolean::New(isolate, hasResponded)).ToChecked();
-
-            args.GetReturnValue().Set(array);
+            Local<Value> elems[] = {Boolean::New(isolate, ok), Boolean::New(isolate, hasResponded)};
+            args.GetReturnValue().Set(Array::New(isolate, elems, 2));
         }
     }
 
@@ -591,7 +591,8 @@ struct HttpResponseWrapper {
         } else if (SSL == 3) {
             resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.CachedHttpResponse", NewStringType::kNormal).ToLocalChecked());
         }
-        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+        /* Field 0 is the native pointer, field 1 holds the onAborted callback */
+        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(2);
 
         /* Register our functions */
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));

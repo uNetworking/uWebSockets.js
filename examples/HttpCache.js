@@ -18,6 +18,18 @@ uWS.App().get('/prices/gold', async (res, req) => {
     /* No need to handle anything here */
     console.log(error);
   }
+}, secondsToExpiry).get('/prices/bitcoin', async (res, req) => {
+  try {
+    /* Before going async we need to listen to socket abortions */
+    res.onAborted(() => {
+      throw "Socket Aborted";
+    });
+    /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
+    res.end(await getBitcoinPriceJSON());
+  } catch (error) {
+    /* No need to handle anything here */
+    console.log(error);
+  }
 }, secondsToExpiry).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);
@@ -25,6 +37,48 @@ uWS.App().get('/prices/gold', async (res, req) => {
     console.log('Failed to listen to port ' + port);
   }
 });
+
+/**
+ * Async getter that fetches real-time Bitcoin (BTC/USDT) price from Binance.
+ * @returns {Promise<string>} Pretty-printed JSON payload.
+ */
+async function getBitcoinPriceJSON() {
+  const url = 'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT';
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const now = new Date();
+
+    const output = {
+      status: 'success',
+      asset: 'Bitcoin',
+      symbol: data.symbol,
+      price: parseFloat(data.price),
+      currency: 'USDT',
+      timestamp: Math.floor(now.getTime() / 1000),
+      isoDate: now.toISOString()
+    };
+
+    return JSON.stringify(output, null, 2);
+
+  } catch (error) {
+    return JSON.stringify({
+      status: 'error',
+      message: error.message
+    }, null, 2);
+  }
+}
 
 /**
  * Async getter to retrieve current Gold price without third-party packages.

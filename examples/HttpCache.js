@@ -3,9 +3,6 @@
 const uWS = require('../dist/uws.js');
 const port = 9001;
 
-/* A cache of 1 second is enough to rate limit and speed up the performance by orders of magnitude */
-const secondsToExpiry = 60;
-
 uWS.App().get('/prices/gold', async (res, req) => {
   try {
     /* Before going async we need to listen to socket abortions */
@@ -18,19 +15,34 @@ uWS.App().get('/prices/gold', async (res, req) => {
     /* No need to handle anything here */
     console.log(error);
   }
-}, secondsToExpiry).get('/prices/bitcoin', async (res, req) => {
-  try {
-    /* Before going async we need to listen to socket abortions */
-    res.onAborted(() => {
-      throw "Socket Aborted";
+}, {
+  /* This object specifies the caching options */
+  lowerExpiry: 1,
+  upperExpiry: 5
+}).get('/prices/bitcoin', async (res, req) => {
+
+  console.log("Hitting JavaScript");
+  console.time("cache update");
+
+  /* Before going async we need to listen to socket abortions */
+  res.onAborted(() => {
+    res.aborted = true;
+  });
+  /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
+  const bitcoinPrice = await getBitcoinPriceJSON();
+  if (!res.aborted) {
+    res.cork(() => {
+      console.log("JavaScript is done fetching async data");
+      console.timeEnd("cache update");
+      res.end(bitcoinPrice);
     });
-    /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
-    res.end(await getBitcoinPriceJSON());
-  } catch (error) {
-    /* No need to handle anything here */
-    console.log(error);
   }
-}, secondsToExpiry).listen(port, (token) => {
+
+}, {
+  /* This object specifies the caching options */
+  lowerExpiry: 1,
+  upperExpiry: 5
+}).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);
   } else {

@@ -940,12 +940,41 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             /* Did we get 3 arguments (cached registry)? */
             if (args.Length() == 3) {
 
-                /* Get secondsToExpiry */
-                unsigned int secondsToExpiry = args[2]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked();
-                
-                /* Use cached variant */
-                std::cout << "Registering cached get handler with expiry = " << secondsToExpiry << std::endl;
 
+                /* Grab the cache arguments */
+                v8::Isolate* isolate = args.GetIsolate();
+                v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+                // 1. Ensure args[2] is an Object
+                if (!args[2]->IsObject()) {
+                    isolate->ThrowException(v8::Exception::TypeError(
+                        v8::String::NewFromUtf8(isolate, "Cache options must be an object").ToLocalChecked()));
+                    return;
+                }
+
+                v8::Local<v8::Object> optionsObj = args[2].template As<v8::Object>();
+
+                // 2. Create V8 strings for the property names
+                v8::Local<v8::String> lowerKey = v8::String::NewFromUtf8(isolate, "lowerExpiry").ToLocalChecked();
+                v8::Local<v8::String> upperKey = v8::String::NewFromUtf8(isolate, "upperExpiry").ToLocalChecked();
+
+                // 3. Extract properties safely with defaults if missing
+                v8::Local<v8::Value> lowerVal;
+                v8::Local<v8::Value> upperVal;
+
+                unsigned int lowerExpiry = 0;
+                unsigned int upperExpiry = 0;
+
+                if (optionsObj->Get(context, lowerKey).ToLocal(&lowerVal) && lowerVal->IsNumber()) {
+                    lowerExpiry = lowerVal->Uint32Value(context).ToChecked();
+                }
+
+                if (optionsObj->Get(context, upperKey).ToLocal(&upperVal) && upperVal->IsNumber()) {
+                    upperExpiry = upperVal->Uint32Value(context).ToChecked();
+                }
+
+
+                std::cout << "lowerExpiry = " << lowerExpiry << ", upperExpiry = " << upperExpiry << std::endl;
 
                 APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
 
@@ -988,7 +1017,10 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                     /* µWS itself will terminate if not responded and not attached
                     * onAborted handler, so we can assume it's done */
-                }, secondsToExpiry);
+                }, {
+                    .lowerExpiry = lowerExpiry,
+                    .upperExpiry = upperExpiry
+                });
 
                 args.GetReturnValue().Set(args.This());
 

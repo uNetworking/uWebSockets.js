@@ -112,6 +112,16 @@ static inline bool missingArguments(int length, const FunctionCallbackInfo<Value
     return false;
 }
 
+/* v8::Global's move constructor is not noexcept, so any lambda capturing one fails
+ * MoveOnlyFunction's small-object test and heap-allocates. This wrapper restores the
+ * noexcept move (the underlying move is a pointer swap, it cannot throw) */
+template <class T>
+struct NoexceptPersistent {
+    UniquePersistent<T> p;
+    NoexceptPersistent(Isolate *isolate, const Local<T> &v) : p(isolate, v) {}
+    NoexceptPersistent(NoexceptPersistent &&other) noexcept : p(std::move(other.p)) {}
+};
+
 struct Callback {
     bool invalid = false;
     UniquePersistent<Function> f;
@@ -184,6 +194,30 @@ public:
             length = 0;
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
+
+#if V8_MAJOR_VERSION > 12 || (V8_MAJOR_VERSION == 12 && V8_MINOR_VERSION >= 5)
+            /* One-byte ASCII fast path: single scan + memcpy instead of the two-pass
+             * Utf8Length + WriteUtf8 (ASCII bytes are identical in Latin-1 and Utf-8).
+             * No V8 allocation may happen while the view is alive, we only copy */
+            {
+                String::ValueView view(isolate, string);
+                if (view.is_one_byte()) {
+                    const uint8_t *src = view.data8();
+                    uint32_t len = view.length();
+                    uint8_t seen = 0;
+                    for (uint32_t i = 0; i < len; i++) {
+                        seen |= src[i];
+                    }
+                    if (!(seen & 0x80)) {
+                        length = len;
+                        data = alloc(len);
+                        allocated = true;
+                        memcpy(data, src, len);
+                        return;
+                    }
+                }
+            }
+#endif
 
             /* StringView path is Latin-1, not Utf-8 */
 

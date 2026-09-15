@@ -1,20 +1,27 @@
-/* An example showing a short-interval Http cache for a finance service */
+/* An example showing microcaching for /prices/gold and /prices/bitcoin */
 
 const uWS = require('../dist/uws.js');
 const port = 9001;
 
 uWS.App().get('/prices/gold', async (res, req) => {
-  try {
-    /* Before going async we need to listen to socket abortions */
-    res.onAborted(() => {
-      throw "Socket Aborted";
+
+  console.log("Hitting JavaScript");
+  console.time("cache update");
+
+  /* Before going async we need to listen to socket abortions */
+  res.onAborted(() => {
+    res.aborted = true;
+  });
+  /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
+  const bitcoinPrice = await getGoldPriceJSON();
+  if (!res.aborted) {
+    res.cork(() => {
+      console.log("JavaScript is done fetching async data");
+      console.timeEnd("cache update");
+      res.end(bitcoinPrice);
     });
-    /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
-    res.end(await getGoldPriceJSON());
-  } catch (error) {
-    /* No need to handle anything here */
-    console.log(error);
   }
+
 }, {
   /* This object specifies the caching options */
   lowerExpiry: 1,

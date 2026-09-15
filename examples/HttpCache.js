@@ -13,12 +13,12 @@ uWS.App().get('/prices/gold', async (res, req) => {
     res.aborted = true;
   });
   /* This would be some async DB action or fetch quest that you want to essentially rate-limit */
-  const bitcoinPrice = await getGoldPriceJSON();
+  const goldPrice = await getGoldPriceJSON();
   if (!res.aborted) {
     res.cork(() => {
       console.log("JavaScript is done fetching async data");
       console.timeEnd("cache update");
-      res.end(bitcoinPrice);
+      res.end(goldPrice);
     });
   }
 

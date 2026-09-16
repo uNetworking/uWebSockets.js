@@ -274,11 +274,13 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    Local<Array> stringKeys = Array::New(args.GetIsolate(), kvStoreString.size());
+    auto &keys = kvStoreString[std::string(collection.getString())];
+
+    Local<Array> stringKeys = Array::New(args.GetIsolate(), keys.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreString[std::string(collection.getString())]) {
+    for (auto p : keys) {
         stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 
@@ -292,11 +294,13 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    Local<Array> integerKeys = Array::New(args.GetIsolate(), kvStoreInteger.size());
+    auto &keys = kvStoreInteger[std::string(collection.getString())];
+
+    Local<Array> integerKeys = Array::New(args.GetIsolate(), keys.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreInteger[std::string(collection.getString())]) {
+    for (auto p : keys) {
         integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 

@@ -1,6 +1,6 @@
 /* Minimal SSL/non-SSL example using PROXY Protocol v2 */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 3000;
 
 const app = uWS./*SSL*/App({

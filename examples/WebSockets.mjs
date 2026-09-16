@@ -1,6 +1,6 @@
-/* Simple pub/sub broadcasting example */
+/* A quite detailed WebSockets example */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({
@@ -9,24 +9,22 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).ws('/*', {
   /* Options */
-  compression: 0,
+  compression: uWS.SHARED_COMPRESSOR,
   maxPayloadLength: 16 * 1024 * 1024,
   idleTimeout: 10,
-
   /* Handlers */
   open: (ws) => {
-    /* Let this client listen to topic "broadcast" */
-    ws.subscribe('broadcast');
+    console.log('A WebSocket connected!');
   },
   message: (ws, message, isBinary) => {
-    /* Broadcast this message */
-    ws.publish('broadcast', message, isBinary);
+    /* Ok is false if backpressure was built up, wait for drain */
+    let ok = ws.send(message, isBinary);
   },
   drain: (ws) => {
-
+    console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
   },
   close: (ws, code, message) => {
-    /* The library guarantees proper unsubscription at close */
+    console.log('WebSocket closed');
   }
 }).any('/*', (res, req) => {
   res.end('Nothing to see here!');

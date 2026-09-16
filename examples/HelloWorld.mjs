@@ -9,7 +9,7 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).get('/*', (res, req) => {
   res.end('Hello World!');
-}).listen(port, (token) => {
+}, {lowerExpiry: 1, upperExpiry: 10}).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);
   } else {

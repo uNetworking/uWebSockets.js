@@ -1,8 +1,14 @@
-const https = require('https');
-const forge = require('node-forge');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
+import https from 'https';
+import forge from 'node-forge';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import uWS from '../dist/uws.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Generate CA certificate
 const ca = generateCACertificate();
 const caCertPem = pemEncodeCert(ca.cert);
@@ -21,7 +27,6 @@ fs.writeFileSync(path.join(__dirname, "server.ca"), caCertPem);
 fs.writeFileSync(path.join(__dirname, "server.key"), serverKeyPem);
 fs.writeFileSync(path.join(__dirname, "server.cert"), serverCertPem);
 
-const uWS = require('../dist/uws');
 const port = 8086;
 
 const app = uWS.SSLApp({

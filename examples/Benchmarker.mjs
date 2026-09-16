@@ -1,5 +1,5 @@
 /* Non-SSL is simply App() */
-const uWS = require('uWebSockets.js');
+import uWS from 'uWebSockets.js';
 	uWS.App()
 	.get('/', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain').end('Hi'))
 	.get('/id/:id', new uWS.DeclarativeResponse().writeHeader('content-type', 'text/plain')

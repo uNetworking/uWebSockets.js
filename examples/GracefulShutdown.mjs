@@ -1,6 +1,6 @@
 /* Minimal example that shuts down gracefully */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 /* We store the listen socket here, so that we can shut it down later */

@@ -1,6 +1,6 @@
 /* Minimal SSL example using ServerNameIndication */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS.SSLApp({

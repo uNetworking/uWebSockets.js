@@ -1,13 +1,11 @@
-/* An example showing microcaching for /prices/gold and /prices/bitcoin */
+/* An example showing microcaching for /prices/gold and /prices/bitcoin. */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';;
 const port = 9001;
 
+import { setTimeout } from 'node:timers/promises';
+
 uWS.App().get('/prices/gold', async (res, req) => {
-
-  console.log("Hitting JavaScript");
-  console.time("cache update");
-
   /* Before going async we need to listen to socket abortions */
   res.onAborted(() => {
     res.aborted = true;
@@ -16,21 +14,14 @@ uWS.App().get('/prices/gold', async (res, req) => {
   const goldPrice = await getGoldPriceJSON();
   if (!res.aborted) {
     res.cork(() => {
-      console.log("JavaScript is done fetching async data");
-      console.timeEnd("cache update");
       res.end(goldPrice);
     });
   }
-
 }, {
   /* This object specifies the caching options */
   lowerExpiry: 1,
   upperExpiry: 5
 }).get('/prices/bitcoin', async (res, req) => {
-
-  console.log("Hitting JavaScript");
-  console.time("cache update");
-
   /* Before going async we need to listen to socket abortions */
   res.onAborted(() => {
     res.aborted = true;
@@ -39,12 +30,9 @@ uWS.App().get('/prices/gold', async (res, req) => {
   const bitcoinPrice = await getBitcoinPriceJSON();
   if (!res.aborted) {
     res.cork(() => {
-      console.log("JavaScript is done fetching async data");
-      console.timeEnd("cache update");
       res.end(bitcoinPrice);
     });
   }
-
 }, {
   /* This object specifies the caching options */
   lowerExpiry: 1,

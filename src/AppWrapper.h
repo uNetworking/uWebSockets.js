@@ -974,8 +974,6 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 }
 
 
-                std::cout << "lowerExpiry = " << lowerExpiry << ", upperExpiry = " << upperExpiry << std::endl;
-
                 APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
 
                 /* Pattern */

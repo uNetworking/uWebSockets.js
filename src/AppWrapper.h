@@ -551,19 +551,21 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
         Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
     };
 
-    /* Host is first, if present */
+    /* Host is first, if present (an empty host still takes that slot) */
     std::string host;
+    int firstNumber = 0;
     if (!args[0]->IsNumber()) {
         NativeString h(isolate, args[0]);
         if (h.isInvalid(args)) {
             return;
         }
         host = h.getString();
+        firstNumber = 1;
     }
 
     /* Port, options are in the middle, if present */
     std::vector<int> numbers;
-    for (int i = std::min<int>(1, host.length()); i < args.Length() - 1; i++) {
+    for (int i = firstNumber; i < args.Length() - 1; i++) {
         numbers.push_back(args[i]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked());
     }
 

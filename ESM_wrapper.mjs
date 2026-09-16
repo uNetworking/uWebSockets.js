@@ -1,19 +1,31 @@
-import uws from "./uws.js";
+// Auto-generated ESM wrapper — DO NOT EDIT MANUALLY
+import uws from './index.js';
 
 export default uws;
 
-// App
 export const App = uws.App;
 export const SSLApp = uws.SSLApp;
-
-// Listen options
-export const LIBUS_LISTEN_EXCLUSIVE_PORT = uws.LIBUS_LISTEN_EXCLUSIVE_PORT;
-
-// µSockets functions
+export const H3App = uws.H3App;
+export const getString = uws.getString;
+export const setString = uws.setString;
+export const getInteger = uws.getInteger;
+export const setInteger = uws.setInteger;
+export const incInteger = uws.incInteger;
+export const lock = uws.lock;
+export const unlock = uws.unlock;
+export const getIntegerKeys = uws.getIntegerKeys;
+export const getStringKeys = uws.getStringKeys;
+export const deleteString = uws.deleteString;
+export const deleteInteger = uws.deleteInteger;
+export const deleteStringCollection = uws.deleteStringCollection;
+export const deleteIntegerCollection = uws.deleteIntegerCollection;
+export const setTimeout = uws.setTimeout;
+export const clearTimeout = uws.clearTimeout;
+export const arm = uws.arm;
+export const _cfg = uws._cfg;
+export const getParts = uws.getParts;
 export const us_listen_socket_close = uws.us_listen_socket_close;
 export const us_socket_local_port = uws.us_socket_local_port;
-
-// Compression enum
 export const DISABLED = uws.DISABLED;
 export const SHARED_COMPRESSOR = uws.SHARED_COMPRESSOR;
 export const SHARED_DECOMPRESSOR = uws.SHARED_DECOMPRESSOR;
@@ -34,20 +46,5 @@ export const DEDICATED_DECOMPRESSOR_4KB = uws.DEDICATED_DECOMPRESSOR_4KB;
 export const DEDICATED_DECOMPRESSOR_2KB = uws.DEDICATED_DECOMPRESSOR_2KB;
 export const DEDICATED_DECOMPRESSOR_1KB = uws.DEDICATED_DECOMPRESSOR_1KB;
 export const DEDICATED_DECOMPRESSOR_512B = uws.DEDICATED_DECOMPRESSOR_512B;
-
-// Temporary KV store
-export const getString = uws.getString;
-export const setString = uws.setString;
-export const getInteger = uws.getInteger;
-export const setInteger = uws.setInteger;
-export const incInteger = uws.incInteger;
-export const lock = uws.lock;
-export const unlock = uws.unlock;
-export const getIntegerKeys = uws.getIntegerKeys;
-export const getStringKeys = uws.getStringKeys;
-export const deleteString = uws.deleteString;
-export const deleteInteger = uws.deleteInteger;
-export const deleteStringCollection = uws.deleteStringCollection;
-export const deleteIntegerCollection = uws.deleteIntegerCollection;
-export const _cfg = uws._cfg;
-export const getParts = uws.getParts;
+export const LIBUS_LISTEN_EXCLUSIVE_PORT = uws.LIBUS_LISTEN_EXCLUSIVE_PORT;
+export const DeclarativeResponse = uws.DeclarativeResponse;

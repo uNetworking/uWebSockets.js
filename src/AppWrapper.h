@@ -1037,6 +1037,9 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
             //uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
 
             uWS_App_get<APP>(static_cast<APP && (APP::*)(std::string, uWS::MoveOnlyFunction<void(uWS::HttpResponse<true> *, uWS::HttpRequest *)> &&)>(&APP::get), args);
+        } else {
+            /* H3App has no cache variant */
+            uWS_App_get<APP>(&APP::get, args);
         }
        
     }, args.Data()));

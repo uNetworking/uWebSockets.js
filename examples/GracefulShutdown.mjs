@@ -29,9 +29,12 @@ const app = uWS./*SSL*/App({
 
     /* Stop listening soon */
     setTimeout(() => {
-      console.log('Shutting down now');
-      uWS.us_listen_socket_close(listenSocket);
-      listenSocket = null;
+      /* The /shutdown route may already have closed it */
+      if (listenSocket) {
+        console.log('Shutting down now');
+        uWS.us_listen_socket_close(listenSocket);
+        listenSocket = null;
+      }
     }, 1000);
   } else {
     console.log('Failed to listen to port ' + port);

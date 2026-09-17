@@ -17,7 +17,7 @@ import uWS from 'uWebSockets.js';
 				)
 			},
 			() => {
-				res.end('Ok')
+				/* Aborted or invalid JSON, res must not be used here */
 			}
 		)
 	})
@@ -33,11 +33,15 @@ function readJson(res, cb, err) {
 	res.onData((ab, isLast) => {
 		let chunk = Buffer.from(ab)
 		if (isLast) {
-			if (buffer) {
-				cb(JSON.parse(Buffer.concat([buffer, chunk])))
-			} else {
-				cb(JSON.parse(chunk))
+			let json
+			try {
+				json = JSON.parse(buffer ? Buffer.concat([buffer, chunk]) : chunk)
+			} catch (e) {
+				/* res.close calls onAborted */
+				res.close()
+				return
 			}
+			cb(json)
 		} else {
 			if (buffer) {
 				buffer = Buffer.concat([buffer, chunk])

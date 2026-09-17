@@ -1,5 +1,5 @@
 // Auto-generated ESM wrapper — DO NOT EDIT MANUALLY
-import uws from './index.js';
+import uws from './uws.js';
 
 export default uws;
 

@@ -27,8 +27,8 @@ const app = uWS./*SSL*/App({
 }).get('/*', (res) => {
   const clientId = Date.now()
   console.log(`Client with id: ${clientId} connected, starting streaming`)
-  sendHeaders(res);
   res.writeStatus('200 OK')
+  sendHeaders(res);
 
   let intervalRef = setInterval(() => {
     /* Writes made outside of a uWS callback, like from a timer, must be corked */

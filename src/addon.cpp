@@ -245,7 +245,7 @@ void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())];
 
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    args.GetReturnValue().Set(Integer::NewFromUnsigned(args.GetIsolate(), value));
 }
 
 void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
@@ -279,7 +279,7 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())] += change;
 
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    args.GetReturnValue().Set(Integer::NewFromUnsigned(args.GetIsolate(), value));
 }
 
 /* This one will spike memory usage for large stores */

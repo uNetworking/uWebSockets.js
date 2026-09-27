@@ -222,19 +222,21 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* The callback lives in internal field 1 of res, so one global handle per request instead of two */
+            args.This()->SetInternalField(1, args[0]);
 
             /* This is how we capture res (C++ this in invocation of this function) */
             UniquePersistent<Object> resObject(isolate, args.This());
 
-            res->onAborted([p = std::move(p), resObject = std::move(resObject), isolate]() {
+            res->onAborted([resObject = std::move(resObject), isolate]() {
                 HandleScope hs(isolate);
 
-                /* Mark this resObject invalid */
-                setInternalPointer(Local<Object>::New(isolate, resObject), nullptr);//->SetAlignedPointerInInternalField(0, nullptr);
+                Local<Object> resLocal = Local<Object>::New(isolate, resObject);
 
-                CallJS(isolate, Local<Function>::New(isolate, p), 0, nullptr);
+                /* Mark this resObject invalid */
+                setInternalPointer(resLocal, nullptr);
+
+                CallJS(isolate, Local<Function>::Cast(resLocal->GetInternalField(1).As<Value>()), 0, nullptr);
             });
 
             args.GetReturnValue().Set(args.This());
@@ -587,7 +589,8 @@ struct HttpResponseWrapper {
         } else if (SSL == 3) {
             resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpCacheResponse", NewStringType::kNormal).ToLocalChecked());
         }
-        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(1);
+        /* Field 0 is the native pointer, field 1 holds the onAborted callback */
+        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(2);
 
         /* Register our functions (the most common go here) */
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));

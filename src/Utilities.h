@@ -196,7 +196,28 @@ public:
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
 
-            /* StringView path is Latin-1, not Utf-8 */
+            #if NODE_MODULE_VERSION >= 137
+            if constexpr (AllowStringView) {
+                /* A one-byte string is Latin-1, the same bytes as utf-8 only when it is ASCII.
+                 * Copy while the view is alive, after it the GC can move the string */
+                String::ValueView strView(isolate, string);
+                if (strView.is_one_byte()) {
+                    const uint8_t *src = strView.data8();
+                    int len = strView.length();
+                    uint8_t high = 0;
+                    for (int i = 0; i < len; i++) {
+                        high |= src[i];
+                    }
+                    if (high < 0x80) {
+                        length = len;
+                        data = alloc(length);
+                        allocated = true;
+                        memcpy(data, src, length);
+                        return;
+                    }
+                }
+            }
+            #endif
 
             #if (V8_MAJOR_VERSION == 14)
                 // Fallback

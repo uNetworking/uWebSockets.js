@@ -453,11 +453,8 @@ struct HttpResponseWrapper {
             }
 
             /* This is a quick fix, it will need updating in µWS later on */
-            Local<Array> array = Array::New(isolate, 2);
-            array->Set(isolate->GetCurrentContext(), 0, Boolean::New(isolate, ok)).ToChecked();
-            array->Set(isolate->GetCurrentContext(), 1, Boolean::New(isolate, hasResponded)).ToChecked();
-
-            args.GetReturnValue().Set(array);
+            Local<Value> elems[] = {Boolean::New(isolate, ok), Boolean::New(isolate, hasResponded)};
+            args.GetReturnValue().Set(Array::New(isolate, elems, 2));
         }
     }
 

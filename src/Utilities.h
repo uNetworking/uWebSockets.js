@@ -67,6 +67,43 @@ Local<v8::ArrayBuffer> ArrayBuffer_NewCopy(Isolate *isolate, void *data, size_t 
     return ab;
 }
 
+/* v8::Global's move constructor is not noexcept, so a lambda capturing one fails
+ * MoveOnlyFunction's small-object test and heap-allocates. The underlying move is
+ * a pointer swap and cannot throw, this wrapper only restores the noexcept */
+template <class T>
+struct NoexceptPersistent {
+    Global<T> p;
+
+    NoexceptPersistent() : p() {}
+    NoexceptPersistent(Isolate *isolate, const Local<T> &v) : p(isolate, v) {}
+    NoexceptPersistent(NoexceptPersistent &&other) noexcept : p(std::move(other.p)) {}
+
+    NoexceptPersistent& operator=(NoexceptPersistent &&other) noexcept {
+        if (this != &other) {
+            p = std::move(other.p);
+        }
+        return *this;
+    }
+
+    NoexceptPersistent(const NoexceptPersistent &) = delete;
+    NoexceptPersistent &operator=(const NoexceptPersistent &) = delete;
+
+    bool IsEmpty() const { return p.IsEmpty(); }
+    void Reset() { p.Reset(); }
+    void Reset(Isolate *isolate, const Local<T> &v) { p.Reset(isolate, v); }
+    Local<T> Get(Isolate *isolate) const { return p.Get(isolate); }
+
+    operator const Global<T>&() const { return p; }
+    operator Global<T>&() { return p; }
+
+    template <typename S>
+    bool operator==(const Local<S> &other) const { return p == other; }
+
+    template <typename S>
+    bool operator!=(const Local<S> &other) const { return p != other; }
+};
+static_assert(std::is_nothrow_move_constructible<NoexceptPersistent<Function>>::value, "NoexceptPersistent must be nothrow movable");
+
 struct PerSocketData {
     NoexceptPersistent<Object> socketPf;
 };
@@ -111,37 +148,6 @@ static inline bool missingArguments(int length, const FunctionCallbackInfo<Value
     }
     return false;
 }
-
-/* v8::Global's move constructor is not noexcept, so a lambda capturing one fails
- * MoveOnlyFunction's small-object test and heap-allocates. The underlying move is
- * a pointer swap and cannot throw, this wrapper only restores the noexcept */
-template <class T>
-struct NoexceptPersistent {
-    Global<T> p;
-
-    NoexceptPersistent() : p() {}
-    NoexceptPersistent(Isolate *isolate, const Local<T> &v) : p(isolate, v) {}
-    NoexceptPersistent(NoexceptPersistent &&other) noexcept : p(std::move(other.p)) {}
-
-    NoexceptPersistent& operator=(NoexceptPersistent &&other) noexcept {
-        if (this != &other) {
-            p = std::move(other.p);
-        }
-        return *this;
-    }
-
-    NoexceptPersistent(const NoexceptPersistent &) = delete;
-    NoexceptPersistent &operator=(const NoexceptPersistent &) = delete;
-
-    bool IsEmpty() const { return p.IsEmpty(); }
-    void Reset() { p.Reset(); }
-    void Reset(Isolate *isolate, const Local<T> &v) { p.Reset(isolate, v); }
-    Local<T> Get(Isolate *isolate) const { return p.Get(isolate); }
-
-    operator const Global<T>&() const { return p; }
-    operator Global<T>&() { return p; }
-};
-static_assert(std::is_nothrow_move_constructible<NoexceptPersistent<Function>>::value, "NoexceptPersistent must be nothrow movable");
 
 struct Callback {
     bool invalid = false;

@@ -42,15 +42,15 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    UniquePersistent<Function> upgradePf;
-    UniquePersistent<Function> openPf;
-    UniquePersistent<Function> messagePf;
-    UniquePersistent<Function> drainPf;
-    UniquePersistent<Function> closePf;
-    UniquePersistent<Function> droppedPf;
-    UniquePersistent<Function> pingPf;
-    UniquePersistent<Function> pongPf;
-    UniquePersistent<Function> subscriptionPf;
+    NoexceptPersistent<Function> upgradePf;
+    NoexceptPersistent<Function> openPf;
+    NoexceptPersistent<Function> messagePf;
+    NoexceptPersistent<Function> drainPf;
+    NoexceptPersistent<Function> closePf;
+    NoexceptPersistent<Function> droppedPf;
+    NoexceptPersistent<Function> pingPf;
+    NoexceptPersistent<Function> pongPf;
+    NoexceptPersistent<Function> subscriptionPf;
 
     /* Get the behavior object */
     if (args.Length() == 2) {
@@ -162,7 +162,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
         /* Copy entires from userData, only if we have it set (not the case for default constructor) */
         if (!perSocketData->socketPf.IsEmpty()) {
-            /* socketPf points to a stack allocated UniquePersistent, or nullptr, at this point */
+            /* socketPf points to a stack allocated NoexceptPersistent, or nullptr, at this point */
             Local<Object> userData = Local<Object>::New(isolate, perSocketData->socketPf);
 
             /* Merge userData and wsObject; this code is exceedingly horrible */
@@ -459,7 +459,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     if (checkedCallback.isInvalid(args)) {
         return;
     }
-    UniquePersistent<Function> cb = checkedCallback.getFunction();
+    NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -585,7 +585,7 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
     if (checkedCallback.isInvalid(args)) {
         return;
     }
-    UniquePersistent<Function> cb = checkedCallback.getFunction();
+    NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -818,9 +818,9 @@ void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
 
     static_assert(sizeof(double) >= sizeof(app));
 
-    //static thread_local std::unordered_set<UniquePersistent<Object>> persistentApps;
+    //static thread_local std::unordered_set<NoexceptPersistent<Object>> persistentApps;
 
-    UniquePersistent<Object> *persistentApp = new UniquePersistent<Object>;
+    NoexceptPersistent<Object> *persistentApp = new NoexceptPersistent<Object>;
     persistentApp->Reset(args.GetIsolate(), args.This());
 
     //persistentApps.emplace(persistentApp);
@@ -883,7 +883,7 @@ void uWS_App_missingServerName(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
     Isolate *isolate = args.GetIsolate();
 
-    UniquePersistent<Function> missingPf;
+    NoexceptPersistent<Function> missingPf;
     missingPf.Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
 
     app->missingServerName([missingPf = std::move(missingPf), isolate](const char *hostname) {
@@ -989,7 +989,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 if (checkedCallback.isInvalid(args)) {
                     return;
                 }
-                UniquePersistent<Function> cb = checkedCallback.getFunction();
+                NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
                 /* This function requires perContextData */
                 PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();

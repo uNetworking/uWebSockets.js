@@ -113,7 +113,7 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
 //#include "FastTimers.h"
 
-//UniquePersistent<Function> timerCallbacksJS[1000];
+//NoexceptPersistent<Function> timerCallbacksJS[1000];
 
 void uWS_arm(const FunctionCallbackInfo<Value> &args) {
 

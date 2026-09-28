@@ -126,7 +126,7 @@ struct HttpResponseWrapper {
             size_t maxSize = (size_t) args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked();
 
             /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[1]));
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[1]));
 
             /* Lazily allocated; nullptr means not yet started. Separate overflow flag distinguishes
              * the "not started" state from the "exceeded maxSize" state. */
@@ -562,7 +562,7 @@ struct HttpResponseWrapper {
             invalidateResObject(args);
 
             /* This releases on return */
-            UniquePersistent<Object> userData;
+            NoexceptPersistent<Object> userData;
             userData.Reset(isolate, Local<Object>::Cast(args[0]));
 
             /* Immediately calls open handler */

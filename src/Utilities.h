@@ -112,6 +112,17 @@ static inline bool missingArguments(int length, const FunctionCallbackInfo<Value
     return false;
 }
 
+/* v8::Global's move constructor is not noexcept, so a lambda capturing one fails
+ * MoveOnlyFunction's small-object test and heap-allocates. The underlying move is
+ * a pointer swap and cannot throw, this wrapper only restores the noexcept */
+template <class T>
+struct NoexceptPersistent {
+    UniquePersistent<T> p;
+    NoexceptPersistent(Isolate *isolate, const Local<T> &v) : p(isolate, v) {}
+    NoexceptPersistent(NoexceptPersistent &&other) noexcept : p(std::move(other.p)) {}
+};
+static_assert(std::is_nothrow_move_constructible<NoexceptPersistent<Function>>::value, "NoexceptPersistent must be nothrow movable");
+
 struct Callback {
     bool invalid = false;
     UniquePersistent<Function> f;

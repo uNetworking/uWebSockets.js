@@ -94,8 +94,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onData([p = std::move(p), isolate](std::string_view data, bool last) {
                 HandleScope hs(isolate);
@@ -103,7 +103,7 @@ struct HttpResponseWrapper {
                 Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer_New(isolate, (void *) data.data(), data.length());
 
                 Local<Value> argv[] = {dataArrayBuffer, Boolean::New(isolate, last)};
-                CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
+                CallJS(isolate, Local<Function>::New(isolate, p.p), 2, argv);
 
                 dataArrayBuffer->Detach();
             });
@@ -197,8 +197,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onDataV2([p = std::move(p), isolate](std::string_view data, uint64_t maxRemainingBodyLength) {
                 HandleScope hs(isolate);
@@ -207,7 +207,7 @@ struct HttpResponseWrapper {
 
                 /* Pass maxRemainingBodyLength so user can preallocate; 0 signals the last chunk */
                 Local<Value> argv[] = {dataArrayBuffer, BigInt::NewFromUnsigned(isolate, maxRemainingBodyLength)};
-                CallJS(isolate, Local<Function>::New(isolate, p), 2, argv);
+                CallJS(isolate, Local<Function>::New(isolate, p.p), 2, argv);
 
                 dataArrayBuffer->Detach();
             });
@@ -341,8 +341,8 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            /* This thing perfectly fits in with unique_function, and will Reset on destructor */
-            UniquePersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
+            /* Noexcept move keeps the 16 byte capture in MoveOnlyFunction's inline storage */
+            NoexceptPersistent<Function> p(isolate, Local<Function>::Cast(args[0]));
 
             res->onWritable([p = std::move(p), isolate](size_t offset) -> bool {
                 HandleScope hs(isolate);
@@ -350,7 +350,7 @@ struct HttpResponseWrapper {
                 Local<Value> argv[] = {Number::New(isolate, offset)};
 
                 /* We should check if this is really here! */
-                MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p), 1, argv);
+                MaybeLocal<Value> maybeBoolean = CallJS(isolate, Local<Function>::New(isolate, p.p), 1, argv);
                 if (maybeBoolean.IsEmpty()) {
                     std::cerr << "Warning: uWS.HttpResponse.onWritable callback should return Boolean. See documentation for uWS.HttpResponse.onWritable and consult the user manual." << std::endl;
                     /* The default should be true, as it only adds a potential extra send, rather than erroneously avoid it */

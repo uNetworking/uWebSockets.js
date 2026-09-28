@@ -226,12 +226,12 @@ struct HttpResponseWrapper {
             args.This()->SetInternalField(1, args[0]);
 
             /* This is how we capture res (C++ this in invocation of this function) */
-            UniquePersistent<Object> resObject(isolate, args.This());
+            NoexceptPersistent<Object> resObject(isolate, args.This());
 
             res->onAborted([resObject = std::move(resObject), isolate]() {
                 HandleScope hs(isolate);
 
-                Local<Object> resLocal = Local<Object>::New(isolate, resObject);
+                Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);
 
                 /* Mark this resObject invalid */
                 setInternalPointer(resLocal, nullptr);

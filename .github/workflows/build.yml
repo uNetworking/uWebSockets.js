@@ -2,6 +2,8 @@ name: Build
 on:
   push:
     branches: [ master ]
+# Every run pushes to the same branch, so runs wait for each other
+concurrency: ${{ github.workflow }}
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -39,4 +41,14 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries
+      # The jobs push to the same branch: when another one pushed first, rebase and try again.
+      # Its own step because the one above runs in PowerShell on Windows
+      - name: Push binaries
+        shell: bash
+        working-directory: uWebSockets.js
+        run: |
+          for i in 1 2 3 4 5; do
+            git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries && exit 0
+            git pull --rebase origin binaries
+          done
+          exit 1

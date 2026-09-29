@@ -213,8 +213,8 @@ int main() {
 
 #else
     /* Linux does not cross-compile but picks whatever arch the host is on (we run on both x64 and ARM64) */
-    build("clang-18",
-          "clang++-18",
+    build("clang",
+          "clang++",
           LINUX_LINK_EXTRAS,
           OS,
           arch);

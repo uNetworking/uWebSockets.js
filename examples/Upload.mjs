@@ -4,7 +4,7 @@
 /* a good example would be using the router to get
  * a file name and stream that file to disk */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({

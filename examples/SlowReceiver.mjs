@@ -1,9 +1,9 @@
 
 
-const uWS = require('uWebSockets.js');
+import uWS from 'uWebSockets.js';
 const port = 9001;
 
-const wsc = require('ws');
+import wsc from 'ws';
 
 const app = uWS.App().ws('/*', {
   /* Options */

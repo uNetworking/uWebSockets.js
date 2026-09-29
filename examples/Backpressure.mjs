@@ -23,7 +23,7 @@ const backpressure = 1024;
 let messages = 0;
 let messageNumber = 0;
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({

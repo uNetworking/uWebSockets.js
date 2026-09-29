@@ -2,8 +2,8 @@
  * Try navigating to the adderss with Chrome and see the video
  * in real time. */
 
-const uWS = require('uWebSockets.js');
-const fs = require('fs');
+import uWS from 'uWebSockets.js';
+import fs from 'fs';
 
 const port = 9001;
 const fileName = 'spritefright.mp4';

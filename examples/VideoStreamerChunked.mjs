@@ -6,8 +6,8 @@
  * you know the file size. The call "end" with a huge file is the worst
  * possible way, as it copies the entire file to backpressure. */
 
-const uWS = require('uWebSockets.js');
-const fs = require('fs');
+import uWS from 'uWebSockets.js';
+import fs from 'fs';
 
 const port = 9001;
 const fileName = 'Sintel.2010.1080p.mkv';

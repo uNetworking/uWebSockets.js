@@ -1,6 +1,6 @@
-/* Minimal SSL/non-SSL example using 5 seconds of HTTP cache */
+/* Minimal SSL/non-SSL example */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({
@@ -9,7 +9,7 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).get('/*', (res, req) => {
   res.end('Hello World!');
-}, 5).listen(port, (token) => {
+}, {lowerExpiry: 1, upperExpiry: 10}).listen(port, (token) => {
   if (token) {
     console.log('Listening to port ' + port);
   } else {

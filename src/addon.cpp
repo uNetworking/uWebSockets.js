@@ -113,7 +113,7 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
 
 //#include "FastTimers.h"
 
-//UniquePersistent<Function> timerCallbacksJS[1000];
+//NoexceptPersistent<Function> timerCallbacksJS[1000];
 
 void uWS_arm(const FunctionCallbackInfo<Value> &args) {
 
@@ -160,14 +160,30 @@ void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
     }
 }
 
+/* Both of the following take a socket handed to JavaScript as an External; anything else
+ * would be cast to a bogus pointer and dereferenced, killing the process */
+static inline bool invalidSocket(const FunctionCallbackInfo<Value> &args, const char *message) {
+    if (!args[0]->IsExternal()) {
+        args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), message, NewStringType::kNormal).ToLocalChecked())));
+        return true;
+    }
+    return false;
+}
+
 /* todo: Put this function and all inits of it in its own header */
 void uWS_us_listen_socket_close(const FunctionCallbackInfo<Value> &args) {
     // this should take int ssl first
+    if (invalidSocket(args, "us_listen_socket_close must be passed the listen socket given by listen.")) {
+        return;
+    }
     us_listen_socket_close(0, (struct us_listen_socket_t *) External::Cast(*args[0])->Value());
 }
 
 void uWS_us_socket_local_port(const FunctionCallbackInfo<Value> &args) {
     // this should take int ssl first, but us_socket_local_port doesn't use it so it doesn't matter
+    if (invalidSocket(args, "us_socket_local_port must be passed a socket or listen socket.")) {
+        return;
+    }
     int port = us_socket_local_port(0, (struct us_socket_t *) External::Cast(*args[0])->Value());
     args.GetReturnValue().Set(Integer::New(args.GetIsolate(), port));
 }
@@ -274,11 +290,13 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    Local<Array> stringKeys = Array::New(args.GetIsolate(), kvStoreString.size());
+    auto &keys = kvStoreString[std::string(collection.getString())];
+
+    Local<Array> stringKeys = Array::New(args.GetIsolate(), keys.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreString[std::string(collection.getString())]) {
+    for (auto p : keys) {
         stringKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 
@@ -292,11 +310,13 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    Local<Array> integerKeys = Array::New(args.GetIsolate(), kvStoreInteger.size());
+    auto &keys = kvStoreInteger[std::string(collection.getString())];
+
+    Local<Array> integerKeys = Array::New(args.GetIsolate(), keys.size());
 
     int offset = 0;
 
-    for (auto p : kvStoreInteger[std::string(collection.getString())]) {
+    for (auto p : keys) {
         integerKeys->Set(args.GetIsolate()->GetCurrentContext(), offset++, String::NewFromUtf8(args.GetIsolate(), p.first.data(), NewStringType::kNormal, p.first.length()).ToLocalChecked()).IsNothing();
     }
 

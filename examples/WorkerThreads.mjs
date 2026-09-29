@@ -9,10 +9,12 @@
  * in your system. But by only creating 2 here, it is simple to see the perf. gain on a system of 4 cores, as you can then
  * run the client side on the remaining 2 cores without interfering with the server side. */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
-const { Worker, isMainThread, threadId, parentPort } = require('worker_threads');
-const os = require('os');
+import { Worker, isMainThread, threadId, parentPort  } from 'worker_threads';
+import os from 'os';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
 
 if (isMainThread) {
 

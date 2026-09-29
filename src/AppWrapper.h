@@ -42,15 +42,15 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    UniquePersistent<Function> upgradePf;
-    UniquePersistent<Function> openPf;
-    UniquePersistent<Function> messagePf;
-    UniquePersistent<Function> drainPf;
-    UniquePersistent<Function> closePf;
-    UniquePersistent<Function> droppedPf;
-    UniquePersistent<Function> pingPf;
-    UniquePersistent<Function> pongPf;
-    UniquePersistent<Function> subscriptionPf;
+    NoexceptPersistent<Function> upgradePf;
+    NoexceptPersistent<Function> openPf;
+    NoexceptPersistent<Function> messagePf;
+    NoexceptPersistent<Function> drainPf;
+    NoexceptPersistent<Function> closePf;
+    NoexceptPersistent<Function> droppedPf;
+    NoexceptPersistent<Function> pingPf;
+    NoexceptPersistent<Function> pongPf;
+    NoexceptPersistent<Function> subscriptionPf;
 
     /* Get the behavior object */
     if (args.Length() == 2) {
@@ -162,7 +162,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
 
         /* Copy entires from userData, only if we have it set (not the case for default constructor) */
         if (!perSocketData->socketPf.IsEmpty()) {
-            /* socketPf points to a stack allocated UniquePersistent, or nullptr, at this point */
+            /* socketPf points to a stack allocated NoexceptPersistent, or nullptr, at this point */
             Local<Object> userData = Local<Object>::New(isolate, perSocketData->socketPf);
 
             /* Merge userData and wsObject; this code is exceedingly horrible */
@@ -459,7 +459,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     if (checkedCallback.isInvalid(args)) {
         return;
     }
-    UniquePersistent<Function> cb = checkedCallback.getFunction();
+    NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -551,19 +551,21 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
         Local<Function>::Cast(args[args.Length() - 1])->Call(isolate->GetCurrentContext(), isolate->GetCurrentContext()->Global(), 1, argv).IsEmpty();
     };
 
-    /* Host is first, if present */
+    /* Host is first, if present (an empty host still takes that slot) */
     std::string host;
+    int firstNumber = 0;
     if (!args[0]->IsNumber()) {
         NativeString h(isolate, args[0]);
         if (h.isInvalid(args)) {
             return;
         }
         host = h.getString();
+        firstNumber = 1;
     }
 
     /* Port, options are in the middle, if present */
     std::vector<int> numbers;
-    for (int i = std::min<int>(1, host.length()); i < args.Length() - 1; i++) {
+    for (int i = firstNumber; i < args.Length() - 1; i++) {
         numbers.push_back(args[i]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked());
     }
 
@@ -583,7 +585,7 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
     if (checkedCallback.isInvalid(args)) {
         return;
     }
-    UniquePersistent<Function> cb = checkedCallback.getFunction();
+    NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
     /* This function requires perContextData */
     PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -816,9 +818,9 @@ void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
 
     static_assert(sizeof(double) >= sizeof(app));
 
-    //static thread_local std::unordered_set<UniquePersistent<Object>> persistentApps;
+    //static thread_local std::unordered_set<NoexceptPersistent<Object>> persistentApps;
 
-    UniquePersistent<Object> *persistentApp = new UniquePersistent<Object>;
+    NoexceptPersistent<Object> *persistentApp = new NoexceptPersistent<Object>;
     persistentApp->Reset(args.GetIsolate(), args.This());
 
     //persistentApps.emplace(persistentApp);
@@ -881,7 +883,7 @@ void uWS_App_missingServerName(const FunctionCallbackInfo<Value> &args) {
     APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
     Isolate *isolate = args.GetIsolate();
 
-    UniquePersistent<Function> missingPf;
+    NoexceptPersistent<Function> missingPf;
     missingPf.Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
 
     app->missingServerName([missingPf = std::move(missingPf), isolate](const char *hostname) {
@@ -934,12 +936,44 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
     /* All the http methods */
     appTemplate->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "get", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, [](auto &args) {
         
-        /* Add non-cached variants */
+        /* Is this non-SSL? */
         if constexpr (std::is_same<APP, uWS::App>::value) {
 
+            /* Did we get 3 arguments (cached registry)? */
             if (args.Length() == 3) {
-                /* Use cached variant */
-                std::cout << "Registering cached get handler" << std::endl;
+
+
+                /* Grab the cache arguments */
+                v8::Isolate* isolate = args.GetIsolate();
+                v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+                // 1. Ensure args[2] is an Object
+                if (!args[2]->IsObject()) {
+                    isolate->ThrowException(v8::Exception::TypeError(
+                        v8::String::NewFromUtf8(isolate, "Cache options must be an object").ToLocalChecked()));
+                    return;
+                }
+
+                v8::Local<v8::Object> optionsObj = args[2].template As<v8::Object>();
+
+                // 2. Create V8 strings for the property names
+                v8::Local<v8::String> lowerKey = v8::String::NewFromUtf8(isolate, "lowerExpiry").ToLocalChecked();
+                v8::Local<v8::String> upperKey = v8::String::NewFromUtf8(isolate, "upperExpiry").ToLocalChecked();
+
+                // 3. Extract properties safely with defaults if missing
+                v8::Local<v8::Value> lowerVal;
+                v8::Local<v8::Value> upperVal;
+
+                unsigned int lowerExpiry = 0;
+                unsigned int upperExpiry = 0;
+
+                if (optionsObj->Get(context, lowerKey).ToLocal(&lowerVal) && lowerVal->IsNumber()) {
+                    lowerExpiry = lowerVal->Uint32Value(context).ToChecked();
+                }
+
+                if (optionsObj->Get(context, upperKey).ToLocal(&upperVal) && upperVal->IsNumber()) {
+                    upperExpiry = upperVal->Uint32Value(context).ToChecked();
+                }
 
 
                 APP *app = (APP *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
@@ -955,7 +989,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
                 if (checkedCallback.isInvalid(args)) {
                     return;
                 }
-                UniquePersistent<Function> cb = checkedCallback.getFunction();
+                NoexceptPersistent<Function> cb = checkedCallback.getFunction();
 
                 /* This function requires perContextData */
                 PerContextData *perContextData = (PerContextData *) Local<External>::Cast(args.Data())->Value();
@@ -983,17 +1017,29 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                     /* µWS itself will terminate if not responded and not attached
                     * onAborted handler, so we can assume it's done */
-                }/*, 13*/);
+                }, {
+                    .lowerExpiry = lowerExpiry,
+                    .upperExpiry = upperExpiry
+                });
 
                 args.GetReturnValue().Set(args.This());
 
 
             } else {
-                uWS_App_get<APP>(&uWS::TemplatedApp<false>::get, args);
+                /* This is non-SSL but not using cache */
+                //uWS_App_get<APP>(&uWS::TemplatedApp<false>::get, args);
+
+                uWS_App_get<APP>(static_cast<APP && (APP::*)(std::string, uWS::MoveOnlyFunction<void(uWS::HttpResponse<false> *, uWS::HttpRequest *)> &&)>(&APP::get), args);
             }
 
         } else if constexpr (std::is_same<APP, uWS::SSLApp>::value) {
-            uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
+            /* This is SSL and not using cache */
+            //uWS_App_get<APP>(&uWS::TemplatedApp<true>::get, args);
+
+            uWS_App_get<APP>(static_cast<APP && (APP::*)(std::string, uWS::MoveOnlyFunction<void(uWS::HttpResponse<true> *, uWS::HttpRequest *)> &&)>(&APP::get), args);
+        } else {
+            /* H3App has no cache variant */
+            uWS_App_get<APP>(&APP::get, args);
         }
        
     }, args.Data()));

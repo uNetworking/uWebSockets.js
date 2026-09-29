@@ -1,6 +1,6 @@
 /* Simple example of getting JSON from a POST */
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({

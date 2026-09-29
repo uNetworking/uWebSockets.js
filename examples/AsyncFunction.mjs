@@ -12,7 +12,7 @@ async function someAsyncTask() {
   return delay(500, 'Hey wait for me!');
 }
 
-const uWS = require('../dist/uws.js');
+import uWS from '../dist/uws.js';
 const port = 9001;
 
 const app = uWS./*SSL*/App({

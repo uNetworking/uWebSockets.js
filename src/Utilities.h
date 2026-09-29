@@ -222,21 +222,34 @@ public:
         } else if (value->IsString()) {
             Local<String> string = Local<String>::Cast(value);
 
-            /* StringView path is Latin-1, not Utf-8 */
-
+            /* One pass: write straight into what is left of the pool and keep the bytes written.
+             * When not all characters fit, measure the string and write it again */
+            size_t capacity = pool.size() - pool_offset;
             #if (V8_MAJOR_VERSION == 14)
-                // Fallback
-                length = string->Utf8LengthV2(isolate);
-                data = alloc(length);
-                allocated = true;
-                string->WriteUtf8V2(isolate, data, length);
+                size_t processed = 0;
+                length = string->WriteUtf8V2(isolate, pool.data() + pool_offset, capacity, String::WriteFlags::kNone, &processed);
+                bool fits = capacity && processed == (size_t) string->Length();
             #else
-                // Fallback
-                length = string->Utf8Length(isolate);
-                data = alloc(length);
-                allocated = true;
-                string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
+                int processed = 0;
+                length = string->WriteUtf8(isolate, pool.data() + pool_offset, (int) capacity, &processed, String::WriteOptions::NO_NULL_TERMINATION);
+                bool fits = capacity && processed == string->Length();
             #endif
+
+            if (fits) {
+                data = pool.data() + pool_offset;
+                pool_offset += (length + 7) & ~7;
+            } else {
+                #if (V8_MAJOR_VERSION == 14)
+                    length = string->Utf8LengthV2(isolate);
+                    data = alloc(length);
+                    string->WriteUtf8V2(isolate, data, length);
+                #else
+                    length = string->Utf8Length(isolate);
+                    data = alloc(length);
+                    string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
+                #endif
+            }
+            allocated = true;
 
 
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */

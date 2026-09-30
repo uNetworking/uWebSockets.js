@@ -190,8 +190,9 @@ class NativeString {
         // Ensure size is a multiple of 8
         size = (size + 7) & ~7;
 
-        // Fallback for allocations larger than the remaining pool space
-        if (pool_offset + size > pool.size()) {
+        // Fallback for allocations larger than the remaining pool space, or that reach its end:
+        // on a full pool 0 bytes would get the end pointer, and free() would pass it to ::free
+        if (pool_offset + size >= pool.size()) {
             // Mark for external cleanup if using instance-based logic
             // (Note: In a pure static alloc, you'd need a way to track this)
             return (char*)std::malloc(size);

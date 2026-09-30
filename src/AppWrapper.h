@@ -649,7 +649,7 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
 
     bool ok = app->publish(topic.getString(), message.getString(), args[2]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[3]->BooleanValue(isolate));
 
-    args.GetReturnValue().Set(Boolean::New(isolate, ok));
+    args.GetReturnValue().Set(ok);
 }
 
 template <typename APP>
@@ -668,7 +668,7 @@ void uWS_App_numSubscribers(const FunctionCallbackInfo<Value> &args) {
         return;
     }
 
-    args.GetReturnValue().Set(Integer::New(isolate, app->numSubscribers(topic.getString())));
+    args.GetReturnValue().Set((uint32_t) app->numSubscribers(topic.getString()));
 }
 
 /* This one modified per-thread static strings temporarily */
@@ -832,7 +832,7 @@ void uWS_App_getDescriptor(const FunctionCallbackInfo<Value> &args) {
 
     //std::cout << "Loop: " << app->getLoop() << std::endl;
 
-    args.GetReturnValue().Set(Number::New(isolate, descriptor));
+    args.GetReturnValue().Set(descriptor);
 }
 
 template <typename APP>

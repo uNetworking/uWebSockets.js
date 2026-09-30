@@ -36,8 +36,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 26
-      - name: Install wrk
-        run: sudo apt-get update && sudo apt-get install -y wrk
       # build.c does not fail on a compiler error, so the check is loading what it produced
       - name: Build both arms
         run: |
@@ -48,6 +46,11 @@ jobs:
           for arm in base head; do
             node -e "require('./$arm/dist/uws.js')" || { cat $arm-build.log; exit 1; }
           done
+      # the http load generator of uSockets, over plain tcp: its source turns on ssl whenever it is
+      # built with it
+      - name: Build http_load_test
+        working-directory: head/uWebSockets/uSockets
+        run: clang-18 -O3 -DLIBUS_NO_SSL -Isrc src/*.c src/eventing/*.c src/crypto/*.c examples/http_load_test.c -o http_load_test
       # the ws load generator of the uWebSockets repo, as its Makefile builds it
       - name: Build load_test
         working-directory: head/uWebSockets/benchmarks

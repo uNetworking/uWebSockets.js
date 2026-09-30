@@ -8,9 +8,8 @@ const fs = require('fs');
 const http = require('http');
 const os = require('os');
 const path = require('path');
-const { execFile, execFileSync, fork, spawn } = require('child_process');
-const { promisify } = require('util');
-const { scenarios } = require('./scenarios');
+const { execFileSync, fork, spawn } = require('child_process');
+const { scenarios, REQUEST_HEADERS } = require('./scenarios');
 
 // nothing is marked below this, whatever the noise said
 const FLOOR = 0.02;
@@ -59,9 +58,9 @@ const layout = () => {
   }
 };
 
-const startArm = (dir, cpus) => {
+const startArm = (dir, cpus, scenario) => {
   const child = fork(path.join(__dirname, 'server.js'), [], {
-    env: { ...process.env, UWS_BENCH_MODULE: path.resolve(dir) },
+    env: { ...process.env, UWS_BENCH_MODULE: path.resolve(dir), UWS_BENCH_SCENARIO: scenario.name },
   });
   if (cpus) execFileSync('taskset', ['-acp', cpus, String(child.pid)], { stdio: 'ignore' });
   const waiting = [];
@@ -85,7 +84,7 @@ const startArm = (dir, cpus) => {
 
 const request = (port, scenario) =>
   new Promise((resolve, reject) => {
-    const options = { host: '127.0.0.1', port, path: scenario.path, method: scenario.method, headers: scenario.headers, agent: false };
+    const options = { host: '127.0.0.1', port, path: '/', method: scenario.method, headers: REQUEST_HEADERS, agent: false };
     const req = http.request(options, (res) => {
       const chunks = [];
       res.on('data', (chunk) => chunks.push(chunk));
@@ -109,52 +108,39 @@ const checkSame = async (scenario, arms) => {
   }
 };
 
-const luaScript = (scenario, dir) => {
-  if (!scenario.method && !scenario.body && !scenario.headers) return null;
-  const lines = [];
-  if (scenario.method) lines.push(`wrk.method = "${scenario.method}"`);
-  if (scenario.body) lines.push(`wrk.body = [==[${scenario.body}]==]`);
-  for (const [key, value] of Object.entries(scenario.headers || {})) lines.push(`wrk.headers["${key}"] = "${value}"`);
-  const file = path.join(dir, `${scenario.name.replace(/\W/g, '_')}.lua`);
-  fs.writeFileSync(file, `${lines.join('\n')}\n`);
-  return file;
-};
-
 const pinned = (options, bin, args) => (options.cpus ? ['taskset', ['-c', options.cpus.load, bin, ...args]] : [bin, args]);
 
-const wrk = async (arm, scenario, seconds, options) => {
-  const args = ['-t', String(options.threads), '-c', String(options.connections), '-d', `${seconds}s`];
-  if (scenario.script) args.push('-s', scenario.script);
-  args.push(`http://127.0.0.1:${arm.port}${scenario.path}`);
-  const { stdout } = await promisify(execFile)(...pinned(options, options.wrk, args));
-  const requests = /(\d+) requests in/.exec(stdout);
-  const rate = /Requests\/sec:\s+([\d.]+)/.exec(stdout);
-  if (!requests || !rate || /Non-2xx or 3xx/.test(stdout)) throw new Error(`${scenario.name} on port ${arm.port}:\n${stdout}`);
-  const errors = /Socket errors: (.*)/.exec(stdout);
-  return { requests: Number(requests[1]), rate: Number(rate[1]), errors: errors && errors[1] };
+const generator = (arm, scenario, options) => {
+  const target = [options.connections, '127.0.0.1', arm.port].map(String);
+  if (scenario.tool === 'load_test') return [options.loadTest, [...target, '0', '0', String(scenario.size)]];
+  return [options.httpLoadTest, scenario.method === 'POST' ? [...target, '1', '1'] : target];
 };
 
-// load_test is started, left alone for the round and killed: what it sent is counted on the server
-const loadTest = async (arm, scenario, seconds, options) => {
+// the generator is started, left alone for the round and killed: what it sent is counted on the
+// server, by the http handler or by the ws message handler
+const drive = async (arm, scenario, seconds, options) => {
   const before = await arm.send({ type: 'sample' });
-  const args = [scenario.connections, '127.0.0.1', arm.port, 0, 0, scenario.size].map(String);
-  const child = spawn(...pinned(options, options.loadTest, args), { stdio: 'ignore' });
+  const child = spawn(...pinned(options, ...generator(arm, scenario, options)), { stdio: 'ignore' });
   let exited = false;
   const exit = new Promise((resolve) => child.on('exit', () => resolve((exited = true))));
   try {
+    // load_test opens every ws connection before it sends; http_load_test sends on each one as it
+    // opens, and opens them one after the other in a few ms
     const deadline = Date.now() + 10000;
-    for (let opened = 0; opened < scenario.connections; ) {
-      if (exited || Date.now() > deadline) throw new Error(`${scenario.name}: load_test brought up ${opened} of ${scenario.connections} connections`);
+    for (let up = false; !up; ) {
+      if (exited || Date.now() > deadline) throw new Error(`${scenario.name}: the load did not start on port ${arm.port}`);
       await sleep(50);
-      opened = (await arm.send({ type: 'sample' })).opened - before.opened;
+      const now = await arm.send({ type: 'sample' });
+      up = scenario.tool === 'load_test' ? now.opened - before.opened >= options.connections : now.requests > before.requests;
     }
+    if (scenario.tool !== 'load_test') await sleep(200);
     const started = process.hrtime.bigint();
     const start = await arm.send({ type: 'sample' });
     await sleep(seconds * 1000);
     const end = await arm.send({ type: 'sample' });
-    if (exited) throw new Error(`${scenario.name}: load_test exited during the round`);
+    if (exited) throw new Error(`${scenario.name}: the load generator exited during the round`);
     const elapsed = Number(process.hrtime.bigint() - started) / 1e9;
-    const requests = end.messages - start.messages;
+    const requests = end.requests - start.requests;
     return { requests, rate: requests / elapsed, cpu: end.cpu - start.cpu, elapsed };
   } finally {
     child.kill('SIGKILL');
@@ -162,18 +148,61 @@ const loadTest = async (arm, scenario, seconds, options) => {
   }
 };
 
-const measure = async (arm, scenario, seconds, options) => {
-  let sample;
-  if (scenario.tool === 'wrk') {
-    const started = process.hrtime.bigint();
-    const start = await arm.send({ type: 'sample' });
-    sample = await wrk(arm, scenario, seconds, options);
-    const end = await arm.send({ type: 'sample' });
-    sample.cpu = end.cpu - start.cpu;
-    sample.elapsed = Number(process.hrtime.bigint() - started) / 1e9;
-  } else {
-    sample = await loadTest(arm, scenario, seconds, options);
+// a cached answer runs no JS, so the server cannot count it: http_load_test prints its own count
+// every 4 seconds, on the uSockets sweep timer, line buffered through stdbuf. The first print
+// covers the start and only marks where the round begins
+const driveCounted = async (arm, scenario, seconds, options) => {
+  const [bin, args] = generator(arm, scenario, options);
+  const child = spawn(...pinned(options, 'stdbuf', ['-oL', bin, ...args]), { stdio: ['ignore', 'pipe', 'ignore'] });
+  let exited = false;
+  const exit = new Promise((resolve) => child.on('exit', () => resolve((exited = true))));
+  const want = 1 + Math.max(2, Math.ceil(seconds / 4));
+  const prints = [];
+  try {
+    await new Promise((resolve, reject) => {
+      const fail = (why) => reject(new Error(`${scenario.name}: ${why} after ${prints.length} of ${want} prints of http_load_test`));
+      const timer = setTimeout(() => fail('timeout'), (want + 2) * 4000 + 10000);
+      let rest = '';
+      let chain = Promise.resolve();
+      child.stdout.on('data', (chunk) => {
+        const lines = (rest + chunk).split('\n');
+        rest = lines.pop();
+        for (const line of lines) {
+          const match = /Req\/sec: ([\d.]+)/.exec(line);
+          if (!match) continue;
+          const at = process.hrtime.bigint();
+          chain = chain
+            .then(async () => {
+              if (prints.length >= want) return;
+              prints.push({ rate: Number(match[1]), at, cpu: (await arm.send({ type: 'sample' })).cpu });
+              if (prints.length === want) {
+                clearTimeout(timer);
+                resolve();
+              }
+            })
+            .catch(reject);
+        }
+      });
+      child.on('exit', () => {
+        if (prints.length < want) {
+          clearTimeout(timer);
+          fail('exit');
+        }
+      });
+    });
+  } finally {
+    child.kill('SIGKILL');
+    await exit;
   }
+  const [first, ...counted] = prints;
+  const last = counted[counted.length - 1];
+  const elapsed = Number(last.at - first.at) / 1e9;
+  const requests = counted.reduce((sum, print) => sum + print.rate * 4, 0);
+  return { requests, rate: requests / elapsed, cpu: last.cpu - first.cpu, elapsed };
+};
+
+const measure = async (arm, scenario, seconds, options) => {
+  const sample = scenario.cached ? await driveCounted(arm, scenario, seconds, options) : await drive(arm, scenario, seconds, options);
   sample.cost = sample.cpu / sample.requests;
   sample.busy = sample.cpu / 1e6 / sample.elapsed;
   return sample;
@@ -222,7 +251,7 @@ const markdown = (labels, rows, notes, options) => {
   lines.push(
     `Node ${process.version}, ${os.cpus()[0]?.model || 'unknown cpu'}, ${os.cpus().length} cores` +
       `${options.cpus ? ` (server on cpu ${options.cpus.server}, load on ${options.cpus.load})` : ''}, ` +
-      `wrk -t${options.threads} -c${options.connections}.`
+      `http_load_test and load_test with ${options.connections} connections.`
   );
   return lines.join('\n') + '\n';
 };
@@ -231,45 +260,36 @@ const main = async () => {
   const args = parseArgs(process.argv.slice(2));
   if (!args.base || !args.head) {
     throw new Error(
-      'usage: node benchmark/compare.js --base <dir> --head <dir> [--rounds 4] [--duration 3] [--threads 2] ' +
-        '[--connections 100] [--wrk wrk] [--load-test <binary>] [--scenario <name>] [--output <file>]'
+      'usage: node benchmark/compare.js --base <dir> --head <dir> [--rounds 4] [--duration 3] [--connections 100] ' +
+        '[--http-load-test <binary>] [--load-test <binary>] [--scenario <name>] [--output <file>]'
     );
   }
   const options = {
     rounds: Number(args.rounds || 4),
     duration: Number(args.duration || 3),
     warmup: Number(args.warmup || 1),
-    threads: Number(args.threads || 2),
     connections: Number(args.connections || 100),
-    wrk: args.wrk || 'wrk',
+    httpLoadTest: args['http-load-test'] || path.join(args.head, 'uWebSockets/uSockets/http_load_test'),
     loadTest: args['load-test'] || path.join(args.head, 'uWebSockets/benchmarks/load_test'),
     cpus: layout(),
   };
   const labels = { base: label(args.base), head: label(args.head) };
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'uws-benchmark-'));
-
-  const arms = {
-    base: startArm(args.base, options.cpus?.server),
-    head: startArm(args.head, options.cpus?.server),
-    base2: startArm(args.base, options.cpus?.server),
-    head2: startArm(args.head, options.cpus?.server),
-  };
-  const names = Object.keys(arms);
-  for (const name of names) arms[name].port = (await arms[name].ready).port;
-
+  const names = ['base', 'head', 'base2', 'head2'];
   const notes = [];
   const rows = [];
   for (const scenario of scenarios) {
     if (args.scenario && scenario.name !== args.scenario) continue;
-    if (scenario.tool === 'load_test' && !fs.existsSync(options.loadTest)) {
-      notes.push(`${scenario.name}: not run, no load_test binary at ${options.loadTest}`);
+    const bin = scenario.tool === 'load_test' ? options.loadTest : options.httpLoadTest;
+    if (!fs.existsSync(bin)) {
+      notes.push(`${scenario.name}: not run, no ${scenario.tool} binary at ${bin}`);
       continue;
     }
     process.stderr.write(`${scenario.name}\n`);
-    if (scenario.tool === 'wrk') {
-      await checkSame(scenario, arms);
-      scenario.script = luaScript(scenario, dir);
-    }
+    // every scenario serves "/", so it gets its own four servers
+    const arms = {};
+    for (const name of names) arms[name] = startArm(name.startsWith('base') ? args.base : args.head, options.cpus?.server, scenario);
+    for (const name of names) arms[name].port = (await arms[name].ready).port;
+    if (scenario.tool === 'http_load_test') await checkSame(scenario, arms);
     const samples = Object.fromEntries(names.map((name) => [name, []]));
     for (let i = -1; i < options.rounds; i++) {
       // round -1 warms up cold code and is thrown away; the order rotates and flips every round
@@ -286,8 +306,6 @@ const main = async () => {
     const rate = judge(ratio('head', 'base', 'rate'), same('rate'));
     const cost = judge(ratio('head', 'base', 'cost'), same('cost'));
     const of = (name, key) => median(samples[name].map((sample) => sample[key]));
-    const errors = new Set(names.flatMap((name) => samples[name].map((sample) => sample.errors).filter(Boolean)));
-    for (const error of errors) notes.push(`${scenario.name}: wrk reported socket errors, ${error}`);
     process.stderr.write(
       `  ${rate.value.toFixed(3)}x (${rate.min.toFixed(2)} to ${rate.max.toFixed(2)}), noise ±${(rate.noise * 100).toFixed(1)}%, ` +
         `busy ${(of('base', 'busy') * 100).toFixed(0)}% / ${(of('head', 'busy') * 100).toFixed(0)}%, ` +
@@ -304,8 +322,8 @@ const main = async () => {
       busyBase: of('base', 'busy'),
       busyHead: of('head', 'busy'),
     });
+    await Promise.all(names.map((name) => arms[name].send({ type: 'end' })));
   }
-  await Promise.all(names.map((name) => arms[name].send({ type: 'end' })));
 
   const summary = markdown(labels, rows, notes, options);
   process.stdout.write(summary);

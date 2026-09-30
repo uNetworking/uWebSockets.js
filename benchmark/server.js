@@ -1,17 +1,18 @@
 'use strict';
 
-// One arm: serves every scenario from the build under UWS_BENCH_MODULE and reports its cpu time
-// and ws counters to compare.js over IPC.
+// One arm: serves the route of the scenario in UWS_BENCH_SCENARIO from the build under
+// UWS_BENCH_MODULE, and reports its cpu time and counters to compare.js over IPC.
 
 const path = require('path');
-const { routes } = require('./scenarios');
+const { scenarios } = require('./scenarios');
 
 const root = path.resolve(process.env.UWS_BENCH_MODULE);
 const uWS = require(path.join(root, 'dist/uws.js'));
+const scenario = scenarios.find((s) => s.name === process.env.UWS_BENCH_SCENARIO);
 
-const stats = { opened: 0, messages: 0 };
+const stats = { opened: 0, requests: 0 };
 const app = uWS.App();
-routes(app, stats);
+scenario.route(app, stats);
 
 app.listen('127.0.0.1', 0, (token) => {
   if (!token) {

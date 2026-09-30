@@ -236,7 +236,7 @@ const markdown = (labels, rows, notes, options) => {
   lines.push('');
   lines.push(
     `${options.rounds} rounds of ${options.duration}s per scenario, each round loading base, head and a second process of ` +
-      `each one after the other, in an order that changes every round. "Head / base" is the median of the per-round ` +
+      `each one, from a copy of its build, after the other, in an order that changes every round. "Head / base" is the median of the per-round ` +
       `ratios of req/s and "Rounds" their range. "Noise" is how far base/base and head/head, the same code on both ` +
       `sides, got from 1 in this same run: that is what the machine did, so a row is marked only when the median ` +
       `moved further than that, at least ${Math.round(FLOOR * 100)}%, and every round moved the same way: :eyes: ` +
@@ -274,7 +274,15 @@ const main = async () => {
     cpus: layout(),
   };
   const labels = { base: label(args.base), head: label(args.head) };
-  const names = ['base', 'head', 'base2', 'head2'];
+  // the second process of each arm loads a copy of its build: the same bytes in other pages of
+  // memory, so the noise band also sees what the placement of the code alone does
+  const copy = (dir, name) => {
+    const to = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'uws-benchmark-')), name);
+    fs.cpSync(path.join(dir, 'dist'), path.join(to, 'dist'), { recursive: true });
+    return to;
+  };
+  const dirs = { base: args.base, head: args.head, base2: copy(args.base, 'base2'), head2: copy(args.head, 'head2') };
+  const names = Object.keys(dirs);
   const notes = [];
   const rows = [];
   for (const scenario of scenarios) {
@@ -287,7 +295,7 @@ const main = async () => {
     process.stderr.write(`${scenario.name}\n`);
     // every scenario serves "/", so it gets its own four servers
     const arms = {};
-    for (const name of names) arms[name] = startArm(name.startsWith('base') ? args.base : args.head, options.cpus?.server, scenario);
+    for (const name of names) arms[name] = startArm(dirs[name], options.cpus?.server, scenario);
     for (const name of names) arms[name].port = (await arms[name].ready).port;
     if (scenario.tool === 'http_load_test') await checkSame(scenario, arms);
     const samples = Object.fromEntries(names.map((name) => [name, []]));
@@ -324,6 +332,8 @@ const main = async () => {
     });
     await Promise.all(names.map((name) => arms[name].send({ type: 'end' })));
   }
+
+  for (const name of ['base2', 'head2']) fs.rmSync(path.dirname(dirs[name]), { recursive: true, force: true });
 
   const summary = markdown(labels, rows, notes, options);
   process.stdout.write(summary);

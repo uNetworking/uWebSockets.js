@@ -25,10 +25,11 @@ node benchmark/compare.js --base ../base --head . --scenario http/hello-world --
 
 Both generators always ask for "/", so each scenario starts four servers with only its route, two
 per arm, and the load alternates between them, swapping the order every round, so the two
-measurements behind a ratio are seconds apart and a drift of the machine lands on both. The second process of each arm runs the same code as the
-first: how far base/base and head/head get from 1.0 is the noise of that run, and a head/base
-ratio is marked only when it moved further than that. Only the ratios are comparable across runs,
-the absolute req/s depend on the machine.
+measurements behind a ratio are seconds apart and a drift of the machine lands on both. The second
+process of each arm runs a copy of the same build, the same bytes in other pages of memory: how far
+base/base and head/head get from 1.0 is the noise of that run, and a head/base ratio is marked only
+when it moved further than that. Only the ratios are comparable across runs, the absolute req/s
+depend on the machine.
 
 Each server reports its own cpu time, so a row also says how busy the server was and what a
 request cost it. When the server is well under 100% busy the load generator set the pace, the

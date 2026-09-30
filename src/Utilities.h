@@ -223,17 +223,21 @@ public:
             Local<String> string = Local<String>::Cast(value);
 
             /* One pass: write straight into what is left of the pool and keep the bytes written.
-             * When not all characters fit, measure the string and write it again */
+             * When not all characters fit, measure the string and write it again.
+             * With more characters than free bytes it can never fit: skip the first write */
             size_t capacity = pool.size() - pool_offset;
+            bool fits = false;
+            if ((size_t) string->Length() <= capacity) {
             #if (V8_MAJOR_VERSION == 14)
                 size_t processed = 0;
                 length = string->WriteUtf8V2(isolate, pool.data() + pool_offset, capacity, String::WriteFlags::kNone, &processed);
-                bool fits = capacity && processed == (size_t) string->Length();
+                fits = capacity && processed == (size_t) string->Length();
             #else
                 int processed = 0;
                 length = string->WriteUtf8(isolate, pool.data() + pool_offset, (int) capacity, &processed, String::WriteOptions::NO_NULL_TERMINATION);
-                bool fits = capacity && processed == string->Length();
+                fits = capacity && processed == string->Length();
             #endif
+            }
 
             if (fits) {
                 data = pool.data() + pool_offset;

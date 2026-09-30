@@ -1,0 +1,66 @@
+name: Benchmark
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: 'Ref to compare this branch against'
+        default: master
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: head
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          path: base
+          ref: ${{ github.event.pull_request.base.sha || inputs.base }}
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      # build.c does not fail on a compiler error, so the check is loading what it produced
+      - name: Build both arms
+        run: |
+          for arm in base head; do
+            (cd $arm && make > ../$arm-build.log 2>&1) &
+          done
+          wait
+          for arm in base head; do
+            node -e "require('./$arm/dist/uws.js')" || { cat $arm-build.log; exit 1; }
+          done
+      # the http load generator of uSockets, over plain tcp: its source turns on ssl whenever it is
+      # built with it
+      - name: Build http_load_test
+        working-directory: head/uWebSockets/uSockets
+        run: clang-18 -O3 -DLIBUS_NO_SSL -Isrc src/*.c src/eventing/*.c src/crypto/*.c examples/http_load_test.c -o http_load_test
+      # the ws load generator of the uWebSockets repo, as its Makefile builds it
+      - name: Build load_test
+        working-directory: head/uWebSockets/benchmarks
+        run: |
+          clang-18 -O3 -DLIBUS_USE_OPENSSL -I../uSockets/src ../uSockets/src/*.c ../uSockets/src/eventing/*.c ../uSockets/src/crypto/*.c load_test.c -c
+          clang++-18 -O3 -DLIBUS_USE_OPENSSL -I../uSockets/src ../uSockets/src/crypto/*.cpp -c -std=c++17
+          clang++-18 -O3 *.o -lssl -lcrypto -lz -o load_test
+      - name: Run benchmark
+        working-directory: head
+        run: node benchmark/compare.js --base ../base --head . --rounds 4 --duration 3 --output ../benchmark_summary.md
+      - name: Publish the summary
+        run: cat benchmark_summary.md >> "$GITHUB_STEP_SUMMARY"
+      # the comment on the pull request is posted by benchmark-comment.yml from this artifact:
+      # the token of a pull request from a fork cannot write comments
+      - uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-summary
+          path: benchmark_summary.md

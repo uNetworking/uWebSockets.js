@@ -240,20 +240,16 @@ struct WebSocketWrapper {
     static void uWS_WebSocket_send(const FunctionCallbackInfo<Value> &args) {
         Isolate *isolate = args.GetIsolate();
         auto *ws = getWebSocket<SSL>(args);
-        if (ws) {
+        if (!ws) [[unlikely]] return;
 
-            bool isBinary = args[1]->BooleanValue(isolate);
-            bool compress = args[2]->BooleanValue(isolate);
+        bool isBinary = args[1]->BooleanValue(isolate);
+        bool compress = args[2]->BooleanValue(isolate);
 
-            NativeString<true> message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
-                return;
-            }
+        NativeString<true> message(isolate, args[0]);
+        if (message.isInvalid(args)) [[unlikely]] return;
 
-            unsigned int sendStatus = ws->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
-
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
-        }
+        uint32_t sendStatus = ws->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
+        args.GetReturnValue().Set(sendStatus);
     }
 
     /* Takes topic string, returns bool */

@@ -81,6 +81,10 @@ app.listen(port, async (token) => {
     const { body } = await get('/read', { 'x-ascii': 'plain' });
     check('getHeader key', body.toString(), 'plain');
 
+    /* the topic fills the 128 KB pool, then the empty message gets 0 bytes of a full pool: free() crashed on it */
+    app.publish('x'.repeat(128 * 1024), '');
+    console.log('Test passed: empty string on a full pool');
+
     if (failures) {
         console.error(`\n${failures} string test(s) failed`);
         process.exit(1);

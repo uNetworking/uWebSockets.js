@@ -224,10 +224,12 @@ public:
 
             /* One pass: write straight into what is left of the pool and keep the bytes written.
              * When not all characters fit, measure the string and write it again.
-             * With more characters than free bytes it can never fit: skip the first write */
+             * With more characters than free bytes it can never fit: skip the first write.
+             * A two-byte string is slow to write and takes up to 3 bytes per unit: past a third of
+             * the free pool it is measured first, so a write that does not fit is never thrown away */
             size_t capacity = pool.size() - pool_offset;
             bool fits = false;
-            if ((size_t) string->Length() <= capacity) {
+            if ((size_t) string->Length() * (string->IsOneByte() ? 1 : 3) <= capacity) {
             #if (V8_MAJOR_VERSION == 14)
                 size_t processed = 0;
                 length = string->WriteUtf8V2(isolate, pool.data() + pool_offset, capacity, String::WriteFlags::kNone, &processed);

@@ -133,7 +133,7 @@ void uWS_setTimeout(const FunctionCallbackInfo<Value> &args) {
 
     //timerCallbacksJS[timer].Reset(args.GetIsolate(), Local<Function>::Cast(args[0]));
 
-    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), timer));
+    //args.GetReturnValue().Set(timer);
 }
 
 void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
@@ -185,7 +185,7 @@ void uWS_us_socket_local_port(const FunctionCallbackInfo<Value> &args) {
         return;
     }
     int port = us_socket_local_port(0, (struct us_socket_t *) External::Cast(*args[0])->Value());
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), port));
+    args.GetReturnValue().Set(port);
 }
 
 /* Temporary KV store (doesn't belong here) */
@@ -245,7 +245,7 @@ void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())];
 
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    args.GetReturnValue().Set(value);
 }
 
 void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
@@ -279,7 +279,7 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 
     uint32_t value = kvStoreInteger[std::string(collection.getString())][std::string(key.getString())] += change;
 
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    args.GetReturnValue().Set(value);
 }
 
 /* This one will spike memory usage for large stores */
@@ -337,7 +337,7 @@ void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
 
     kvStoreString[std::string(collection.getString())].erase(std::string(key.getString()));
 
-    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    //args.GetReturnValue().Set(value);
 }
 
 void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
@@ -354,7 +354,7 @@ void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
 
     kvStoreInteger[std::string(collection.getString())].erase(std::string(key.getString()));
 
-    //args.GetReturnValue().Set(Integer::New(args.GetIsolate(), value));
+    //args.GetReturnValue().Set(value);
 }
 
 void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {

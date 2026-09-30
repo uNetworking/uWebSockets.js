@@ -58,7 +58,7 @@ struct WebSocketWrapper {
                 return;
             }
             bool success = ws->subscribe(topic.getString());
-            args.GetReturnValue().Set(Boolean::New(isolate, success));
+            args.GetReturnValue().Set(success);
         }
     }
 
@@ -73,7 +73,7 @@ struct WebSocketWrapper {
                 return;
             }
             bool success = ws->unsubscribe(topic.getString());
-            args.GetReturnValue().Set(Boolean::New(isolate, success));
+            args.GetReturnValue().Set(success);
         }
     }
 
@@ -100,7 +100,7 @@ struct WebSocketWrapper {
             }
 
             bool success = ws->publish(topic.getString(), message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
-            args.GetReturnValue().Set(Boolean::New(isolate, success));
+            args.GetReturnValue().Set(success);
         }
     }
 
@@ -169,7 +169,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             unsigned int port = ws->getRemotePort();
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, port));
+            args.GetReturnValue().Set(port);
         }
     }
 
@@ -180,7 +180,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             unsigned int bufferedAmount = ws->getBufferedAmount();
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, bufferedAmount));
+            args.GetReturnValue().Set(bufferedAmount);
         }
     }
 
@@ -197,7 +197,7 @@ struct WebSocketWrapper {
 
             unsigned int sendStatus = ws->sendFirstFragment(message.getString(), args[1]->BooleanValue(isolate) ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, args[2]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
+            args.GetReturnValue().Set(sendStatus);
         }
     }
 
@@ -214,7 +214,7 @@ struct WebSocketWrapper {
 
             unsigned int sendStatus = ws->sendFragment(message.getString(), args[1]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
+            args.GetReturnValue().Set(sendStatus);
         }
     }
 
@@ -231,7 +231,7 @@ struct WebSocketWrapper {
 
             unsigned int sendStatus = ws->sendLastFragment(message.getString(), args[1]->BooleanValue(isolate));
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
+            args.GetReturnValue().Set(sendStatus);
         }
     }
 
@@ -252,7 +252,7 @@ struct WebSocketWrapper {
 
             unsigned int sendStatus = ws->send(message.getString(), isBinary ? uWS::OpCode::BINARY : uWS::OpCode::TEXT, compress);
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
+            args.GetReturnValue().Set(sendStatus);
         }
     }
 
@@ -269,7 +269,7 @@ struct WebSocketWrapper {
 
             bool subscribed = ws->isSubscribed(topic.getString());
 
-            args.GetReturnValue().Set(Boolean::New(isolate, subscribed));
+            args.GetReturnValue().Set(subscribed);
         }
     }
 
@@ -287,7 +287,7 @@ struct WebSocketWrapper {
             /* This is a wrapper that does not exist in the C++ project */
             unsigned int sendStatus = ws->send(message.getString(), uWS::OpCode::PING);
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, sendStatus));
+            args.GetReturnValue().Set(sendStatus);
         }
     }
 

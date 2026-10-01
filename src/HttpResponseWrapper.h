@@ -275,7 +275,7 @@ struct HttpResponseWrapper {
         if (res) {
             unsigned int port = res->getRemotePort();
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, port));
+            args.GetReturnValue().Set(port);
         }
     }
 
@@ -311,7 +311,7 @@ struct HttpResponseWrapper {
         if (res) {
             unsigned int port = res->getProxiedRemotePort();
 
-            args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, port));
+            args.GetReturnValue().Set(port);
         }
     }
 
@@ -333,7 +333,7 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
-            args.GetReturnValue().Set(Number::New(isolate, getHttpResponse<SSL>(args)->getWriteOffset()));
+            args.GetReturnValue().Set((double) res->getWriteOffset());
         }
     }
 
@@ -473,7 +473,7 @@ struct HttpResponseWrapper {
             assumeCorked();
             bool ok = res->write(data.getString());
 
-            args.GetReturnValue().Set(Boolean::New(isolate, ok));
+            args.GetReturnValue().Set(ok);
         }
     }
 

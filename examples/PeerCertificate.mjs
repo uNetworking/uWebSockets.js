@@ -3,7 +3,7 @@ import forge from 'node-forge';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -4,7 +4,7 @@
  * Try navigating to the adderss with Chrome and see the video
  * in real time. */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 import fs from 'fs';
 
 const port = 9001;

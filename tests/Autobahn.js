@@ -1,5 +1,5 @@
 /* Test servers for autobahn, run with ASAN. /exit route shuts down everything */
-const uWS = require('../dist/uws.js');
+const uWS = require('../dist/index.js');
 
 /* Keep track of all apps */
 let apps = [];

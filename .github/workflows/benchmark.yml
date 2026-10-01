@@ -38,8 +38,10 @@ jobs:
             (cd $arm && make > ../$arm-build.log 2>&1) &
           done
           wait
+          # a base from before the rename to index.js still has dist/uws.js
           for arm in base head; do
-            node -e "require('./$arm/dist/uws.js')" || { cat $arm-build.log; exit 1; }
+            entry=$(ls $arm/dist/index.js $arm/dist/uws.js 2>/dev/null | head -1)
+            node -e "require('./$entry')" || { cat $arm-build.log; exit 1; }
           done
       # the http load generator of uSockets, over plain tcp: its source turns on ssl whenever it is
       # built with it

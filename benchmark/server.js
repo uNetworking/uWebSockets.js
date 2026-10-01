@@ -3,11 +3,14 @@
 // One arm: serves the route of the scenario in UWS_BENCH_SCENARIO from the build under
 // UWS_BENCH_MODULE, and reports its cpu time and counters to compare.js over IPC.
 
+const fs = require('fs');
 const path = require('path');
 const { scenarios } = require('./scenarios');
 
 const root = path.resolve(process.env.UWS_BENCH_MODULE);
-const uWS = require(path.join(root, 'dist/uws.js'));
+// a base from before the rename to index.js still has dist/uws.js
+const entry = ['dist/index.js', 'dist/uws.js'].find((file) => fs.existsSync(path.join(root, file)));
+const uWS = require(path.join(root, entry));
 const scenario = scenarios.find((s) => s.name === process.env.UWS_BENCH_SCENARIO);
 
 const stats = { opened: 0, requests: 0 };

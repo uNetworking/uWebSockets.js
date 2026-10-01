@@ -1,6 +1,6 @@
 /* Same as HelloWorld, but with automatic port selection. */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 let port = 0; 
 
 const app = uWS./*SSL*/App({

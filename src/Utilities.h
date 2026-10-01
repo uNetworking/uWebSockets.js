@@ -229,6 +229,7 @@ public:
              * the free pool it is measured first, so a write that does not fit is never thrown away */
             size_t capacity = pool.size() - pool_offset;
             bool fits = false;
+            /* Should really be string->IsOneByte() ? 2 : 3 but we kept Latin-1 as 1 byte UTF-8 for deliberate reasons */
             if ((size_t) string->Length() * (string->IsOneByte() ? 1 : 3) <= capacity) {
             #if (V8_MAJOR_VERSION == 14)
                 size_t processed = 0;

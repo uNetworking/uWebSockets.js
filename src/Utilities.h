@@ -259,19 +259,16 @@ public:
 
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
             Local<ArrayBufferView> arrayBufferView = Local<ArrayBufferView>::Cast(value);
-            auto contents = arrayBufferView->Buffer()->GetBackingStore();
             length = arrayBufferView->ByteLength();
-            data = (char *) contents->Data() + arrayBufferView->ByteOffset();
+            data = (char *) arrayBufferView->Buffer()->Data() + arrayBufferView->ByteOffset();
         } else if (value->IsArrayBuffer()) {
             Local<ArrayBuffer> arrayBuffer = Local<ArrayBuffer>::Cast(value);
-            auto contents = arrayBuffer->GetBackingStore();
-            length = contents->ByteLength();
-            data = (char *) contents->Data();
+            length = arrayBuffer->ByteLength();
+            data = (char *) arrayBuffer->Data();
         } else if (value->IsSharedArrayBuffer()) {
             Local<SharedArrayBuffer> arrayBuffer = Local<SharedArrayBuffer>::Cast(value);
-            auto contents = arrayBuffer->GetBackingStore();
-            length = contents->ByteLength();
-            data = (char *) contents->Data();
+            length = arrayBuffer->ByteLength();
+            data = (char *) arrayBuffer->Data();
         } else {
             invalid = true;
         }

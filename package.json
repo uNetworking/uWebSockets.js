@@ -2,11 +2,11 @@
   "name": "uWebSockets.js",
   "version": "20.71.0",
   "license": "Apache-2.0",
-  "main": "uws.js",
+  "main": "index.js",
   "types": "./index.d.ts",
   "exports": {
-    "import": "./ESM_wrapper.mjs",
-    "require": "./uws.js",
+    "import": "./index.mjs",
+    "require": "./index.js",
     "types": "./index.d.ts"
   }
 }

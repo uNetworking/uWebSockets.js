@@ -9,7 +9,7 @@
  * in your system. But by only creating 2 here, it is simple to see the perf. gain on a system of 4 cores, as you can then
  * run the client side on the remaining 2 cores without interfering with the server side. */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 const port = 9001;
 import { Worker, isMainThread, threadId, parentPort  } from 'worker_threads';
 import os from 'os';

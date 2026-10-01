@@ -1,6 +1,6 @@
 /* An example showing microcaching for /prices/gold and /prices/bitcoin. */
 
-import uWS from '../dist/uws.js';;
+import uWS from '../dist/index.mjs';;
 const port = 9001;
 
 import { setTimeout } from 'node:timers/promises';

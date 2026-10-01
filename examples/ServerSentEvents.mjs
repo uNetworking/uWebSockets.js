@@ -1,7 +1,7 @@
 /* Server-sent events (EventSource) example */
 /* curl -n localhost:9001 # check events by using curl */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 const port = 9001;
 
 const headers = [

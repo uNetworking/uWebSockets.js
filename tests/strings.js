@@ -1,6 +1,6 @@
 /* Strings from JS to C++ and out on the wire, compared byte for byte. A one-byte V8 string is
  * Latin-1, not utf-8: #1262 mixed the two and #1280 got "str<?>ngar" back. */
-const uWS = require('../dist/uws.js');
+const uWS = require('../dist/index.js');
 const http = require('http');
 
 const port = 9002;

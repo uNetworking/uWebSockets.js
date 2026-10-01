@@ -9,7 +9,7 @@
 /* We use websockets/ws as client counterpart */
 const WebSocket = require('ws');
 
-const uWS = require('../dist/uws.js');
+const uWS = require('../dist/index.js');
 const port = 9001;
 
 let openedClientConnections = 0;

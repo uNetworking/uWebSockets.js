@@ -1,6 +1,6 @@
 /* RateLimit example */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 const port = 9001;
 
 const RateLimit = (limit, interval) => { let now = 0; const last = Symbol(), count = Symbol(); setInterval(() => ++now, interval); return ws => { if (ws[last] != now) { ws[last] = now; ws[count] = 1 } else { return ++ws[count] > limit } } }

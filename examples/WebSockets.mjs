@@ -1,6 +1,6 @@
 /* A quite detailed WebSockets example */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 const port = 9001;
 
 const app = uWS./*SSL*/App({

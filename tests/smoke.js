@@ -1,5 +1,5 @@
 // We are run inside tests folder and the newly built binaries are in ../dist
-const uWS = require('../dist/uws.js');
+const uWS = require('../dist/index.js');
 const WebSocket = require('ws');
 
 const expectedCloseReasons = {

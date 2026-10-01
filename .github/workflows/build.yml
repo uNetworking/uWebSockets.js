@@ -26,12 +26,15 @@ jobs:
           cd uWebSockets.js
           ${{ matrix.os == 'windows-latest' && 'nmake' || 'make' }}
           ls dist
-          cd tests && npm install ws && node smoke.js && node strings.js && cd ..
+          cd tests && npm install ws && node smoke.js && node strings.js && node esm.mjs && cd ..
           ls dist
           git fetch origin binaries:binaries
           git checkout binaries
           cp dist/*.node .
           cp dist/*.js .
+          cp dist/*.mjs .
+          # commit -a takes only files the branch already has
+          git add index.js index.mjs
           git rev-parse master > source_commit
           ls
           ${{ matrix.os != 'windows-latest' && 'git checkout master docs/index.d.ts && mv docs/index.d.ts .' || '' }}

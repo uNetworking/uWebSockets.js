@@ -1,6 +1,6 @@
 /* Minimal HTTP/3 example */
 
-import uWS from '../dist/uws.js';
+import uWS from '../dist/index.mjs';
 const port = 9001;
 
 /* ./quiche-client --no-verify https://localhost:9001 */

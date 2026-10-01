@@ -142,10 +142,12 @@ void build(char *compiler, char *cpp_compiler, char *cpp_linker, char *os, const
 
 void copy_files() {
 #ifdef IS_WINDOWS
-    run("copy \"src\\uws.js\" dist /Y");
+    run("copy \"src\\index.js\" dist /Y");
 #else
-    run("cp src/uws.js dist/uws.js");
+    run("cp src/index.js dist/index.js");
 #endif
+    /* The ESM entry is written from what dist/index.js exports, so it cannot go out of date */
+    run("node src/esm.js");
 }
 
 /* Special case for windows */

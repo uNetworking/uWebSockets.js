@@ -34,4 +34,8 @@ jobs:
           git config --global user.email "alexhultman@gmail.com"
           git config --global user.name "Alex Hultman"
           git commit -a -m "[GitHub Actions] Updated ${{ matrix.os }} ASAN binaries" || true
-          git push "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js" binaries-asan
+          # Another job can push in between: then its commit is taken and the push tried again, up to three
+          # times. One line, because PowerShell and bash both read && and || left to right. -X theirs keeps
+          # this job's version of a file both changed, like source_commit
+          git remote set-url --push origin "https://unetworkingab:${{ secrets.SECRET }}@github.com/uNetworking/uWebSockets.js"
+          git push origin binaries-asan || git pull --rebase -X theirs origin binaries-asan && git push origin binaries-asan || git pull --rebase -X theirs origin binaries-asan && git push origin binaries-asan || git pull --rebase -X theirs origin binaries-asan && git push origin binaries-asan

@@ -38,7 +38,10 @@ const CASES = {
     'mixed': 'aä中\u{1f600}z',
     /* past the 128 KB pool in NativeString, so the copy takes the malloc fallback */
     'past the pool, ascii': 'x'.repeat(200 * 1024),
-    'past the pool, latin1': 'x'.repeat(200 * 1024) + 'é'
+    'past the pool, latin1': 'x'.repeat(200 * 1024) + 'é',
+    /* two-byte past a third of the pool: measured first, then malloc or the pool */
+    'two-byte past the pool': '€'.repeat(50 * 1024),
+    'two-byte in the pool': 'x'.repeat(100 * 1024) + '€'
 };
 
 const app = uWS.App();

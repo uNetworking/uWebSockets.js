@@ -112,6 +112,54 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Calls a handler of onDataOrAborted or onWritableOrAborted, kept in an internal field of res: with res first, or
+     * with null on abort, then res is marked invalid */
+    static inline MaybeLocal<Value> callOrAborted(Isolate *isolate, Local<Object> resLocal, int field, bool aborted, int argc, Local<Value> *argv) {
+        Local<Function> f = Local<Function>::Cast(resLocal->GetInternalField(field).As<Value>());
+        if (aborted) {
+            /* Mark this resObject invalid */
+            setInternalPointer(resLocal, nullptr);
+
+            Local<Value> nullArgv[] = {Null(isolate)};
+            return CallJS(isolate, f, 1, nullArgv);
+        }
+        argv[0] = resLocal;
+        return CallJS(isolate, f, argc, argv);
+    }
+
+    /* Takes function of res, data and maxRemainingBodyLength, returns this. Gets res null on abort, until the response
+     * ends, so no onAborted is needed */
+    template <int SSL>
+    static void res_onDataOrAborted(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* The function lives in internal field 2, res is captured to pass it and to mark it invalid */
+            args.This()->SetInternalField(2, args[0]);
+            NoexceptPersistent<Object> resObject(isolate, args.This());
+
+            res->onDataOrAborted([resObject = std::move(resObject), isolate](auto *alive, std::string_view data, uint64_t maxRemainingBodyLength) {
+                HandleScope hs(isolate);
+
+                Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);
+                if (!alive) {
+                    callOrAborted(isolate, resLocal, 2, true, 0, nullptr);
+                    return;
+                }
+
+                Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer_New(isolate, (void *) data.data(), data.length());
+
+                /* Pass maxRemainingBodyLength so user can preallocate; 0 signals the last chunk */
+                Local<Value> argv[] = {Local<Value>(), dataArrayBuffer, BigInt::NewFromUnsigned(isolate, maxRemainingBodyLength)};
+                callOrAborted(isolate, resLocal, 2, false, 3, argv);
+
+                dataArrayBuffer->Detach();
+            });
+
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* Takes integer maxSize and function of fullData. Accumulates all data chunks and calls handler with the complete
      * body as an ArrayBuffer once all data has arrived. If the body exceeds maxSize bytes, handler is called with
      * null instead. Fast path: if all data arrives in a single chunk no allocation is made and the ArrayBuffer is
@@ -367,6 +415,43 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Takes function of bool(res, int), returns this. Gets res null on abort (what it returns is then ignored), until
+     * the response ends, so no onAborted is needed */
+    template <int SSL>
+    static void res_onWritableOrAborted(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (res) {
+            /* The function lives in internal field 3, res is captured like for onDataOrAborted */
+            args.This()->SetInternalField(3, args[0]);
+            NoexceptPersistent<Object> resObject(isolate, args.This());
+
+            res->onWritableOrAborted([resObject = std::move(resObject), isolate](auto *alive, uintmax_t offset) -> bool {
+                HandleScope hs(isolate);
+
+                Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);
+                if (!alive) {
+                    callOrAborted(isolate, resLocal, 3, true, 0, nullptr);
+                    return true;
+                }
+
+                Local<Value> argv[] = {Local<Value>(), Number::New(isolate, (double) offset)};
+
+                /* We should check if this is really here! */
+                MaybeLocal<Value> maybeBoolean = callOrAborted(isolate, resLocal, 3, false, 2, argv);
+                if (maybeBoolean.IsEmpty()) {
+                    std::cerr << "Warning: uWS.HttpResponse.onWritableOrAborted callback should return Boolean. See documentation for uWS.HttpResponse.onWritable and consult the user manual." << std::endl;
+                    /* The default should be true, as it only adds a potential extra send, rather than erroneously avoid it */
+                    return true;
+                }
+
+                return maybeBoolean.ToLocalChecked()->BooleanValue(isolate);
+            });
+
+            args.GetReturnValue().Set(args.This());
+        }
+    }
+
     /* Takes string or arraybuffer, returns this */
     template <int SSL>
     static void res_writeStatus(const FunctionCallbackInfo<Value> &args) {
@@ -589,8 +674,9 @@ struct HttpResponseWrapper {
         } else if (SSL == 3) {
             resTemplateLocal->SetClassName(String::NewFromUtf8(isolate, "uWS.HttpCacheResponse", NewStringType::kNormal).ToLocalChecked());
         }
-        /* Field 0 is the native pointer, field 1 holds the onAborted callback */
-        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(2);
+        /* Field 0 is the native pointer, field 1 holds the onAborted callback. HTTP/1: fields 2 and 3 hold the
+         * onDataOrAborted and onWritableOrAborted functions */
+        resTemplateLocal->InstanceTemplate()->SetInternalFieldCount(SSL < 2 ? 4 : 2);
 
         /* Register our functions (the most common go here) */
         resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "end", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_end<SSL>));
@@ -612,6 +698,8 @@ struct HttpResponseWrapper {
             /* QUIC has a lot of functions unimplemented */
             if constexpr (SSL != 2) {
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataV2", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataV2<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataOrAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataOrAborted<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onWritableOrAborted", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onWritableOrAborted<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectBody<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "beginWrite", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_beginWrite<SSL>));

@@ -138,7 +138,7 @@ struct HttpResponseWrapper {
             args.This()->SetInternalField(2, args[0]);
             NoexceptPersistent<Object> resObject(isolate, args.This());
 
-            res->onDataOrAborted([resObject = std::move(resObject), isolate](auto *alive, std::string_view data, uint64_t maxRemainingBodyLength) {
+            res->onData([resObject = std::move(resObject), isolate](auto *alive, std::string_view data, uint64_t maxRemainingBodyLength) {
                 HandleScope hs(isolate);
 
                 Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);
@@ -426,7 +426,7 @@ struct HttpResponseWrapper {
             args.This()->SetInternalField(3, args[0]);
             NoexceptPersistent<Object> resObject(isolate, args.This());
 
-            res->onWritableOrAborted([resObject = std::move(resObject), isolate](auto *alive, uintmax_t offset) -> bool {
+            res->onWritable([resObject = std::move(resObject), isolate](auto *alive, uintmax_t offset) -> bool {
                 HandleScope hs(isolate);
 
                 Local<Object> resLocal = Local<Object>::New(isolate, resObject.p);

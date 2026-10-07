@@ -181,41 +181,47 @@ class NativeString {
     bool allocated = false;
     bool invalid = false;
 
-    // Static thread-local state shared by all NativeString instances on this thread
-    inline static thread_local std::vector<char> pool = std::vector<char>(128 * 1024);
-    inline static thread_local size_t pool_offset = 0;
-    inline static thread_local int ref_count = 0;
+    // State shared by all NativeString instances on this thread, in one thread-local read once per
+    // instance: in an addon every thread-local access is a call into the dynamic linker
+    struct Pool {
+        std::vector<char> buffer = std::vector<char>(128 * 1024);
+        size_t offset = 0;
+        int refCount = 0;
+    };
+    inline static thread_local Pool threadPool;
+    Pool *pool;
 
-    static char* alloc(size_t size) {
+    char* alloc(size_t size) {
         // Ensure size is a multiple of 8
         size = (size + 7) & ~7;
 
         // Fallback for allocations larger than the remaining pool space, or that reach its end:
         // on a full pool 0 bytes would get the end pointer, and free() would pass it to ::free
-        if (pool_offset + size >= pool.size()) {
+        if (pool->offset + size >= pool->buffer.size()) {
             // Mark for external cleanup if using instance-based logic
             // (Note: In a pure static alloc, you'd need a way to track this)
             return (char*)std::malloc(size);
         }
 
-        char* ptr = pool.data() + pool_offset;
-        pool_offset += size;
+        char* ptr = pool->buffer.data() + pool->offset;
+        pool->offset += size;
         return ptr;
     }
 
     // Provided for completeness, though the "pool" doesn't actually free individual slices
-    static void free(char* ptr) {
-        if (ptr < pool.data() || ptr >= pool.data() + pool.size()) {
+    void free(char* ptr) {
+        if (ptr < pool->buffer.data() || ptr >= pool->buffer.data() + pool->buffer.size()) {
             ::free(ptr);
         }
     }
 
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
-        if (ref_count == 0) {
-            pool_offset = 0; // Reset the "stack" when entering the first scope
+        pool = &threadPool;
+        if (pool->refCount == 0) {
+            pool->offset = 0; // Reset the "stack" when entering the first scope
         }
-        ref_count++;
+        pool->refCount++;
 
         if (value->IsUndefined()) {
             data = nullptr;
@@ -228,24 +234,24 @@ public:
              * With more characters than free bytes it can never fit: skip the first write.
              * A two-byte string is slow to write and takes up to 3 bytes per unit: past a third of
              * the free pool it is measured first, so a write that does not fit is never thrown away */
-            size_t capacity = pool.size() - pool_offset;
+            size_t capacity = pool->buffer.size() - pool->offset;
             bool fits = false;
             /* Should really be string->IsOneByte() ? 2 : 3 but we kept Latin-1 as 1 byte UTF-8 for deliberate reasons */
             if ((size_t) string->Length() * (string->IsOneByte() ? 1 : 3) <= capacity) {
             #if (V8_MAJOR_VERSION == 14)
                 size_t processed = 0;
-                length = string->WriteUtf8V2(isolate, pool.data() + pool_offset, capacity, String::WriteFlags::kNone, &processed);
+                length = string->WriteUtf8V2(isolate, pool->buffer.data() + pool->offset, capacity, String::WriteFlags::kNone, &processed);
                 fits = capacity && processed == (size_t) string->Length();
             #else
                 int processed = 0;
-                length = string->WriteUtf8(isolate, pool.data() + pool_offset, (int) capacity, &processed, String::WriteOptions::NO_NULL_TERMINATION);
+                length = string->WriteUtf8(isolate, pool->buffer.data() + pool->offset, (int) capacity, &processed, String::WriteOptions::NO_NULL_TERMINATION);
                 fits = capacity && processed == string->Length();
             #endif
             }
 
             if (fits) {
-                data = pool.data() + pool_offset;
-                pool_offset += (length + 7) & ~7;
+                data = pool->buffer.data() + pool->offset;
+                pool->offset += (length + 7) & ~7;
             } else {
                 #if (V8_MAJOR_VERSION == 14)
                     length = string->Utf8LengthV2(isolate);
@@ -289,7 +295,7 @@ public:
     }
 
     ~NativeString() {
-        ref_count--;
+        pool->refCount--;
         if (allocated) {
             free(data);
         }

@@ -58,7 +58,7 @@ const scenarios = [
           res.aborted = true;
         });
         res.onData((chunk, isLast) => {
-          body = body ? Buffer.concat([body, Buffer.from(chunk)]) : Buffer.from(chunk);
+          body = body ? Buffer.concat([body, Buffer.from(chunk)]) : Buffer.from(isLast ? chunk : chunk.slice(0));
           if (isLast) {
             res.end(String(JSON.parse(body).key));
           }

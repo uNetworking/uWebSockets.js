@@ -183,7 +183,7 @@ export interface HttpResponse {
 
     /** Every HttpResponse MUST have an attached abort handler IF you do not respond
      * to it immediately inside of the callback. Returning from an Http request handler
-     * without attaching (by calling onAborted) an abort handler is ill-use and will terminate.
+     * without attaching (by calling onAborted, onDataOrAborted or onWritableOrAborted) an abort handler is ill-use and will terminate.
      * When this event emits, the response has been aborted and may not be used. */
     onAborted(handler: () => void) : HttpResponse;
 
@@ -211,6 +211,16 @@ export interface HttpResponse {
      * maxRemainingBodyLength is the known maximum of the remaining body length. Can be used to preallocate a receive buffer.
      */
     onDataV2(handler: (chunk: ArrayBuffer, maxRemainingBodyLength: bigint) => void) : HttpResponse;
+
+    /** Handler for reading HTTP request body data, like onDataV2, that also gets the abort: no onAborted is needed. HTTP/1 only.
+     * It gets res first. On abort, also after the last chunk, it gets res null, until the response ends.
+     * After the response ends it gets no more data. A request without body gets one empty last chunk. */
+    onDataOrAborted(handler: (res: HttpResponse | null, chunk?: ArrayBuffer, maxRemainingBodyLength?: bigint) => void) : HttpResponse;
+
+    /** Handler for writable events, like onWritable, that also gets the abort: no onAborted is needed. HTTP/1 only.
+     * It gets res first. On abort it gets res null, until the response ends, and what it returns is then ignored.
+     * With onDataOrAborted too, both get the abort, onDataOrAborted first. */
+    onWritableOrAborted(handler: (res: HttpResponse | null, offset?: number) => boolean) : HttpResponse;
 
     /** Returns the remote IP address in binary format (4 or 16 bytes). */
     getRemoteAddress() : ArrayBuffer;

@@ -31,7 +31,7 @@ struct WebSocketWrapper {
         Isolate *isolate = args.GetIsolate();
         auto *ws = (uWS::WebSocket<SSL, true, PerSocketData> *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
         if (!ws) {
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.", NewStringType::kNormal).ToLocalChecked())));
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "Invalid access of closed uWS.WebSocket/SSLWebSocket.")));
         }
         return ws;
     }
@@ -54,7 +54,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString<true> topic(isolate, args[0]);
-            if (topic.isInvalid(args)) {
+            if (topic.isInvalid()) {
                 return;
             }
             bool success = ws->subscribe(topic.getString());
@@ -69,7 +69,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString<true> topic(isolate, args[0]);
-            if (topic.isInvalid(args)) {
+            if (topic.isInvalid()) {
                 return;
             }
             bool success = ws->unsubscribe(topic.getString());
@@ -91,11 +91,11 @@ struct WebSocketWrapper {
             bool compress = args[3]->BooleanValue(isolate);
 
             NativeString<true> topic(isolate, args[0]);
-            if (topic.isInvalid(args)) {
+            if (topic.isInvalid()) {
                 return;
             }
             NativeString<true> message(isolate, args[1]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -129,7 +129,7 @@ struct WebSocketWrapper {
             }
 
             NativeString<true> message(args.GetIsolate(), args[1]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -191,7 +191,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -208,7 +208,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -225,7 +225,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -246,7 +246,7 @@ struct WebSocketWrapper {
             bool compress = args[2]->BooleanValue(isolate);
 
             NativeString<true> message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 
@@ -263,7 +263,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString<true> topic(args.GetIsolate(), args[0]);
-            if (topic.isInvalid(args)) {
+            if (topic.isInvalid()) {
                 return;
             }
 
@@ -280,7 +280,7 @@ struct WebSocketWrapper {
         auto *ws = getWebSocket<SSL>(args);
         if (ws) {
             NativeString<true> message(args.GetIsolate(), args[0]);
-            if (message.isInvalid(args)) {
+            if (message.isInvalid()) {
                 return;
             }
 

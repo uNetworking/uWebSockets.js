@@ -49,12 +49,12 @@ void uWS_getParts(const FunctionCallbackInfo<Value> &args) {
     Isolate *isolate = args.GetIsolate();
 
     NativeString body(args.GetIsolate(), args[0]);
-    if (body.isInvalid(args)) {
+    if (body.isInvalid()) {
         return;
     }
 
     NativeString contentType(args.GetIsolate(), args[1]);
-    if (contentType.isInvalid(args)) {
+    if (contentType.isInvalid()) {
         return;
     }
 
@@ -150,7 +150,7 @@ void uWS_clearTimeout(const FunctionCallbackInfo<Value> &args) {
 /* Pass various undocumented configs */
 void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
@@ -164,7 +164,7 @@ void uWS_cfg(const FunctionCallbackInfo<Value> &args) {
  * would be cast to a bogus pointer and dereferenced, killing the process */
 static inline bool invalidSocket(const FunctionCallbackInfo<Value> &args, const char *message) {
     if (!args[0]->IsExternal()) {
-        args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), message, NewStringType::kNormal).ToLocalChecked())));
+        args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), message, NewStringType::kNormal).ToLocalChecked()));
         return true;
     }
     return false;
@@ -200,12 +200,12 @@ std::mutex kvMutex;
 // getString(key, collection)
 void uWS_getString(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     NativeString collection(args.GetIsolate(), args[1]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -216,16 +216,16 @@ void uWS_getString(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_setString(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
     NativeString value(args.GetIsolate(), args[1]);
-    if (value.isInvalid(args)) {
+    if (value.isInvalid()) {
         return;
     }
 
     NativeString collection(args.GetIsolate(), args[2]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -234,12 +234,12 @@ void uWS_setString(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     NativeString collection(args.GetIsolate(), args[1]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -250,14 +250,14 @@ void uWS_getInteger(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     uint32_t value = Local<Integer>::Cast(args[1])->Value();
 
     NativeString collection(args.GetIsolate(), args[2]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -266,14 +266,14 @@ void uWS_setInteger(const FunctionCallbackInfo<Value> &args) {
 
 void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     uint32_t change = Local<Integer>::Cast(args[1])->Value();
 
     NativeString collection(args.GetIsolate(), args[2]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -286,7 +286,7 @@ void uWS_incInteger(const FunctionCallbackInfo<Value> &args) {
 void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 
     NativeString collection(args.GetIsolate(), args[0]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -306,7 +306,7 @@ void uWS_getStringKeys(const FunctionCallbackInfo<Value> &args) {
 void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
 
     NativeString collection(args.GetIsolate(), args[0]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -326,12 +326,12 @@ void uWS_getIntegerKeys(const FunctionCallbackInfo<Value> &args) {
 void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
 
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     NativeString collection(args.GetIsolate(), args[1]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -343,12 +343,12 @@ void uWS_deleteString(const FunctionCallbackInfo<Value> &args) {
 void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
 
     NativeString key(args.GetIsolate(), args[0]);
-    if (key.isInvalid(args)) {
+    if (key.isInvalid()) {
         return;
     }
 
     NativeString collection(args.GetIsolate(), args[1]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -360,7 +360,7 @@ void uWS_deleteInteger(const FunctionCallbackInfo<Value> &args) {
 void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {
 
     NativeString collection(args.GetIsolate(), args[0]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 
@@ -372,7 +372,7 @@ void uWS_deleteStringCollection(const FunctionCallbackInfo<Value> &args) {
 void uWS_deleteIntegerCollection(const FunctionCallbackInfo<Value> &args) {
 
     NativeString collection(args.GetIsolate(), args[0]);
-    if (collection.isInvalid(args)) {
+    if (collection.isInvalid()) {
         return;
     }
 

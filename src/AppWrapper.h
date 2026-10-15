@@ -38,7 +38,7 @@ void uWS_App_ws(const FunctionCallbackInfo<Value> &args) {
     typename APP::template WebSocketBehavior<PerSocketData> behavior = {};
 
     NativeString pattern(args.GetIsolate(), args[0]);
-    if (pattern.isInvalid(args)) {
+    if (pattern.isInvalid()) {
         return;
     }
 
@@ -320,7 +320,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
     /* Pattern */
     NativeString pattern(args.GetIsolate(), args[0]);
-    if (pattern.isInvalid(args)) {
+    if (pattern.isInvalid()) {
         return;
     }
 
@@ -334,7 +334,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
     /* If the handler is String */
     if (args[1]->IsArrayBuffer()) {
         NativeString constantString(args.GetIsolate(), args[1]);
-        if (constantString.isInvalid(args)) {
+        if (constantString.isInvalid()) {
             return;
         }
 
@@ -456,7 +456,7 @@ void uWS_App_get(F f, const FunctionCallbackInfo<Value> &args) {
 
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[1]);
-    if (checkedCallback.isInvalid(args)) {
+    if (checkedCallback.isInvalid()) {
         return;
     }
     NoexceptPersistent<Function> cb = checkedCallback.getFunction();
@@ -522,7 +522,7 @@ void uWS_App_listen_unix(const FunctionCallbackInfo<Value> &args) {
     /* Path is last */
     std::string path;
     NativeString h(isolate, args[args.Length() - 1]);
-    if (h.isInvalid(args)) {
+    if (h.isInvalid()) {
         return;
     }
     path = h.getString();
@@ -556,7 +556,7 @@ void uWS_App_listen(const FunctionCallbackInfo<Value> &args) {
     int firstNumber = 0;
     if (!args[0]->IsNumber()) {
         NativeString h(isolate, args[0]);
-        if (h.isInvalid(args)) {
+        if (h.isInvalid()) {
             return;
         }
         host = h.getString();
@@ -582,7 +582,7 @@ void uWS_App_filter(const FunctionCallbackInfo<Value> &args) {
 
     /* Handler */
     Callback checkedCallback(args.GetIsolate(), args[0]);
-    if (checkedCallback.isInvalid(args)) {
+    if (checkedCallback.isInvalid()) {
         return;
     }
     NoexceptPersistent<Function> cb = checkedCallback.getFunction();
@@ -617,7 +617,7 @@ void uWS_App_domain(const FunctionCallbackInfo<Value> &args) {
     }
 
     NativeString serverName(isolate, args[0]);
-    if (serverName.isInvalid(args)) {
+    if (serverName.isInvalid()) {
         return;
     }
 
@@ -638,12 +638,12 @@ void uWS_App_publish(const FunctionCallbackInfo<Value> &args) {
     }
 
     NativeString topic(isolate, args[0]);
-    if (topic.isInvalid(args)) {
+    if (topic.isInvalid()) {
         return;
     }
 
     NativeString message(isolate, args[1]);
-    if (message.isInvalid(args)) {
+    if (message.isInvalid()) {
         return;
     }
 
@@ -664,7 +664,7 @@ void uWS_App_numSubscribers(const FunctionCallbackInfo<Value> &args) {
     }
 
     NativeString topic(isolate, args[0]);
-    if (topic.isInvalid(args)) {
+    if (topic.isInvalid()) {
         return;
     }
 
@@ -680,7 +680,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
     if (args.Length() > index && !args[index]->IsUndefined() && !args[index]->IsNull()) {
 
         if (!args[index]->IsObject()) {
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "Options must be an object.", NewStringType::kNormal).ToLocalChecked())));
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "Options must be an object.")));
             return {};
         }
 
@@ -688,7 +688,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* Key file name */
         NativeString keyFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "key_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (keyFileNameValue.isInvalid(args)) {
+        if (keyFileNameValue.isInvalid()) {
             return {};
         }
         if (keyFileNameValue.getString().length()) {
@@ -698,7 +698,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* Cert file name */
         NativeString certFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "cert_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (certFileNameValue.isInvalid(args)) {
+        if (certFileNameValue.isInvalid()) {
             return {};
         }
         if (certFileNameValue.getString().length()) {
@@ -708,7 +708,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* Passphrase */
         NativeString passphraseValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "passphrase", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (passphraseValue.isInvalid(args)) {
+        if (passphraseValue.isInvalid()) {
             return {};
         }
         if (passphraseValue.getString().length()) {
@@ -718,7 +718,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* DH params file name */
         NativeString dhParamsFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "dh_params_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (dhParamsFileNameValue.isInvalid(args)) {
+        if (dhParamsFileNameValue.isInvalid()) {
             return {};
         }
         if (dhParamsFileNameValue.getString().length()) {
@@ -728,7 +728,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* CA file name */
         NativeString caFileNameValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ca_file_name", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (caFileNameValue.isInvalid(args)) {
+        if (caFileNameValue.isInvalid()) {
             return {};
         }
         if (caFileNameValue.getString().length()) {
@@ -741,7 +741,7 @@ std::pair<uWS::SocketContextOptions, bool> readOptionsObject(const FunctionCallb
 
         /* ssl_ciphers */
         NativeString sslCiphersValue(isolate, optionsObject->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "ssl_ciphers", NewStringType::kNormal).ToLocalChecked()).ToLocalChecked());
-        if (sslCiphersValue.isInvalid(args)) {
+        if (sslCiphersValue.isInvalid()) {
             return {};
         }
         if (sslCiphersValue.getString().length()) {
@@ -762,7 +762,7 @@ void uWS_App_adoptSocket(const FunctionCallbackInfo<Value> &args) {
     int32_t fd = args[0]->Int32Value(isolate->GetCurrentContext()).ToChecked();
 
     NativeString ip(isolate, args[1]);
-    if (ip.isInvalid(args)) {
+    if (ip.isInvalid()) {
         return;
     }
 
@@ -841,7 +841,7 @@ void uWS_App_addServerName(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
     NativeString hostnamePatternValue(isolate, args[0]);
-    if (hostnamePatternValue.isInvalid(args)) {
+    if (hostnamePatternValue.isInvalid()) {
         return;
     }
     std::string hostnamePattern;
@@ -865,7 +865,7 @@ void uWS_App_removeServerName(const FunctionCallbackInfo<Value> &args) {
 
     Isolate *isolate = args.GetIsolate();
     NativeString hostnamePatternValue(isolate, args[0]);
-    if (hostnamePatternValue.isInvalid(args)) {
+    if (hostnamePatternValue.isInvalid()) {
         return;
     }
     std::string hostnamePattern;
@@ -919,7 +919,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
         /* Throw if we failed to construct the app */
         if (app->constructorFailed()) {
             delete app;
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "App construction failed", NewStringType::kNormal).ToLocalChecked())));
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "App construction failed")));
             return;
         }
 
@@ -949,8 +949,7 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                 // 1. Ensure args[2] is an Object
                 if (!args[2]->IsObject()) {
-                    isolate->ThrowException(v8::Exception::TypeError(
-                        v8::String::NewFromUtf8(isolate, "Cache options must be an object").ToLocalChecked()));
+                    isolate->ThrowException(v8::Exception::TypeError(String::NewFromUtf8Literal(isolate, "Cache options must be an object")));
                     return;
                 }
 
@@ -980,13 +979,13 @@ void uWS_App(const FunctionCallbackInfo<Value> &args) {
 
                 /* Pattern */
                 NativeString pattern(args.GetIsolate(), args[0]);
-                if (pattern.isInvalid(args)) {
+                if (pattern.isInvalid()) {
                     return;
                 }
 
                 /* Handler */
                 Callback checkedCallback(args.GetIsolate(), args[1]);
-                if (checkedCallback.isInvalid(args)) {
+                if (checkedCallback.isInvalid()) {
                     return;
                 }
                 NoexceptPersistent<Function> cb = checkedCallback.getFunction();

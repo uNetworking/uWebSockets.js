@@ -190,6 +190,109 @@ struct HttpResponseWrapper {
         }
     }
 
+    /* Parses with V8's own JSON parser, empty when the text is not valid JSON (the exception stays here) */
+    static MaybeLocal<Value> parseJson(Isolate *isolate, std::string_view json) {
+        TryCatch tryCatch(isolate);
+        Local<String> string;
+        if (json.length() > (size_t) String::kMaxLength || !String::NewFromUtf8(isolate, json.data(), NewStringType::kNormal, (int) json.length()).ToLocal(&string)) {
+            return {};
+        }
+        return JSON::Parse(isolate->GetCurrentContext(), string);
+    }
+
+    /* Takes integer maxSize and an optional function of the value. Collects the body like collectBody and parses it
+     * with JSON::Parse. The function gets the value, or undefined when the body is over maxSize or not valid JSON.
+     * Without a function it returns a Promise of the value: a body over maxSize gets a 413 and invalid JSON a 400 from
+     * here, and on abort the promise never settles, so an async handler needs neither onAborted nor try/catch */
+    template <int SSL>
+    static void res_collectJson(const FunctionCallbackInfo<Value> &args) {
+        Isolate *isolate = args.GetIsolate();
+        auto *res = getHttpResponse<SSL>(args);
+        if (!res) {
+            return;
+        }
+        Local<Context> context = isolate->GetCurrentContext();
+        size_t maxSize = (size_t) args[0]->NumberValue(context).ToChecked();
+
+        NoexceptPersistent<Function> callback;
+        NoexceptPersistent<Promise::Resolver> resolver;
+        NoexceptPersistent<Object> resObject;
+        if (args[1]->IsFunction()) {
+            callback.Reset(isolate, Local<Function>::Cast(args[1]));
+            args.GetReturnValue().Set(args.This());
+        } else {
+            Local<Promise::Resolver> promiseResolver = Promise::Resolver::New(context).ToLocalChecked();
+            resolver.Reset(isolate, promiseResolver);
+            resObject.Reset(isolate, args.This());
+
+            /* uWS terminates when a handler returns with no response and no abort handler, and an awaiting
+             * handler has neither. So attach one, unless there is already one: it only marks res invalid */
+            if (!args.This()->GetInternalField(1).As<Value>()->IsFunction()) {
+                NoexceptPersistent<Object> abortedObject(isolate, args.This());
+                res->onAborted([abortedObject = std::move(abortedObject), isolate]() {
+                    HandleScope hs(isolate);
+                    setInternalPointer(Local<Object>::New(isolate, abortedObject.p), nullptr);
+                });
+            }
+            args.GetReturnValue().Set(promiseResolver->GetPromise());
+        }
+
+        std::unique_ptr<std::vector<char>> buffer;
+        bool overflow = false;
+
+        res->onDataV2([callback = std::move(callback), resolver = std::move(resolver), resObject = std::move(resObject), buffer = std::move(buffer), overflow, maxSize, isolate, res](std::string_view data, uint64_t maxRemainingBodyLength) mutable {
+            /* After the JS call this lambda may be gone with the response, so nothing captured is used after it */
+            auto finish = [&](std::string_view json, bool tooBig) {
+                HandleScope hs(isolate);
+                Local<Value> value;
+                bool parsed = !tooBig && parseJson(isolate, json).ToLocal(&value);
+                if (!callback.IsEmpty()) {
+                    Local<Value> argv[] = {parsed ? value : Local<Value>(Undefined(isolate))};
+                    CallJS(isolate, callback.Get(isolate), 1, argv);
+                } else if (parsed) {
+                    /* In a callback scope the awaiting code runs before it closes, so its writes are still corked */
+                    insideCorkCallback++;
+                    {
+                        node::CallbackScope scope(isolate, isolate->GetCurrentContext()->Global(), {0, 0});
+                        resolver.Get(isolate)->Resolve(isolate->GetCurrentContext(), value).FromMaybe(false);
+                    }
+                    insideCorkCallback--;
+                } else {
+                    setInternalPointer(resObject.Get(isolate), nullptr);
+                    res->writeStatus(tooBig ? "413 Payload Too Large" : "400 Bad Request")->end({}, true);
+                }
+            };
+
+            if (overflow) {
+                return;
+            } else if (!buffer) {
+                if (data.size() > maxSize) {
+                    overflow = true;
+                    finish({}, true);
+                } else if (maxRemainingBodyLength == 0) {
+                    /* Single chunk: parsed straight from the received data */
+                    finish(data, false);
+                } else {
+                    buffer = std::make_unique<std::vector<char>>();
+                    if (maxRemainingBodyLength <= maxSize - data.size()) {
+                        buffer->reserve(maxRemainingBodyLength + data.size());
+                    }
+                    buffer->assign(data.begin(), data.end());
+                }
+            } else if (data.size() > maxSize - buffer->size()) {
+                buffer.reset();
+                overflow = true;
+                finish({}, true);
+            } else {
+                buffer->insert(buffer->end(), data.begin(), data.end());
+                if (maxRemainingBodyLength == 0) {
+                    auto body = std::move(buffer);
+                    finish({body->data(), body->size()}, false);
+                }
+            }
+        });
+    }
+
     /* Takes function of chunk and maxRemainingBodyLength. Returns this.
      * If maxRemainingBodyLength is 0, the last chunk has arrived. */
     template <int SSL>
@@ -613,6 +716,7 @@ struct HttpResponseWrapper {
             if constexpr (SSL != 2) {
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "onDataV2", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_onDataV2<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectBody", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectBody<SSL>));
+                resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "collectJson", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_collectJson<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getWriteOffset", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getWriteOffset<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "beginWrite", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_beginWrite<SSL>));
                 resTemplateLocal->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, "getRemoteAddress", NewStringType::kNormal).ToLocalChecked(), FunctionTemplate::New(isolate, res_getRemoteAddress<SSL>));

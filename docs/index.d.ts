@@ -205,6 +205,15 @@ export interface HttpResponse {
      * If the total body size exceeds maxSize bytes, handler is called with null instead. */
     collectBody(maxSize: number, handler: (fullBody: ArrayBuffer | null) => void) : HttpResponse;
 
+    /** collectJson collects the body like collectBody and parses it with V8's own JSON parser.
+     * The handler gets the value, or undefined when the body is over maxSize bytes or not valid JSON. */
+    collectJson(maxSize: number, handler: (value: any) => void) : HttpResponse;
+
+    /** Without a handler collectJson returns a Promise of the value. A body over maxSize bytes gets 413 and invalid JSON
+     * gets 400 from uWS itself, and on abort the promise never settles. So an async handler can await it with no
+     * onAborted and no try/catch, and write its response right after the await without cork. */
+    collectJson(maxSize: number) : Promise<any>;
+
     /** Handler for reading HTTP request body data. V2.
      * Must be attached before performing any asynchronous operation, otherwise data may be lost.
      * You MUST copy the data of chunk if maxRemainingBodyLength is not 0n. We Neuter ArrayBuffers on return, making them zero length.

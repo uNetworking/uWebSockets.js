@@ -538,7 +538,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<SSL>(args);
         if (res) {
             /* We require exactly 5 arguments */
-            if (args.Length() != 5) {
+            if (missingArguments(5, args)) {
                 return;
             }
 

@@ -31,7 +31,7 @@ struct HttpRequestWrapper {
         /* Thow on deleted request */
         auto *req = (uWS::HttpRequest *) getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
         if (!req) {
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "uWS.HttpRequest must not be accessed after await or route handler return. See documentation for uWS.HttpRequest and consult the user manual.", NewStringType::kNormal).ToLocalChecked())));
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "uWS.HttpRequest must not be accessed after await or route handler return. See documentation for uWS.HttpRequest and consult the user manual.")));
         }
 
         if constexpr (QUIC) {
@@ -72,7 +72,7 @@ struct HttpRequestWrapper {
                 parameter = req->getParameter(index);
             } else {
                 NativeString<true> data(args.GetIsolate(), args[0]);
-                if (data.isInvalid(args)) {
+                if (data.isInvalid()) {
                     return;
                 }
                 parameter = req->getParameter(data.getString());
@@ -101,7 +101,7 @@ struct HttpRequestWrapper {
         auto *req = getHttpRequest<QUIC>(args);
         if (req) {
             NativeString<true> data(args.GetIsolate(), args[0]);
-            if (data.isInvalid(args)) {
+            if (data.isInvalid()) {
                 return;
             }
 
@@ -159,7 +159,7 @@ struct HttpRequestWrapper {
             /* Do we have a key argument? */
             if (args.Length() == 1) {
                 NativeString<true> keyString(isolate, args[0]);
-                if (keyString.isInvalid(args)) {
+                if (keyString.isInvalid()) {
                     return;
                 }
 

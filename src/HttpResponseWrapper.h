@@ -38,7 +38,7 @@ struct HttpResponseWrapper {
         Isolate *isolate = args.GetIsolate();
         void *res = getInternalPointer(args.This());//->GetAlignedPointerFromInternalField(0);
         if (!res) {
-            args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8(isolate, "uWS.HttpResponse must not be accessed after uWS.HttpResponse.onAborted callback, or after a successful response. See documentation for uWS.HttpResponse and consult the user manual.", NewStringType::kNormal).ToLocalChecked())));
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "uWS.HttpResponse must not be accessed after uWS.HttpResponse.onAborted callback, or after a successful response. See documentation for uWS.HttpResponse and consult the user manual.")));
         }
 
         if constexpr (PROTOCOL == 2) {
@@ -373,7 +373,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<SSL>(args);
             if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
-            if (data.isInvalid(args)) {
+            if (data.isInvalid()) {
                 return;
             }
 
@@ -413,7 +413,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
-            if (data.isInvalid(args)) {
+            if (data.isInvalid()) {
                 return;
             }
 
@@ -437,7 +437,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
-            if (data.isInvalid(args)) {
+            if (data.isInvalid()) {
                 return;
             }
 
@@ -467,7 +467,7 @@ struct HttpResponseWrapper {
         auto *res = getHttpResponse<PROTOCOL>(args);
         if (res) {
             NativeString<true> data(args.GetIsolate(), args[0]);
-            if (data.isInvalid(args)) {
+            if (data.isInvalid()) {
                 return;
             }
             assumeCorked();
@@ -499,11 +499,11 @@ struct HttpResponseWrapper {
             // Optimization: writeHeader never calls JS or allocated on the GC
             // use zero copy string view in best case
             NativeString<true> header(args.GetIsolate(), args[0]);
-            if (header.isInvalid(args)) {
+            if (header.isInvalid()) {
                 return;
             }
             NativeString<true> value(args.GetIsolate(), args[1]);
-            if (value.isInvalid(args)) {
+            if (value.isInvalid()) {
                 return;
             }
             assumeCorked();
@@ -543,17 +543,17 @@ struct HttpResponseWrapper {
             }
 
             NativeString secWebSocketKey(args.GetIsolate(), args[1]);
-            if (secWebSocketKey.isInvalid(args)) {
+            if (secWebSocketKey.isInvalid()) {
                 return;
             }
 
             NativeString secWebSocketProtocol(args.GetIsolate(), args[2]);
-            if (secWebSocketProtocol.isInvalid(args)) {
+            if (secWebSocketProtocol.isInvalid()) {
                 return;
             }
 
             NativeString secWebSocketExtensions(args.GetIsolate(), args[3]);
-            if (secWebSocketExtensions.isInvalid(args)) {
+            if (secWebSocketExtensions.isInvalid()) {
                 return;
             }
 

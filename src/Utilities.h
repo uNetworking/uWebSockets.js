@@ -143,7 +143,7 @@ static inline bool missingArguments(int length, const FunctionCallbackInfo<Value
         std::string message = "Function requires at least ";
         message += std::to_string(length);
         message += " arguments.";
-        args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), message.c_str(), NewStringType::kNormal).ToLocalChecked())));
+        args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), message.c_str(), NewStringType::kNormal).ToLocalChecked()));
         return true;
     }
     return false;
@@ -156,16 +156,14 @@ struct Callback {
 
         if (!value->IsFunction()) {
             invalid = true;
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "Passed callback is not a valid function.")));
             return;
         }
 
         f.Reset(isolate, Local<Function>::Cast(value));
     }
 
-    bool isInvalid(const FunctionCallbackInfo<Value> &args) {
-        if (invalid) {
-            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Passed callback is not a valid function.", NewStringType::kNormal).ToLocalChecked())));
-        }
+    bool isInvalid() {
         return invalid;
     }
 
@@ -280,13 +278,11 @@ public:
             data = (char *) arrayBuffer->Data();
         } else {
             invalid = true;
+            isolate->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(isolate, "Text and data can only be passed by String, ArrayBuffer or ArrayBufferView.")));
         }
     }
 
-    bool isInvalid(const FunctionCallbackInfo<Value> &args) {
-        if (invalid) {
-            args.GetReturnValue().Set(args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8(args.GetIsolate(), "Text and data can only be passed by String, ArrayBuffer or ArrayBufferView.", NewStringType::kNormal).ToLocalChecked())));
-        }
+    bool isInvalid() {
         return invalid;
     }
 

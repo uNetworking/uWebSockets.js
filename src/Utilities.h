@@ -178,18 +178,19 @@ template <bool AllowStringView = false>
 class NativeString {
     char *data;
     size_t length;
-    bool allocated = false;
     bool invalid = false;
 
     // State shared by all NativeString instances on this thread, in one thread-local read once per
-    // instance: in an addon every thread-local access is a call into the dynamic linker
+    // string: in an addon every thread-local access is a call into the dynamic linker
     struct Pool {
         std::vector<char> buffer = std::vector<char>(128 * 1024);
         size_t offset = 0;
         int refCount = 0;
     };
     inline static thread_local Pool threadPool;
-    Pool *pool;
+    // Only a string uses the pool, binary data never reads it. Null also tells the destructor there
+    // is nothing to free
+    Pool *pool = nullptr;
 
     char* alloc(size_t size) {
         // Ensure size is a multiple of 8
@@ -217,16 +218,16 @@ class NativeString {
 
 public:
     NativeString(Isolate *isolate, const Local<Value> &value) {
-        pool = &threadPool;
-        if (pool->refCount == 0) {
-            pool->offset = 0; // Reset the "stack" when entering the first scope
-        }
-        pool->refCount++;
-
         if (value->IsUndefined()) {
             data = nullptr;
             length = 0;
         } else if (value->IsString()) {
+            pool = &threadPool;
+            if (pool->refCount == 0) {
+                pool->offset = 0; // Reset the "stack" when entering the first scope
+            }
+            pool->refCount++;
+
             Local<String> string = Local<String>::Cast(value);
 
             /* One pass: write straight into what is left of the pool and keep the bytes written.
@@ -263,7 +264,6 @@ public:
                     string->WriteUtf8(isolate, data, length, nullptr, String::WriteOptions::NO_NULL_TERMINATION);
                 #endif
             }
-            allocated = true;
 
 
         } else if (value->IsArrayBufferView()) { /* DataView or TypedArray */
@@ -295,8 +295,8 @@ public:
     }
 
     ~NativeString() {
-        pool->refCount--;
-        if (allocated) {
+        if (pool) {
+            pool->refCount--;
             free(data);
         }
     }

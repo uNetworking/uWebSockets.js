@@ -13,19 +13,21 @@ const app = uWS./*SSL*/App({
   passphrase: '1234'
 }).post('/*', (res, req) => {
   console.log('Posted to ' + req.getUrl());
-  res.onData((chunk, isLast) => {
+  /* It also gets the abort, as res null, so no onAborted is needed */
+  res.onDataOrAborted((res, chunk, maxRemainingBodyLength) => {
+    if (!res) {
+      /* Request was prematurely aborted, stop reading */
+      console.log('Eh, okay. Thanks for nothing!');
+      return;
+    }
+
     /* Buffer this anywhere you want to */
-    console.log('Got chunk of data with length ' + chunk.byteLength + ', isLast: ' + isLast);
+    console.log('Got chunk of data with length ' + chunk.byteLength + ', maxRemainingBodyLength: ' + maxRemainingBodyLength);
 
     /* We respond when we are done */
-    if (isLast) {
+    if (maxRemainingBodyLength === 0n) {
       res.end('Thanks for the data!');
     }
-  });
-
-  res.onAborted(() => {
-    /* Request was prematurely aborted, stop reading */
-    console.log('Eh, okay. Thanks for nothing!');
   });
 }).listen(port, (token) => {
   if (token) {

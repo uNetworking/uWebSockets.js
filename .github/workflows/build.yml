@@ -13,6 +13,9 @@ jobs:
       - name: Setup Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
+        # The 14.52 STL wants Clang 22, the image has Clang 20
+        with:
+          toolset: "14.44"
       - name: Setup NASM for Windows
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1.2.1

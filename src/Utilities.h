@@ -51,7 +51,13 @@ MaybeLocal<Value> CallJS(Isolate *isolate, Local<Function> f, int argc, Local<Va
     /* All calls we do into JS are properly corked, except for res.cork, where we increase the counter explicitly */
     insideCorkCallback++;
     /* Slow path */
+#if NODE_MAJOR_VERSION >= 27
+    /* One Environment per thread: take it once, so Node does not look it up on every call */
+    static thread_local node::Environment *env = node::GetCurrentEnvironment(isolate->GetCurrentContext());
+    auto ret = node::MakeCallback(env, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+#else
     auto ret = node::MakeCallback(isolate, isolate->GetCurrentContext()->Global(), f, argc, argv, {0, 0});
+#endif
     insideCorkCallback--;
     return ret;
 }
